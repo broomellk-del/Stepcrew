@@ -405,7 +405,7 @@ async function saveShared(code,data){try{await db.collection("crews").doc(code).
 async function loadShared(code){try{const s=await db.collection("crews").doc(code).get();return s.exists?s.data():null;}catch(e){console.error(e);return null;}}
 function saveLocal(code,data){try{localStorage.setItem("sc_"+code,JSON.stringify(data));}catch(e){}}
 function loadLocal(code){try{const r=localStorage.getItem("sc_"+code);return r?JSON.parse(r):null;}catch(e){return null;}}
-function saveSession(code,id,synced){try{localStorage.setItem("sc_sess",JSON.stringify({code,id,synced}));}catch(e){}}
+function saveSession(code,id,synced){try{localStorage.setItem("sc_sess",JSON.stringify({code,id:Number(id),synced}));}catch(e){}}
 function loadSession(){try{const r=localStorage.getItem("sc_sess");return r?JSON.parse(r):null;}catch(e){return null;}}
 
 // ── Constants ─────────────────────────────────────────────────────────────────
@@ -573,7 +573,7 @@ async function restoreSession(){
 
   if(!local)return false;
 
-  S.crewCode=sess.code;S.isSynced=sess.synced;S.myId=sess.id;
+  S.crewCode=sess.code;S.isSynced=sess.synced;S.myId=Number(sess.id);
   S.members=local.members||[];S.steps=local.steps||{};
   S.pushed=local.pushed||{};S.crewGoals=local.crewGoals||S.crewGoals;
 
@@ -582,6 +582,13 @@ async function restoreSession(){
   saveSession(sess.code,sess.id,sess.synced);
 
   if(S.isSynced)await pullSync(true);
+  // Verify myId still exists in members list
+  const me=S.members.find(m=>Number(m.id)===Number(S.myId));
+  if(!me&&S.members.length>0){
+    // myId not found — clear stale session and show onboard
+    try{localStorage.removeItem("sc_sess");}catch(e){}
+    return false;
+  }
   return true;
 }
 
@@ -929,7 +936,7 @@ function startEdit(mid){S.editingId=Number(mid);renderMyBox();setTimeout(()=>{co
 async function saveSteps(mid,share){
   const el=document.getElementById("my-inp");if(!el)return;
   const val=parseInt(el.value,10);if(isNaN(val)||val<0)return;
-  const today=todayKey();
+  const today=S.logDate||todayKey();
   if(!S.steps[today])S.steps[today]={};
   S.steps[today][Number(mid)]=val;S.editingId=null;
   if(share){
@@ -961,6 +968,7 @@ async function pushMember(mid){
 
 function setView(v,btn){
   S.view=v;S.editingId=null;
+  if(v==="today") S.logDate=S.logDate||todayKey();
   document.querySelectorAll(".nav-btn").forEach(b=>b.classList.remove("active"));btn.classList.add("active");
   ["today","week","history"].forEach(k=>{document.getElementById("view-"+k).style.display=k===v?"block":"none";});
   renderView();
