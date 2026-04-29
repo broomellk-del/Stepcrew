@@ -1,273 +1,392 @@
-<!DOCTYPE html>
+  <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>StepCrew 👟</title>
-  <meta name="theme-color" content="#07070e"/>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-  <style>
-    *{box-sizing:border-box;margin:0;padding:0;}
-    body{background:#07070e;color:#f0f0f0;font-family:Georgia,serif;min-height:100vh;}
-    input,button,select{font-family:Georgia,serif;}
-    input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;}
-    .screen{display:none;min-height:100vh;}
-    .screen.active{display:block;}
-    /* Onboard */
-    #onboard{display:flex;align-items:center;justify-content:center;padding:20px;}
-    .card{background:rgba(255,255,255,0.04);border-radius:20px;padding:22px;width:100%;max-width:400px;border:1px solid rgba(255,255,255,0.08);}
-    .logo{text-align:center;margin-bottom:28px;}
-    .logo-icon{font-size:56px;}
-    .logo-title{font-size:30px;font-weight:900;color:#fff;letter-spacing:-1px;margin-top:4px;}
-    .logo-sub{font-size:12px;color:#444;margin-top:4px;letter-spacing:3px;text-transform:uppercase;}
-    label.field-label{font-size:10px;color:#555;letter-spacing:1.5px;text-transform:uppercase;display:block;margin-bottom:5px;margin-top:12px;}
-    .inp{width:100%;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);color:#fff;border-radius:9px;padding:9px 12px;font-size:14px;outline:none;}
-    .avatar-row{display:flex;gap:5px;flex-wrap:wrap;margin-top:4px;}
-    .av-btn{font-size:18px;background:rgba(255,255,255,0.04);border:2px solid transparent;border-radius:7px;padding:4px 6px;cursor:pointer;}
-    .av-btn.sel{background:rgba(255,107,107,0.3);border-color:#FF6B6B;}
-    .sync-row{display:flex;gap:6px;margin-top:4px;}
-    .sync-btn{flex:1;padding:8px 3px;border-radius:9px;border:none;cursor:pointer;font-size:11px;background:rgba(255,255,255,0.07);color:#666;font-weight:400;}
-    .sync-btn.sel{background:linear-gradient(135deg,#FF6B6B,#c62a47);color:#fff;font-weight:700;}
-    .info-box{border-radius:9px;padding:9px 12px;font-size:11px;margin-top:8px;margin-bottom:4px;line-height:1.55;}
-    .btn-primary{width:100%;margin-top:14px;padding:13px 0;border-radius:12px;border:none;cursor:pointer;background:linear-gradient(135deg,#FF6B6B,#c62a47);color:#fff;font-weight:800;font-size:16px;}
-    .err{color:#ff6b6b;font-size:12px;margin-top:8px;}
-    /* App */
-    #app{padding-bottom:80px;}
-    .header{background:linear-gradient(180deg,#10101f,#07070e);padding:14px 20px 10px;border-bottom:1px solid rgba(255,255,255,0.06);position:sticky;top:0;z-index:100;}
-    .header-inner{max-width:640px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;}
-    .header-title{font-size:18px;font-weight:900;}
-    .header-sub{font-size:10px;margin-top:1px;color:#555;}
-    .header-btns{display:flex;gap:6px;}
-    .sm-btn{background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.1);color:#ccc;border-radius:18px;padding:5px 11px;font-size:11px;cursor:pointer;}
-    .banner{padding:9px 20px;border-bottom:1px solid rgba(78,205,196,0.15);background:rgba(78,205,196,0.08);display:none;}
-    .banner.show{display:block;}
-    .banner-inner{max-width:640px;margin:0 auto;display:flex;justify-content:space-between;align-items:center;font-size:12px;color:#4ecdc4;}
-    .content{max-width:640px;margin:0 auto;padding:12px 20px 0;}
-    .crew-goals{background:linear-gradient(135deg,rgba(255,215,0,0.08),rgba(255,215,0,0.03));border-radius:15px;padding:13px 16px;margin-bottom:10px;border:1px solid rgba(255,215,0,0.2);display:none;}
-    .crew-goals.show{display:block;}
-    .goals-title{font-size:10px;color:#FFD700;text-transform:uppercase;letter-spacing:1.5px;margin-bottom:8px;}
-    .goal-row{margin-bottom:8px;}
-    .goal-row-head{display:flex;justify-content:space-between;margin-bottom:4px;font-size:12px;color:#ccc;}
-    .goal-val{font-size:13px;font-weight:700;color:#FFD700;}
-    .pbar{background:rgba(255,255,255,0.08);border-radius:4px;height:6px;overflow:hidden;}
-    .pbar-fill{height:100%;border-radius:4px;transition:width 0.5s;}
-    /* My box */
-    .my-box{border-radius:15px;padding:13px 15px;margin-bottom:10px;}
-    .member-row{display:flex;align-items:center;gap:9px;margin-bottom:9px;}
-    .member-avatar{font-size:26px;}
-    .member-name{font-weight:800;font-size:15px;}
-    .member-sub{font-size:10px;color:#555;margin-top:1px;}
-    .member-steps{text-align:right;}
-    .steps-big{font-size:25px;font-weight:900;}
-    .steps-pct{font-size:10px;color:#555;}
-    .action-row{display:flex;gap:5px;}
-    .log-btn{flex:1;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.15);color:#ccc;border-radius:8px;padding:8px 0;cursor:pointer;font-size:12px;}
-    .share-btn{background:#FF6B6B;border:none;color:#000;border-radius:8px;padding:8px 13px;cursor:pointer;font-weight:800;font-size:12px;}
-    .push-hint{font-size:10px;color:#666;margin-top:5px;text-align:center;}
-    .edit-row{display:flex;gap:5px;margin-top:4px;}
-    .steps-inp{flex:1;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.3);color:#fff;border-radius:8px;padding:8px 11px;font-size:14px;outline:none;}
-    .save-btn{background:#FF6B6B;border:none;color:#000;border-radius:8px;padding:8px 13px;cursor:pointer;font-weight:800;font-size:12px;}
-    .local-btn{background:rgba(255,255,255,0.07);border:none;color:#aaa;border-radius:8px;padding:8px 9px;cursor:pointer;font-size:11px;}
-    .cancel-x{background:none;border:none;color:#444;cursor:pointer;font-size:14px;}
-    /* Challenge */
-    .challenge{border-radius:13px;padding:11px 14px;margin-bottom:12px;border:1px solid rgba(255,255,255,0.07);background:rgba(255,255,255,0.03);display:flex;align-items:center;gap:10px;}
-    .challenge.done{background:rgba(255,230,109,0.1);border-color:rgba(255,230,109,0.35);}
-    .chal-icon{font-size:22px;}
-    .chal-info{flex:1;}
-    .chal-label{font-size:10px;color:#555;text-transform:uppercase;letter-spacing:1px;}
-    .chal-title{font-size:13px;font-weight:700;color:#ddd;margin-top:1px;}
-    .chal-title.done{color:#FFE66D;}
-    .chal-desc{font-size:11px;color:#555;}
-    /* Nav */
-    .nav{display:flex;gap:6px;margin-bottom:12px;}
-    .nav-btn{flex:1;padding:8px 0;border-radius:10px;border:none;cursor:pointer;background:rgba(255,255,255,0.06);color:#666;font-weight:400;font-size:13px;}
-    .nav-btn.active{background:linear-gradient(135deg,#FF6B6B,#c62a47);color:#fff;font-weight:700;}
-    /* Member cards */
-    .member-card{background:rgba(255,255,255,0.035);border-radius:13px;padding:12px 14px;margin-bottom:9px;border:1px solid rgba(255,255,255,0.06);}
-    .member-card.me{background:rgba(255,107,107,0.05);border-color:rgba(255,107,107,0.2);}
-    .tag{font-size:9px;border-radius:4px;padding:1px 5px;margin-left:5px;letter-spacing:0.5px;}
-    .card-steps-big{font-size:19px;font-weight:800;}
-    .card-pct{font-size:10px;color:#444;}
-    .rank{width:20px;text-align:center;font-weight:800;font-size:13px;}
-    .day-bars{display:flex;gap:3px;margin-top:6px;}
-    .day-bar-wrap{flex:1;text-align:center;}
-    .day-bar-bg{background:rgba(255,255,255,0.05);border-radius:3px;height:26px;position:relative;overflow:hidden;}
-    .day-bar-fill{position:absolute;bottom:0;left:0;right:0;border-radius:3px;}
-    .day-label{font-size:8px;color:#333;margin-top:2px;}
-    .day-label.today{color:#ccc;}
-    /* Insight */
-    .insight{background:rgba(255,107,107,0.07);border-radius:13px;padding:11px 14px;margin-bottom:12px;border:1px solid rgba(255,107,107,0.18);}
-    .insight-label{font-size:10px;color:#FF6B6B;text-transform:uppercase;letter-spacing:1.5px;margin-bottom:3px;}
-    .insight-text{font-size:13px;color:#ccc;line-height:1.7;}
-    /* Month chart */
-    .month-chart{background:rgba(255,255,255,0.03);border-radius:13px;padding:12px 14px;margin-bottom:12px;border:1px solid rgba(255,255,255,0.06);}
-    .chart-label{font-size:10px;color:#444;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;}
-    .chart-bars{display:flex;align-items:flex-end;gap:2px;height:52px;}
-    .chart-bar{flex:1;min-height:2px;border-radius:2px 2px 0 0;transition:height 0.3s;}
-    .chart-footer{display:flex;justify-content:space-between;margin-top:3px;}
-    .chart-footer span{font-size:8px;color:#333;}
-    .chart-footer .today-lbl{color:#FF6B6B;}
-    /* Modal */
-    .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.78);z-index:300;display:none;align-items:center;justify-content:center;padding:20px;}
-    .modal-overlay.show{display:flex;}
-    .modal-box{background:#121220;border-radius:18px;padding:22px;width:100%;max-width:380px;border:1px solid rgba(255,255,255,0.09);}
-    .modal-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;}
-    .modal-title{font-size:15px;font-weight:700;}
-    .modal-close{background:none;border:none;color:#444;font-size:16px;cursor:pointer;}
-    .modal-body p{font-size:12px;color:#777;margin-bottom:12px;}
-    .btn-row{display:flex;gap:8px;margin-top:14px;}
-    .btn-cancel{flex:1;padding:9px 0;border-radius:9px;border:1px solid rgba(255,255,255,0.09);background:transparent;color:#666;cursor:pointer;font-size:13px;}
-    .btn-save{flex:1;padding:9px 0;border-radius:9px;border:none;background:linear-gradient(135deg,#FF6B6B,#c62a47);color:#fff;font-weight:700;cursor:pointer;font-size:13px;}
-    .btn-gold{flex:1;padding:9px 0;border-radius:9px;border:none;background:linear-gradient(135deg,#FFD700,#b8860b);color:#000;font-weight:700;cursor:pointer;font-size:13px;}
-    .btn-danger{padding:9px 12px;border-radius:9px;border:1px solid rgba(255,80,80,0.25);background:transparent;color:#ff6b6b;cursor:pointer;font-size:13px;}
-    /* Toast */
-    .toast{position:fixed;top:16px;left:50%;transform:translateX(-50%);background:#1c1c2e;border:1px solid rgba(255,255,255,0.12);color:#fff;padding:9px 18px;border-radius:20px;z-index:999;font-size:12px;box-shadow:0 6px 30px rgba(0,0,0,0.5);white-space:nowrap;display:none;}
-    .toast.show{display:block;}
-    .mod-info{font-size:11px;color:#FFD700;margin-bottom:14px;background:rgba(255,215,0,0.07);border-radius:8px;padding:8px 12px;border:1px solid rgba(255,215,0,0.15);}
-  </style>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>StepCrew 👟</title>
+<meta name="theme-color" content="#f5f5f7"/>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Syne:wght@700;800&display=swap" rel="stylesheet"/>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<style>
+:root{
+  --bg:#f0f0f5;
+  --surface:#ffffff;
+  --surface2:#f5f5f7;
+  --border:#e8e8ec;
+  --text:#1a1a2e;
+  --text2:#6b7280;
+  --text3:#9ca3af;
+  --accent:#6366f1;
+  --accent2:#818cf8;
+  --accent-bg:#eef0ff;
+  --accent-bg2:#dde0ff;
+  --green:#10b981;
+  --gold:#f59e0b;
+  --red:#ef4444;
+  --shadow:0 2px 12px rgba(0,0,0,0.06);
+  --shadow-lg:0 8px 30px rgba(0,0,0,0.1);
+  --radius:16px;
+  --radius-sm:10px;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--text);font-family:'Space Grotesk',sans-serif;min-height:100vh;}
+input,button,select{font-family:'Space Grotesk',sans-serif;}
+input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;}
+input:focus,select:focus{outline:none;}
+
+/* ── SCREENS ── */
+.screen{display:none;min-height:100vh;}
+.screen.active{display:block;}
+
+/* ── ONBOARD ── */
+#onboard{min-height:100vh;background:linear-gradient(160deg,#eef0ff 0%,#f5f5f7 50%,#fff 100%);display:flex;align-items:center;justify-content:center;padding:24px;}
+.ob-card{background:#fff;border-radius:24px;padding:28px;width:100%;max-width:420px;box-shadow:var(--shadow-lg);}
+.ob-logo{text-align:center;margin-bottom:28px;}
+.ob-logo-icon{font-size:52px;display:block;}
+.ob-logo-title{font-family:'Syne',sans-serif;font-size:28px;font-weight:800;color:var(--text);letter-spacing:-1px;margin-top:6px;}
+.ob-logo-sub{font-size:11px;color:var(--text3);margin-top:3px;letter-spacing:3px;text-transform:uppercase;}
+.field{margin-bottom:14px;}
+.field-label{font-size:10px;color:var(--text3);letter-spacing:1.5px;text-transform:uppercase;display:block;margin-bottom:6px;font-weight:600;}
+.inp{width:100%;background:var(--surface2);border:1.5px solid var(--border);color:var(--text);border-radius:var(--radius-sm);padding:11px 14px;font-size:14px;outline:none;transition:border-color 0.2s;}
+.inp:focus{border-color:var(--accent);background:#fff;}
+.av-row{display:flex;gap:6px;flex-wrap:wrap;}
+.av-btn{font-size:20px;background:var(--surface2);border:2px solid transparent;border-radius:10px;padding:5px 7px;cursor:pointer;transition:all 0.15s;}
+.av-btn.sel{background:var(--accent-bg);border-color:var(--accent);}
+.sync-row{display:flex;gap:6px;}
+.sync-btn{flex:1;padding:9px 4px;border-radius:var(--radius-sm);border:1.5px solid var(--border);cursor:pointer;font-size:11px;background:#fff;color:var(--text2);font-weight:500;transition:all 0.15s;}
+.sync-btn.sel{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:700;}
+.info-box{border-radius:var(--radius-sm);padding:10px 13px;font-size:12px;margin-top:8px;line-height:1.6;}
+.btn-primary{width:100%;margin-top:6px;padding:14px 0;border-radius:var(--radius-sm);border:none;cursor:pointer;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;font-weight:700;font-size:15px;transition:opacity 0.2s;position:relative;}
+.btn-primary:disabled{opacity:0.7;cursor:not-allowed;}
+.spinner{width:18px;height:18px;border:2px solid rgba(255,255,255,0.3);border-top-color:#fff;border-radius:50%;animation:spin 0.8s linear infinite;display:inline-block;vertical-align:middle;margin-right:6px;}
+@keyframes spin{to{transform:rotate(360deg);}}
+.err-msg{color:var(--red);font-size:12px;margin-top:6px;}
+
+/* ── APP ── */
+#app{background:var(--bg);min-height:100vh;padding-bottom:90px;}
+
+/* Header */
+.header{background:#fff;padding:14px 20px 12px;border-bottom:1px solid var(--border);position:sticky;top:0;z-index:100;box-shadow:0 1px 0 rgba(0,0,0,0.04);}
+.header-inner{max-width:640px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;}
+.header-logo{font-family:'Syne',sans-serif;font-size:18px;font-weight:800;color:var(--text);letter-spacing:-0.5px;}
+.header-sub{font-size:10px;color:var(--text3);margin-top:1px;display:flex;align-items:center;gap:4px;}
+.crew-dot{width:6px;height:6px;border-radius:50%;background:var(--green);display:inline-block;}
+.header-btns{display:flex;gap:6px;align-items:center;}
+.hbtn{background:var(--surface2);border:1.5px solid var(--border);color:var(--text2);border-radius:20px;padding:5px 12px;font-size:11px;font-weight:600;cursor:pointer;transition:all 0.15s;}
+.hbtn:hover{background:var(--accent-bg);border-color:var(--accent);color:var(--accent);}
+.hbtn.mod{background:linear-gradient(135deg,#fef3c7,#fde68a);border-color:#f59e0b;color:#92400e;}
+.hbtn.sync{background:var(--accent-bg);border-color:var(--accent);color:var(--accent);}
+
+/* Banner */
+.banner{display:none;padding:10px 20px;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;}
+.banner.show{display:block;}
+.banner-inner{max-width:640px;margin:0 auto;display:flex;justify-content:space-between;align-items:center;font-size:12px;font-weight:500;}
+.banner-close{background:rgba(255,255,255,0.2);border:none;color:#fff;width:22px;height:22px;border-radius:50%;cursor:pointer;font-size:13px;display:flex;align-items:center;justify-content:center;}
+
+/* Content */
+.content{max-width:640px;margin:0 auto;padding:16px 16px 0;}
+
+/* Crew Goals */
+.crew-goals{background:linear-gradient(135deg,var(--accent),var(--accent2));border-radius:var(--radius);padding:16px;margin-bottom:14px;color:#fff;display:none;}
+.crew-goals.show{display:block;}
+.cg-title{font-size:9px;color:rgba(255,255,255,0.7);letter-spacing:2px;text-transform:uppercase;margin-bottom:10px;font-weight:600;}
+.cg-goal{margin-bottom:10px;}
+.cg-row{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:5px;}
+.cg-label{font-size:12px;color:rgba(255,255,255,0.8);}
+.cg-val{font-family:'Syne',sans-serif;font-size:15px;font-weight:700;}
+.cg-pbar{background:rgba(255,255,255,0.2);border-radius:6px;height:6px;overflow:hidden;}
+.cg-pbar-fill{height:100%;border-radius:6px;background:#fff;transition:width 0.5s;}
+.cg-sub{font-size:10px;color:rgba(255,255,255,0.6);margin-top:3px;}
+
+/* My Box */
+.my-box{background:#fff;border-radius:var(--radius);padding:16px;margin-bottom:14px;box-shadow:var(--shadow);border-top:3px solid var(--accent);}
+.mb-row{display:flex;align-items:center;gap:12px;margin-bottom:12px;}
+.mb-av{width:44px;height:44px;background:var(--accent-bg);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;}
+.mb-info{flex:1;}
+.mb-name{font-weight:700;font-size:15px;color:var(--text);display:flex;align-items:center;gap:6px;flex-wrap:wrap;}
+.tag{font-size:9px;border-radius:4px;padding:2px 6px;font-weight:700;letter-spacing:0.5px;}
+.tag-you{background:var(--accent-bg);color:var(--accent);}
+.tag-mod{background:#fef3c7;color:#92400e;}
+.tag-manual{background:#f0fdf4;color:#16a34a;}
+.mb-sub{font-size:10px;color:var(--text3);margin-top:2px;}
+.mb-steps{text-align:right;}
+.mb-num{font-family:'Syne',sans-serif;font-size:28px;font-weight:800;color:var(--accent);}
+.mb-pct{font-size:10px;color:var(--text3);}
+.pbar{background:var(--surface2);border-radius:6px;height:7px;overflow:hidden;margin-bottom:12px;}
+.pbar-fill{height:100%;border-radius:6px;background:linear-gradient(90deg,var(--accent),var(--accent2));transition:width 0.5s;}
+.pbar-fill.gold{background:linear-gradient(90deg,#f59e0b,#fbbf24);}
+.action-row{display:flex;gap:8px;}
+.log-btn{flex:1;background:var(--accent-bg);border:1.5px solid var(--accent-bg2);color:var(--accent);border-radius:var(--radius-sm);padding:10px;font-size:13px;font-weight:600;cursor:pointer;transition:all 0.15s;}
+.log-btn:hover{background:var(--accent-bg2);}
+.share-btn{background:linear-gradient(135deg,var(--accent),var(--accent2));border:none;color:#fff;border-radius:var(--radius-sm);padding:10px 16px;font-size:13px;font-weight:700;cursor:pointer;}
+.edit-row{display:flex;gap:6px;}
+.steps-inp{flex:1;background:var(--surface2);border:1.5px solid var(--accent);color:var(--text);border-radius:var(--radius-sm);padding:10px 13px;font-size:15px;outline:none;}
+.save-btn{background:linear-gradient(135deg,var(--accent),var(--accent2));border:none;color:#fff;border-radius:var(--radius-sm);padding:10px 16px;font-size:13px;font-weight:700;cursor:pointer;}
+.local-btn{background:var(--surface2);border:1.5px solid var(--border);color:var(--text2);border-radius:var(--radius-sm);padding:10px;font-size:12px;cursor:pointer;}
+.cancel-x{background:none;border:none;color:var(--text3);cursor:pointer;font-size:16px;padding:0 4px;}
+.push-hint{font-size:10px;color:var(--text3);margin-top:6px;text-align:center;}
+
+/* Challenge */
+.challenge{background:#fff;border-radius:var(--radius);padding:14px 16px;margin-bottom:14px;box-shadow:var(--shadow);display:flex;align-items:center;gap:12px;}
+.challenge.done{background:linear-gradient(135deg,#f0fdf4,#dcfce7);border:1.5px solid #86efac;}
+.chal-icon{font-size:24px;}
+.chal-info{flex:1;}
+.chal-label{font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:1.5px;font-weight:600;}
+.chal-name{font-size:14px;font-weight:700;color:var(--text);margin-top:1px;}
+.chal-name.done{color:#16a34a;}
+.chal-desc{font-size:11px;color:var(--text3);margin-top:1px;}
+.chal-done{font-size:12px;color:#16a34a;font-weight:700;}
+.chal-select{background:var(--surface2);border:1.5px solid var(--border);color:var(--text2);border-radius:8px;padding:5px 8px;font-size:10px;cursor:pointer;font-weight:600;}
+
+/* Nav */
+.nav{display:flex;background:#fff;border-radius:var(--radius);padding:5px;margin-bottom:14px;box-shadow:var(--shadow);gap:4px;}
+.nav-btn{flex:1;padding:9px 0;border-radius:var(--radius-sm);border:none;font-size:13px;font-weight:600;cursor:pointer;transition:all 0.2s;background:transparent;color:var(--text3);}
+.nav-btn.active{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;box-shadow:0 2px 8px rgba(99,102,241,0.3);}
+
+/* Member cards */
+.member-card{background:#fff;border-radius:var(--radius);padding:14px 16px;margin-bottom:10px;box-shadow:var(--shadow);}
+.member-card.leader{border-left:3px solid var(--gold);}
+.mc-row{display:flex;align-items:center;gap:10px;margin-bottom:10px;}
+.mc-av{width:38px;height:38px;background:var(--accent-bg);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;}
+.mc-name{font-weight:700;font-size:14px;color:var(--text);}
+.mc-sub{font-size:10px;color:var(--text3);margin-top:1px;}
+.mc-steps{text-align:right;margin-left:auto;}
+.mc-num{font-family:'Syne',sans-serif;font-size:20px;font-weight:800;}
+.mc-pct{font-size:10px;color:var(--text3);}
+.rank-badge{width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;flex-shrink:0;}
+.day-bars{display:flex;gap:3px;margin-top:8px;}
+.day-bar-wrap{flex:1;text-align:center;}
+.day-bar-bg{background:var(--surface2);border-radius:4px;height:28px;position:relative;overflow:hidden;}
+.day-bar-fill{position:absolute;bottom:0;left:0;right:0;border-radius:4px;transition:height 0.3s;}
+.day-lbl{font-size:8px;color:var(--text3);margin-top:2px;}
+.day-lbl.today{color:var(--accent);font-weight:700;}
+
+/* Insight */
+.insight{background:linear-gradient(135deg,var(--accent-bg),#f5f5f7);border-radius:var(--radius);padding:14px 16px;margin-bottom:12px;border-left:3px solid var(--accent);}
+.insight-label{font-size:9px;color:var(--accent);text-transform:uppercase;letter-spacing:1.5px;font-weight:700;margin-bottom:4px;}
+.insight-text{font-size:13px;color:var(--text);line-height:1.7;}
+
+/* History / Chart */
+.chart-card{background:#fff;border-radius:var(--radius);padding:16px;margin-bottom:12px;box-shadow:var(--shadow);}
+.chart-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;}
+.chart-title-txt{font-size:12px;font-weight:700;color:var(--text);text-transform:uppercase;letter-spacing:1px;}
+.chart-filters{display:flex;gap:4px;}
+.cf-btn{font-size:10px;padding:4px 10px;border-radius:6px;border:none;cursor:pointer;font-weight:700;transition:all 0.15s;}
+.cf-btn.on{background:var(--accent);color:#fff;}
+.cf-btn.off{background:var(--surface2);color:var(--text3);}
+.line-chart-wrap{height:100px;position:relative;margin-bottom:6px;}
+.line-chart-wrap svg{width:100%;height:100%;}
+.chart-x-labels{display:flex;justify-content:space-between;font-size:9px;color:var(--text3);margin-bottom:4px;}
+.member-filter{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px;}
+.mf-btn{font-size:10px;padding:4px 10px;border-radius:20px;border:1.5px solid var(--border);cursor:pointer;font-weight:600;background:#fff;transition:all 0.15s;color:var(--text2);}
+.mf-btn.on{border-color:var(--accent);color:var(--accent);background:var(--accent-bg);}
+
+/* Calendar heatmap */
+.cal-wrap{background:#fff;border-radius:var(--radius);padding:16px;margin-bottom:12px;box-shadow:var(--shadow);}
+.cal-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;}
+.cal-nav{display:flex;align-items:center;gap:10px;}
+.cal-nav-btn{background:var(--surface2);border:1.5px solid var(--border);color:var(--text2);width:28px;height:28px;border-radius:8px;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;}
+.cal-month{font-size:13px;font-weight:700;color:var(--text);}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;}
+.cal-dow{font-size:9px;color:var(--text3);text-align:center;padding-bottom:4px;font-weight:600;}
+.cal-day{aspect-ratio:1;border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;cursor:pointer;transition:transform 0.1s;position:relative;}
+.cal-day:hover{transform:scale(1.15);}
+.cal-day.today{box-shadow:0 0 0 2px var(--accent);}
+.cal-legend{display:flex;align-items:center;gap:6px;margin-top:10px;}
+.cal-legend-bars{display:flex;gap:3px;}
+.cal-legend-bar{width:10px;height:10px;border-radius:3px;}
+.cal-legend-txt{font-size:9px;color:var(--text3);}
+.cal-tooltip{position:absolute;bottom:120%;left:50%;transform:translateX(-50%);background:var(--text);color:#fff;font-size:9px;padding:3px 6px;border-radius:4px;white-space:nowrap;pointer-events:none;display:none;z-index:10;}
+.cal-day:hover .cal-tooltip{display:block;}
+
+/* Month bars */
+.month-chart{background:#fff;border-radius:var(--radius);padding:16px;margin-bottom:12px;box-shadow:var(--shadow);}
+.mc-bars{display:flex;align-items:flex-end;gap:2px;height:60px;margin-bottom:6px;}
+.mc-bar{flex:1;min-height:3px;border-radius:3px 3px 0 0;transition:height 0.3s;}
+.mc-footer{display:flex;justify-content:space-between;font-size:9px;color:var(--text3);}
+
+/* Modal */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:300;display:none;align-items:flex-end;justify-content:center;padding:0;}
+.modal-overlay.show{display:flex;}
+.modal-box{background:#fff;border-radius:24px 24px 0 0;padding:24px;width:100%;max-width:480px;box-shadow:0 -8px 40px rgba(0,0,0,0.15);max-height:90vh;overflow-y:auto;}
+.modal-handle{width:36px;height:4px;background:var(--border);border-radius:2px;margin:0 auto 16px;}
+.modal-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;}
+.modal-title{font-size:16px;font-weight:700;color:var(--text);}
+.modal-close{background:var(--surface2);border:none;color:var(--text2);width:28px;height:28px;border-radius:50%;cursor:pointer;font-size:14px;}
+.btn-row{display:flex;gap:8px;margin-top:16px;}
+.btn-cancel{flex:1;padding:11px 0;border-radius:var(--radius-sm);border:1.5px solid var(--border);background:#fff;color:var(--text2);cursor:pointer;font-weight:600;font-size:13px;}
+.btn-save{flex:1;padding:11px 0;border-radius:var(--radius-sm);border:none;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;cursor:pointer;font-weight:700;font-size:13px;}
+.btn-gold{flex:1;padding:11px 0;border-radius:var(--radius-sm);border:none;background:linear-gradient(135deg,#f59e0b,#fbbf24);color:#fff;cursor:pointer;font-weight:700;font-size:13px;}
+.btn-danger{padding:11px 14px;border-radius:var(--radius-sm);border:1.5px solid #fecaca;background:#fff;color:var(--red);cursor:pointer;font-weight:600;font-size:13px;}
+.mod-info{font-size:12px;color:#92400e;background:#fef3c7;border-radius:var(--radius-sm);padding:10px 13px;border:1px solid #fde68a;margin-bottom:14px;line-height:1.5;}
+.modal-p{font-size:13px;color:var(--text2);margin-bottom:14px;line-height:1.6;}
+
+/* Toast */
+.toast{position:fixed;bottom:100px;left:50%;transform:translateX(-50%);background:var(--text);color:#fff;padding:10px 20px;border-radius:20px;z-index:999;font-size:13px;font-weight:500;box-shadow:var(--shadow-lg);white-space:nowrap;display:none;transition:opacity 0.3s;}
+.toast.show{display:block;}
+
+/* Today date row */
+.date-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;}
+.date-txt{font-size:12px;color:var(--text2);font-weight:500;}
+.date-total{font-size:12px;color:var(--text2);}
+.date-inp{background:var(--surface2);border:1.5px solid var(--border);color:var(--text2);border-radius:8px;padding:4px 8px;font-size:11px;outline:none;cursor:pointer;}
+</style>
 </head>
 <body>
 
-<!-- TOAST -->
 <div class="toast" id="toast"></div>
 
-<!-- ONBOARD SCREEN -->
+<!-- ══ ONBOARD ══ -->
 <div id="onboard" class="screen active">
-  <div class="card">
-    <div class="logo">
-      <div class="logo-icon">👟</div>
-      <div class="logo-title">StepCrew</div>
-      <div class="logo-sub">Walk Together · Go Further</div>
+  <div class="ob-card">
+    <div class="ob-logo">
+      <span class="ob-logo-icon">👟</span>
+      <div class="ob-logo-title">StepCrew</div>
+      <div class="ob-logo-sub">Walk Together · Go Further</div>
     </div>
-    <label class="field-label">Your Name</label>
-    <input class="inp" id="ob-name" placeholder="e.g. Sarah" type="text"/>
-    <label class="field-label">Pick Your Avatar</label>
-    <div class="avatar-row" id="ob-avatars"></div>
-    <label class="field-label">Daily Step Goal</label>
-    <input class="inp" id="ob-goal" type="number" value="8000"/>
-    <label class="field-label">Crew Sync</label>
-    <div class="sync-row">
-      <button class="sync-btn sel" data-mode="manual" onclick="selectMode(this)">📵 Manual</button>
-      <button class="sync-btn" data-mode="create" onclick="selectMode(this)">☁️ New Crew</button>
-      <button class="sync-btn" data-mode="join" onclick="selectMode(this)">🔗 Join Crew</button>
+    <div class="field">
+      <label class="field-label">Your Name</label>
+      <input class="inp" id="ob-name" placeholder="e.g. Sarah" type="text"/>
     </div>
-    <div id="ob-info" class="info-box" style="background:rgba(255,204,102,0.12);border:1px solid rgba(255,204,102,0.25);color:#ffcc66;">📵 Log freely, share to crew whenever. Your pace, your choice.</div>
+    <div class="field">
+      <label class="field-label">Pick Your Avatar</label>
+      <div class="av-row" id="ob-avatars"></div>
+    </div>
+    <div class="field">
+      <label class="field-label">Daily Step Goal</label>
+      <input class="inp" id="ob-goal" type="number" value="8000"/>
+    </div>
+    <div class="field">
+      <label class="field-label">Crew Sync</label>
+      <div class="sync-row">
+        <button class="sync-btn sel" data-mode="manual" onclick="selectMode(this)">📵 Manual</button>
+        <button class="sync-btn" data-mode="create" onclick="selectMode(this)">☁️ New Crew</button>
+        <button class="sync-btn" data-mode="join" onclick="selectMode(this)">🔗 Join Crew</button>
+      </div>
+    </div>
+    <div id="ob-info" class="info-box" style="background:#fffbeb;border:1px solid #fde68a;color:#92400e;">📵 Log freely, share to crew whenever you like.</div>
     <input class="inp" id="ob-code" placeholder="Crew code (e.g. XK3F2A)" style="display:none;letter-spacing:3px;margin-top:8px;" type="text" oninput="this.value=this.value.toUpperCase()"/>
-    <div class="err" id="ob-err"></div>
-    <button class="btn-primary" onclick="handleStart()">Let's Walk 🚀</button>
+    <div class="err-msg" id="ob-err"></div>
+    <button class="btn-primary" id="ob-btn" onclick="handleStart()">Let's Walk 🚀</button>
   </div>
 </div>
 
-<!-- APP SCREEN -->
+<!-- ══ APP ══ -->
 <div id="app" class="screen">
-  <!-- Header -->
   <div class="header">
     <div class="header-inner">
       <div>
-        <div class="header-title">👟 StepCrew</div>
-        <div class="header-sub" id="header-sub">Local only</div>
+        <div class="header-logo">👟 StepCrew</div>
+        <div class="header-sub" id="header-sub"><span class="crew-dot"></span> Loading…</div>
       </div>
       <div class="header-btns" id="header-btns"></div>
     </div>
   </div>
-  <!-- Crew banner -->
   <div class="banner" id="crew-banner">
     <div class="banner-inner">
-      <span>☁️ Share code <b id="banner-code" style="letter-spacing:2px;color:#fff;"></b> with family &amp; friends</span>
-      <button onclick="document.getElementById('crew-banner').classList.remove('show')" style="background:none;border:none;color:#444;cursor:pointer;font-size:15px;">✕</button>
+      <span>Share code <b id="banner-code" style="letter-spacing:2px;"></b> with family &amp; friends</span>
+      <button class="banner-close" onclick="document.getElementById('crew-banner').classList.remove('show')">✕</button>
     </div>
   </div>
-  <!-- Content -->
   <div class="content">
-    <!-- Crew goals -->
     <div class="crew-goals" id="crew-goals-box"></div>
-    <!-- My box -->
     <div id="my-box"></div>
-    <!-- Challenge -->
     <div id="challenge-box"></div>
-    <!-- Nav -->
     <div class="nav">
       <button class="nav-btn active" onclick="setView('today',this)">Today</button>
       <button class="nav-btn" onclick="setView('week',this)">Week</button>
-      <button class="nav-btn" onclick="setView('month',this)">Month</button>
+      <button class="nav-btn" onclick="setView('history',this)">History</button>
     </div>
-    <!-- Views -->
     <div id="view-today"></div>
     <div id="view-week" style="display:none;"></div>
-    <div id="view-month" style="display:none;"></div>
+    <div id="view-history" style="display:none;"></div>
   </div>
 </div>
 
-<!-- MODALS -->
+<!-- ══ MODALS ══ -->
 <div class="modal-overlay" id="modal-add">
   <div class="modal-box">
-    <div class="modal-head"><span class="modal-title">Add Member / Friend</span><button class="modal-close" onclick="closeModal('modal-add')">✕</button></div>
-    <div class="modal-body">
-      <input class="inp" id="add-name" placeholder="Name" style="margin-bottom:10px;"/>
-      <div class="avatar-row" id="add-avatars" style="margin-bottom:10px;"></div>
-      <input class="inp" id="add-goal" type="number" value="8000" placeholder="Daily step goal"/>
-      <div class="btn-row">
-        <button class="btn-cancel" onclick="closeModal('modal-add')">Cancel</button>
-        <button class="btn-save" onclick="addMember()">Add</button>
-      </div>
-    </div>
+    <div class="modal-handle"></div>
+    <div class="modal-head"><span class="modal-title">Add Member</span><button class="modal-close" onclick="closeModal('modal-add')">✕</button></div>
+    <div class="field"><label class="field-label">Name</label><input class="inp" id="add-name" placeholder="Name"/></div>
+    <div class="field"><label class="field-label">Avatar</label><div class="av-row" id="add-avatars"></div></div>
+    <div class="field"><label class="field-label">Daily Goal</label><input class="inp" id="add-goal" type="number" value="8000"/></div>
+    <div class="btn-row"><button class="btn-cancel" onclick="closeModal('modal-add')">Cancel</button><button class="btn-save" onclick="addMember()">Add Member</button></div>
   </div>
 </div>
 
 <div class="modal-overlay" id="modal-edit">
   <div class="modal-box">
+    <div class="modal-handle"></div>
     <div class="modal-head"><span class="modal-title">Edit Profile</span><button class="modal-close" onclick="closeModal('modal-edit')">✕</button></div>
-    <div class="modal-body">
-      <input class="inp" id="edit-name" style="margin-bottom:10px;"/>
-      <div class="avatar-row" id="edit-avatars" style="margin-bottom:10px;"></div>
-      <input class="inp" id="edit-goal" type="number"/>
-      <div class="btn-row">
-        <button class="btn-danger" onclick="removeMemberModal()">Remove</button>
-        <button class="btn-cancel" onclick="closeModal('modal-edit')">Cancel</button>
-        <button class="btn-save" onclick="saveMemberEdit()">Save</button>
-      </div>
+    <div class="field"><label class="field-label">Name</label><input class="inp" id="edit-name"/></div>
+    <div class="field"><label class="field-label">Avatar</label><div class="av-row" id="edit-avatars"></div></div>
+    <div class="field"><label class="field-label">Daily Goal</label><input class="inp" id="edit-goal" type="number"/></div>
+    <div class="btn-row">
+      <button class="btn-danger" onclick="removeMemberModal()">Remove</button>
+      <button class="btn-cancel" onclick="closeModal('modal-edit')">Cancel</button>
+      <button class="btn-save" onclick="saveMemberEdit()">Save</button>
     </div>
   </div>
 </div>
 
 <div class="modal-overlay" id="modal-join">
   <div class="modal-box">
+    <div class="modal-handle"></div>
     <div class="modal-head"><span class="modal-title">Join a Crew</span><button class="modal-close" onclick="closeModal('modal-join')">✕</button></div>
-    <div class="modal-body">
-      <p>Enter the crew code to sync with your family.</p>
-      <input class="inp" id="join-code-inp" placeholder="e.g. XK3F2A" style="letter-spacing:3px;margin-bottom:12px;" oninput="this.value=this.value.toUpperCase()"/>
-      <div class="btn-row">
-        <button class="btn-cancel" onclick="closeModal('modal-join')">Cancel</button>
-        <button class="btn-save" onclick="joinCrew()">Join</button>
-      </div>
-    </div>
+    <p class="modal-p">Enter the crew code shared with you to sync everyone's steps.</p>
+    <input class="inp" id="join-code-inp" placeholder="e.g. XK3F2A" style="letter-spacing:3px;" oninput="this.value=this.value.toUpperCase()"/>
+    <div class="btn-row"><button class="btn-cancel" onclick="closeModal('modal-join')">Cancel</button><button class="btn-save" onclick="joinCrew()">Join Crew</button></div>
   </div>
 </div>
 
 <div class="modal-overlay" id="modal-mod">
   <div class="modal-box">
-    <div class="modal-head"><span class="modal-title">🎖️ Moderator Panel</span><button class="modal-close" onclick="closeModal('modal-mod')">✕</button></div>
-    <div class="modal-body" id="modal-mod-body"></div>
+    <div class="modal-handle"></div>
+    <div class="modal-head"><span class="modal-title">🎖️ Mod Panel</span><button class="modal-close" onclick="closeModal('modal-mod')">✕</button></div>
+    <div id="modal-mod-body"></div>
   </div>
 </div>
 
 <div class="modal-overlay" id="modal-become-mod">
   <div class="modal-box">
+    <div class="modal-handle"></div>
     <div class="modal-head"><span class="modal-title">Become Moderator</span><button class="modal-close" onclick="closeModal('modal-become-mod')">✕</button></div>
-    <div class="modal-body">
-      <p>No moderator yet. Set a PIN to claim the role — you'll be able to set crew goals for everyone.</p>
-      <input class="inp" id="become-pin" type="password" placeholder="Choose a PIN" style="letter-spacing:4px;margin-bottom:14px;"/>
-      <div class="btn-row">
-        <button class="btn-cancel" onclick="closeModal('modal-become-mod')">Cancel</button>
-        <button class="btn-gold" onclick="becomeMod()">Claim 🎖️</button>
+    <p class="modal-p">No moderator yet. Set a PIN to claim the role and set crew goals for everyone.</p>
+    <input class="inp" id="become-pin" type="password" placeholder="Choose a PIN" style="letter-spacing:4px;"/>
+    <div class="btn-row"><button class="btn-cancel" onclick="closeModal('modal-become-mod')">Cancel</button><button class="btn-gold" onclick="becomeMod()">Claim Role 🎖️</button></div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-profile">
+  <div class="modal-box">
+    <div class="modal-handle"></div>
+    <div class="modal-head"><span class="modal-title">My Profile</span><button class="modal-close" onclick="closeModal('modal-profile')">✕</button></div>
+    <div class="field"><label class="field-label">Name</label><input class="inp" id="profile-name"/></div>
+    <div class="field"><label class="field-label">Avatar</label><div class="av-row" id="profile-avatars"></div></div>
+    <div class="field">
+      <label class="field-label">Colour</label>
+      <div id="profile-colors" style="display:flex;gap:8px;flex-wrap:wrap;margin-top:4px;"></div>
+    </div>
+    <div class="field"><label class="field-label">Daily Step Goal</label><input class="inp" id="profile-goal" type="number"/></div>
+    <div class="field">
+      <label class="field-label">Sync Type</label>
+      <div style="display:flex;gap:8px;margin-top:4px;">
+        <button id="sync-manual-btn" onclick="setProfileSync('manual')" style="flex:1;padding:9px;border-radius:var(--radius-sm);border:1.5px solid var(--border);font-size:12px;font-weight:600;cursor:pointer;background:#fff;color:var(--text2);">📵 Manual</button>
+        <button id="sync-auto-btn" onclick="setProfileSync('auto')" style="flex:1;padding:9px;border-radius:var(--radius-sm);border:1.5px solid var(--border);font-size:12px;font-weight:600;cursor:pointer;background:#fff;color:var(--text2);">📱 Auto-sync</button>
       </div>
+      <div id="sync-info" style="font-size:11px;color:var(--text3);margin-top:6px;line-height:1.5;"></div>
+    </div>
+    <div class="btn-row">
+      <button class="btn-cancel" onclick="closeModal('modal-profile')">Cancel</button>
+      <button class="btn-save" onclick="saveProfile()">Save Changes</button>
     </div>
   </div>
 </div>
 
 <script>
-// ── Firebase setup ────────────────────────────────────────────────────────────
+// ── Firebase ──────────────────────────────────────────────────────────────────
 const firebaseConfig = {
   apiKey: "AIzaSyB94tl_ApfMV0SKz47aV-nWun9XBKtj7Vo",
   authDomain: "stepcrew-50997.firebaseapp.com",
@@ -279,611 +398,654 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 
-async function saveShared(code, data) {
-  try { await db.collection("crews").doc(code).set({...data, updatedAt: Date.now()}); return true; }
-  catch(e) { console.error("Save error:", e); return false; }
-}
-async function loadShared(code) {
-  try { const snap = await db.collection("crews").doc(code).get(); return snap.exists ? snap.data() : null; }
-  catch(e) { console.error("Load error:", e); return null; }
-}
-function saveLocal(code, data) { try { localStorage.setItem("sc_"+code, JSON.stringify(data)); } catch(e){} }
-function loadLocal(code) { try { const r=localStorage.getItem("sc_"+code); return r?JSON.parse(r):null; } catch(e){return null;} }
+async function saveShared(code,data){try{await db.collection("crews").doc(code).set({...data,updatedAt:Date.now()});return true;}catch(e){console.error(e);return false;}}
+async function loadShared(code){try{const s=await db.collection("crews").doc(code).get();return s.exists?s.data():null;}catch(e){console.error(e);return null;}}
+function saveLocal(code,data){try{localStorage.setItem("sc_"+code,JSON.stringify(data));}catch(e){}}
+function loadLocal(code){try{const r=localStorage.getItem("sc_"+code);return r?JSON.parse(r):null;}catch(e){return null;}}
+function saveSession(code,id,synced){try{localStorage.setItem("sc_sess",JSON.stringify({code,id,synced}));}catch(e){}}
+function loadSession(){try{const r=localStorage.getItem("sc_sess");return r?JSON.parse(r):null;}catch(e){return null;}}
 
 // ── Constants ─────────────────────────────────────────────────────────────────
-const COLORS  = ["#FF6B6B","#4ECDC4","#FFE66D","#A8E6CF","#FF8B94","#B4A7D6","#74B9FF","#FD79A8","#FDCB6E","#6C5CE7"];
-const AVATARS = ["🏃","🚶","🧍","🏋️","🧘","🚴","⛹️","🤸","👟","🥾"];
-const CHALLENGES = [
-  {id:"5k",   label:"5K Club",     desc:"Everyone hits 5,000 steps today",    target:5000,  type:"everyone"},
-  {id:"10k",  label:"10K Club",    desc:"Everyone hits 10,000 steps today",   target:10000, type:"everyone"},
-  {id:"g30k", label:"Group 30K",   desc:"Combined crew total hits 30,000",    target:30000, type:"group"},
-  {id:"g50k", label:"Group 50K",   desc:"Combined crew total hits 50,000",    target:50000, type:"group"},
-  {id:"nozero",label:"No Zero Day",desc:"Everyone logs at least 1,000 steps", target:1000,  type:"everyone"},
+const COLORS=["#6366f1","#10b981","#f59e0b","#ef4444","#8b5cf6","#06b6d4","#f97316","#ec4899","#14b8a6","#84cc16"];
+const AVATARS=["🏃","🚶","🧍","🏋️","🧘","🚴","⛹️","🤸","👟","🥾"];
+const CHALLENGES=[
+  {id:"5k",  label:"5K Club",    desc:"Everyone hits 5,000 today",   target:5000, type:"everyone"},
+  {id:"10k", label:"10K Club",   desc:"Everyone hits 10,000 today",  target:10000,type:"everyone"},
+  {id:"g30k",label:"Group 30K",  desc:"Crew total hits 30,000",      target:30000,type:"group"},
+  {id:"g50k",label:"Group 50K",  desc:"Crew total hits 50,000",      target:50000,type:"group"},
+  {id:"nozero",label:"No Zero Day",desc:"Everyone logs 1,000+ steps",target:1000, type:"everyone"},
 ];
 
 // ── State ─────────────────────────────────────────────────────────────────────
-let state = {
-  crewCode: null, isSynced: false, myId: null,
-  members: [], steps: {}, pushed: {},
-  crewGoals: {dailySteps:null,weeklySteps:null,dailyMsg:"",weeklyMsg:"",modId:null,modPin:null},
-  view: "today", editingMemberId: null, editingMemberModal: null,
-  syncMode: "manual", selectedAvatar: "🏃", addAvatar: "🏃", editAvatar: "🏃",
-  chalIdx: 0, modUnlocked: false, syncInterval: null
+let S={
+  crewCode:null,isSynced:false,myId:null,
+  members:[],steps:{},pushed:{},
+  crewGoals:{dailySteps:null,weeklySteps:null,dailyMsg:"",weeklyMsg:"",modId:null,modPin:null},
+  view:"today",editingId:null,editingModal:null,
+  syncMode:"manual",selAvatar:"🏃",addAvatar:"🏃",editAvatar:"🏃",
+  chalIdx:0,modUnlocked:false,syncInterval:null,
+  historyFilter:"7d",historyMember:"all",calMonth:new Date().getMonth(),calYear:new Date().getFullYear()
 };
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 function todayKey(){return new Date().toISOString().split("T")[0];}
 function weekDays(){const t=new Date(),d=[];for(let i=6;i>=0;i--){const x=new Date(t);x.setDate(t.getDate()-i);d.push(x.toISOString().split("T")[0]);}return d;}
 function monthDays(){const t=new Date(),d=[];const n=new Date(t.getFullYear(),t.getMonth()+1,0).getDate();for(let i=1;i<=n;i++)d.push(new Date(t.getFullYear(),t.getMonth(),i).toISOString().split("T")[0]);return d;}
+function daysAgo(n){const d=[];for(let i=n-1;i>=0;i--){const x=new Date();x.setDate(x.getDate()-i);d.push(x.toISOString().split("T")[0]);}return d;}
 function fmtDate(s){return new Date(s+"T00:00:00").toLocaleDateString("en-US",{weekday:"short",month:"short",day:"numeric"});}
 function shortDay(s){return new Date(s+"T00:00:00").toLocaleDateString("en-US",{weekday:"short"});}
-function monthName(){return new Date().toLocaleDateString("en-US",{month:"long",year:"numeric"});}
+function shortDate(s){return new Date(s+"T00:00:00").toLocaleDateString("en-US",{month:"short",day:"numeric"});}
+function monthName(m,y){return new Date(y,m,1).toLocaleDateString("en-US",{month:"long",year:"numeric"});}
 function genCode(){return Math.random().toString(36).slice(2,8).toUpperCase();}
 function timeAgo(ts){if(!ts)return"never";const s=Math.floor((Date.now()-ts)/1000);if(s<60)return"just now";if(s<3600)return Math.floor(s/60)+"m ago";return Math.floor(s/3600)+"h ago";}
-function getSteps(mid,dk){return(state.steps[dk]||{})[mid]||0;}
+function getSteps(mid,dk){return(S.steps[dk]||{})[mid]||0;}
 function getTotal(mid,days){return days.reduce((s,d)=>s+getSteps(mid,d),0);}
 function calcStreak(mid){let st=0,d=new Date();for(let i=0;i<365;i++){const k=d.toISOString().split("T")[0];if(getSteps(mid,k)>0)st++;else break;d.setDate(d.getDate()-1);}return st;}
-function isMod(){return state.crewGoals.modId===state.myId;}
+function isMod(){return S.crewGoals.modId===S.myId;}
 
-function toast(msg){
-  const t=document.getElementById("toast");
-  t.textContent=msg; t.classList.add("show");
-  setTimeout(()=>t.classList.remove("show"),3000);
-}
+function toast(msg){const t=document.getElementById("toast");t.textContent=msg;t.classList.add("show");setTimeout(()=>t.classList.remove("show"),3000);}
 
 async function persist(){
-  const data={members:state.members,steps:state.steps,pushed:state.pushed,crewGoals:state.crewGoals,updatedAt:Date.now()};
-  saveLocal(state.crewCode,data);
-  if(state.isSynced) await saveShared(state.crewCode,data);
+  const data={members:S.members,steps:S.steps,pushed:S.pushed,crewGoals:S.crewGoals,updatedAt:Date.now()};
+  saveLocal(S.crewCode,data);
+  if(S.isSynced) await saveShared(S.crewCode,data);
 }
 
 async function pullSync(silent=false){
-  const remote=await loadShared(state.crewCode);
+  if(!S.crewCode)return;
+  const remote=await loadShared(S.crewCode);
   if(!remote)return;
-  const local=loadLocal(state.crewCode);
+  const local=loadLocal(S.crewCode);
   if(!local||remote.updatedAt>(local.updatedAt||0)){
-    state.members=remote.members||[];
-    state.steps=remote.steps||{};
-    state.pushed=remote.pushed||{};
-    state.crewGoals=remote.crewGoals||state.crewGoals;
-    saveLocal(state.crewCode,remote);
-    render();
+    S.members=remote.members||[];S.steps=remote.steps||{};
+    S.pushed=remote.pushed||{};S.crewGoals=remote.crewGoals||S.crewGoals;
+    saveLocal(S.crewCode,remote);render();
     if(!silent)toast("Crew synced ☁️");
   }
 }
 
-// ── Onboarding ────────────────────────────────────────────────────────────────
-function buildAvatarRow(containerId, currentAvatar, onSelect) {
-  const el = document.getElementById(containerId);
-  if (!el) return;
-  el.innerHTML = AVATARS.map(a =>
-    `<button class="av-btn${a===currentAvatar?" sel":""}" onclick="${onSelect}('${a}',this)">${a}</button>`
-  ).join("");
+// ── Onboard ───────────────────────────────────────────────────────────────────
+function buildAvatars(id,cur,fn){
+  const el=document.getElementById(id);if(!el)return;
+  el.innerHTML=AVATARS.map(a=>`<button class="av-btn${a===cur?" sel":""}" onclick="${fn}('${a}',this)">${a}</button>`).join("");
+}
+function selectAvatar(a,b){S.selAvatar=a;document.querySelectorAll("#ob-avatars .av-btn").forEach(x=>x.classList.remove("sel"));b.classList.add("sel");}
+function selectAddAvatar(a,b){S.addAvatar=a;document.querySelectorAll("#add-avatars .av-btn").forEach(x=>x.classList.remove("sel"));b.classList.add("sel");}
+function selectEditAvatar(a,b){S.editAvatar=a;document.querySelectorAll("#edit-avatars .av-btn").forEach(x=>x.classList.remove("sel"));b.classList.add("sel");}
+
+function selectMode(btn){
+  S.syncMode=btn.dataset.mode;
+  document.querySelectorAll(".sync-btn").forEach(b=>b.classList.remove("sel"));btn.classList.add("sel");
+  const info=document.getElementById("ob-info"),code=document.getElementById("ob-code");
+  if(S.syncMode==="manual"){info.style.display="block";info.style.background="#fffbeb";info.style.borderColor="#fde68a";info.style.color="#92400e";info.textContent="📵 Log steps freely. Share to the crew whenever you like.";code.style.display="none";}
+  else if(S.syncMode==="create"){info.style.display="block";info.style.background=info.style.background="#eef0ff";info.style.borderColor="#c7caff";info.style.color="#4338ca";info.textContent="☁️ You'll be the crew moderator — set goals for everyone. You'll get a 6-character code to share.";code.style.display="none";}
+  else{info.style.display="none";code.style.display="block";}
 }
 
-function selectAvatar(a, btn) {
-  state.selectedAvatar = a;
-  document.querySelectorAll("#ob-avatars .av-btn").forEach(b=>b.classList.remove("sel"));
-  btn.classList.add("sel");
-}
-function selectAddAvatar(a, btn) {
-  state.addAvatar = a;
-  document.querySelectorAll("#add-avatars .av-btn").forEach(b=>b.classList.remove("sel"));
-  btn.classList.add("sel");
-}
-function selectEditAvatar(a, btn) {
-  state.editAvatar = a;
-  document.querySelectorAll("#edit-avatars .av-btn").forEach(b=>b.classList.remove("sel"));
-  btn.classList.add("sel");
-}
-
-function selectMode(btn) {
-  state.syncMode = btn.dataset.mode;
-  document.querySelectorAll(".sync-btn").forEach(b=>b.classList.remove("sel"));
-  btn.classList.add("sel");
-  const info = document.getElementById("ob-info");
-  const codeInp = document.getElementById("ob-code");
-  if (state.syncMode==="manual") {
-    info.style.display="block";info.style.background="rgba(255,204,102,0.12)";info.style.borderColor="rgba(255,204,102,0.25)";info.style.color="#ffcc66";
-    info.textContent="📵 Log freely, share to crew whenever. Your pace, your choice.";
-    codeInp.style.display="none";
-  } else if (state.syncMode==="create") {
-    info.style.display="block";info.style.background="rgba(78,205,196,0.12)";info.style.borderColor="rgba(78,205,196,0.25)";info.style.color="#4ecdc4";
-    info.textContent="☁️ You'll be the crew moderator — set goals for everyone. You'll get a crew code to share.";
-    codeInp.style.display="none";
-  } else {
-    info.style.display="none";
-    codeInp.style.display="block";
-  }
-}
-
-async function handleStart() {
-  const name = document.getElementById("ob-name").value.trim();
-  const goal = parseInt(document.getElementById("ob-goal").value)||8000;
-  const errEl = document.getElementById("ob-err");
-  if (!name) { errEl.textContent="Enter your name"; return; }
-  if (state.syncMode==="join" && !document.getElementById("ob-code").value.trim()) { errEl.textContent="Enter a crew code"; return; }
+async function handleStart(){
+  const name=document.getElementById("ob-name").value.trim();
+  const goal=parseInt(document.getElementById("ob-goal").value)||8000;
+  const errEl=document.getElementById("ob-err");
+  const btn=document.getElementById("ob-btn");
+  if(!name){errEl.textContent="Please enter your name";return;}
+  if(S.syncMode==="join"&&!document.getElementById("ob-code").value.trim()){errEl.textContent="Enter a crew code";return;}
   errEl.textContent="";
-  document.querySelector(".btn-primary").textContent="Setting up…";
+  btn.disabled=true;
+  btn.innerHTML=`<span class="spinner"></span> Setting up…`;
 
-  const id = Date.now();
-  const isModerator = state.syncMode==="create";
-  let code = genCode(), synced = false;
-  let initM = [{id,name,color:COLORS[0],goal,avatar:state.selectedAvatar,isManual:state.syncMode==="manual",isMod:isModerator}];
-  let initS={},initP={},initCG={...state.crewGoals};
+  const id=Date.now();
+  const isModerator=S.syncMode==="create";
+  let code=genCode(),synced=false;
+  let initM=[{id,name,color:COLORS[0],goal,avatar:S.selAvatar,isManual:S.syncMode==="manual",isMod:isModerator}];
+  let initS={},initP={},initCG={...S.crewGoals};
 
-  if (state.syncMode==="create") {
-    synced=true; initCG.modId=id;
-  } else if (state.syncMode==="join") {
-    code=document.getElementById("ob-code").value.trim().toUpperCase(); synced=true;
+  if(S.syncMode==="create"){synced=true;initCG.modId=id;}
+  else if(S.syncMode==="join"){
+    code=document.getElementById("ob-code").value.trim().toUpperCase();synced=true;
     const remote=await loadShared(code);
-    if (!remote) { document.querySelector(".btn-primary").textContent="Let's Walk 🚀"; errEl.textContent="Crew not found. Check the code."; return; }
+    if(!remote){btn.disabled=false;btn.innerHTML="Let's Walk 🚀";errEl.textContent="Crew not found. Check the code.";return;}
     const n=(remote.members||[]).length;
-    initM=[...(remote.members||[]),{id,name,color:COLORS[n%COLORS.length],goal,avatar:state.selectedAvatar,isManual:false,isMod:false}];
-    initS=remote.steps||{}; initP=remote.pushed||{}; initCG=remote.crewGoals||initCG;
+    initM=[...(remote.members||[]),{id,name,color:COLORS[n%COLORS.length],goal,avatar:S.selAvatar,isManual:false,isMod:false}];
+    initS=remote.steps||{};initP=remote.pushed||{};initCG=remote.crewGoals||initCG;
   }
 
-  state.myId=id; state.crewCode=code; state.isSynced=synced;
-  state.members=initM; state.steps=initS; state.pushed=initP; state.crewGoals=initCG;
+  S.myId=id;S.crewCode=code;S.isSynced=synced;
+  S.members=initM;S.steps=initS;S.pushed=initP;S.crewGoals=initCG;
   await persist();
+  saveSession(code,id,synced);
 
   document.getElementById("onboard").classList.remove("active");
   document.getElementById("app").classList.add("active");
-  saveSession();
-  if (synced) {
+
+  if(synced){
     document.getElementById("banner-code").textContent=code;
     document.getElementById("crew-banner").classList.add("show");
-    state.syncInterval=setInterval(()=>pullSync(true),30000);
+    S.syncInterval=setInterval(()=>pullSync(true),30000);
   }
-  if (isModerator) { state.modUnlocked=true; openModPanel(); }
-
+  if(isModerator){S.modUnlocked=true;openModPanel();}
   render();
-  if (synced) toast("Crew created! Share code: "+code+" 🎉");
+  if(synced)toast("Crew created! Share code: "+code+" 🎉");
+}
+
+// ── Session restore ───────────────────────────────────────────────────────────
+async function restoreSession(){
+  const sess=loadSession();if(!sess)return false;
+  const local=loadLocal(sess.code);if(!local)return false;
+  S.crewCode=sess.code;S.isSynced=sess.synced;S.myId=sess.id;
+  S.members=local.members||[];S.steps=local.steps||{};
+  S.pushed=local.pushed||{};S.crewGoals=local.crewGoals||S.crewGoals;
+  if(S.isSynced)await pullSync(true);
+  return true;
 }
 
 // ── Render ────────────────────────────────────────────────────────────────────
-function render() {
-  renderHeader();
-  renderCrewGoals();
-  renderMyBox();
-  renderChallenge();
-  renderView();
+function render(){renderHeader();renderCrewGoals();renderMyBox();renderChallenge();renderView();}
+
+function renderHeader(){
+  const sub=document.getElementById("header-sub");
+  const btns=document.getElementById("header-btns");
+  if(S.isSynced){sub.innerHTML=`<span class="crew-dot"></span> Crew <b style="color:var(--accent);letter-spacing:1px;">${S.crewCode}</b>`;}
+  else{sub.innerHTML=`<span style="width:6px;height:6px;border-radius:50%;background:var(--text3);display:inline-block;"></span> Local · <button onclick="document.getElementById('modal-join').classList.add('show')" style="background:none;border:none;color:var(--accent);cursor:pointer;font-size:10px;font-weight:600;padding:0;font-family:'Space Grotesk',sans-serif;">Join a crew →</button>`;}
+  let h="";
+  if(isMod())h+=`<button class="hbtn mod" onclick="openModPanel()">🎖️ Goals</button>`;
+  if(S.isSynced&&!S.crewGoals.modId&&!isMod())h+=`<button class="hbtn" onclick="document.getElementById('modal-become-mod').classList.add('show')" style="font-size:10px;">Become Mod</button>`;
+  if(S.isSynced)h+=`<button class="hbtn sync" onclick="pullSync()">↻</button>`;
+  h+=`<button class="hbtn" onclick="openAddModal()">+ Member</button>`;
+  btns.innerHTML=h;
 }
 
-function renderHeader() {
-  const sub = document.getElementById("header-sub");
-  const btns = document.getElementById("header-btns");
-  if (state.isSynced) {
-    sub.innerHTML = `<span style="color:#4ecdc4;font-size:7px;">●</span> <span style="color:#4ecdc4;">Crew <b style="letter-spacing:1px;">${state.crewCode}</b></span>`;
-  } else {
-    sub.innerHTML = `<span style="color:#444;font-size:7px;">●</span> <span style="color:#555;">Local · <button onclick="document.getElementById('modal-join').classList.add('show')" style="background:none;border:none;color:#FF6B6B;cursor:pointer;font-size:10px;padding:0;">Join a crew →</button></span>`;
-  }
-  let html = "";
-  if (isMod()) html += `<button class="sm-btn" style="background:rgba(255,215,0,0.1);border-color:rgba(255,215,0,0.25);color:#FFD700;" onclick="openModPanel()">🎖️ Mod</button>`;
-  if (state.isSynced && !state.crewGoals.modId && !isMod()) html += `<button class="sm-btn" style="color:#aa9900;font-size:10px;" onclick="document.getElementById('modal-become-mod').classList.add('show')">Become Mod</button>`;
-  if (state.isSynced) html += `<button class="sm-btn" style="background:rgba(78,205,196,0.1);border-color:rgba(78,205,196,0.25);color:#4ecdc4;" onclick="pullSync()">↻</button>`;
-  html += `<button class="sm-btn" onclick="openAddModal()">+ Member</button>`;
-  btns.innerHTML = html;
-}
-
-function renderCrewGoals() {
-  const box = document.getElementById("crew-goals-box");
-  const cg = state.crewGoals;
-  const today = todayKey();
-  const wDays = weekDays();
-  if (!cg.dailySteps && !cg.weeklySteps) { box.classList.remove("show"); return; }
+function renderCrewGoals(){
+  const box=document.getElementById("crew-goals-box");
+  const cg=S.crewGoals;
+  if(!cg.dailySteps&&!cg.weeklySteps){box.classList.remove("show");return;}
   box.classList.add("show");
-  const modMember = state.members.find(m=>m.id===cg.modId);
-  const groupToday = state.members.reduce((s,m)=>s+getSteps(m.id,today),0);
-  const groupWeek  = state.members.reduce((s,m)=>s+getTotal(m.id,wDays),0);
-  let html = `<div class="goals-title">🎖️ Crew Goals${modMember?` <span style="color:#666;font-weight:400;text-transform:none;letter-spacing:0;">set by ${modMember.name}</span>`:""}</div>`;
-  if (cg.dailySteps) {
-    const pct = Math.min((groupToday/cg.dailySteps)*100,100);
-    const done = pct>=100;
-    html += `<div class="goal-row"><div class="goal-row-head"><span>📅 Daily${cg.dailyMsg?` <span style="color:#777;font-style:italic;">"${cg.dailyMsg}"</span>`:""}</span><span class="goal-val" style="color:${done?"#FFE66D":"#FFD700"}">${groupToday.toLocaleString()}/${cg.dailySteps.toLocaleString()}${done?" 🏆":""}</span></div><div class="pbar"><div class="pbar-fill" style="width:${pct}%;background:${done?"#FFE66D":"#FFD700"};"></div></div><div style="font-size:10px;color:#555;margin-top:3px;">${pct.toFixed(0)}% · ${Math.max(0,cg.dailySteps-groupToday).toLocaleString()} to go</div></div>`;
+  const today=todayKey(),wDays=weekDays();
+  const gToday=S.members.reduce((s,m)=>s+getSteps(m.id,today),0);
+  const gWeek=S.members.reduce((s,m)=>s+getTotal(m.id,wDays),0);
+  const mod=S.members.find(m=>m.id===cg.modId);
+  let h=`<div class="cg-title">🎖️ Crew Goals${mod?` <span style="opacity:0.7;font-weight:400;text-transform:none;letter-spacing:0;">set by ${mod.name}</span>`:""}</div>`;
+  if(cg.dailySteps){
+    const pct=Math.min((gToday/cg.dailySteps)*100,100),done=pct>=100;
+    h+=`<div class="cg-goal"><div class="cg-row"><span class="cg-label">📅 Daily${cg.dailyMsg?` <span style="opacity:0.7;font-style:italic;">"${cg.dailyMsg}"</span>`:""}</span><span class="cg-val">${gToday.toLocaleString()} / ${cg.dailySteps.toLocaleString()}${done?" 🏆":""}</span></div><div class="cg-pbar"><div class="cg-pbar-fill" style="width:${pct}%;"></div></div><div class="cg-sub">${pct.toFixed(0)}% · ${Math.max(0,cg.dailySteps-gToday).toLocaleString()} to go</div></div>`;
   }
-  if (cg.weeklySteps) {
-    const pct = Math.min((groupWeek/cg.weeklySteps)*100,100);
-    const done = pct>=100;
-    html += `<div class="goal-row"><div class="goal-row-head"><span>📆 Weekly${cg.weeklyMsg?` <span style="color:#777;font-style:italic;">"${cg.weeklyMsg}"</span>`:""}</span><span class="goal-val" style="color:${done?"#FFE66D":"#FFD700"}">${groupWeek.toLocaleString()}/${cg.weeklySteps.toLocaleString()}${done?" 🏆":""}</span></div><div class="pbar"><div class="pbar-fill" style="width:${pct}%;background:${done?"#FFE66D":"#FFD700"};"></div></div><div style="font-size:10px;color:#555;margin-top:3px;">${pct.toFixed(0)}% · ${Math.max(0,cg.weeklySteps-groupWeek).toLocaleString()} to go</div></div>`;
+  if(cg.weeklySteps){
+    const pct=Math.min((gWeek/cg.weeklySteps)*100,100),done=pct>=100;
+    h+=`<div class="cg-goal"><div class="cg-row"><span class="cg-label">📆 Weekly${cg.weeklyMsg?` <span style="opacity:0.7;font-style:italic;">"${cg.weeklyMsg}"</span>`:""}</span><span class="cg-val">${gWeek.toLocaleString()} / ${cg.weeklySteps.toLocaleString()}${done?" 🏆":""}</span></div><div class="cg-pbar"><div class="cg-pbar-fill" style="width:${pct}%;"></div></div><div class="cg-sub">${pct.toFixed(0)}% · ${Math.max(0,cg.weeklySteps-gWeek).toLocaleString()} to go</div></div>`;
   }
-  box.innerHTML = html;
+  box.innerHTML=h;
 }
 
-function renderMyBox() {
-  const box = document.getElementById("my-box");
-  const m = state.members.find(m=>m.id===state.myId);
-  if (!m) { box.innerHTML=""; return; }
-  const today = todayKey();
-  const s = getSteps(m.id, today);
-  const pct = Math.min((s/m.goal)*100,100);
-  const pushed = state.pushed[m.id];
-  const minSince = pushed ? Math.floor((Date.now()-pushed)/60000) : null;
-  const needsPush = s>0 && (!pushed||(Date.now()-pushed)>900000);
-  const isEditing = state.editingMemberId===m.id;
-
-  let actionHtml = "";
-  if (isEditing) {
-    actionHtml = `<div class="edit-row">
-      <input class="steps-inp" id="my-steps-inp" type="number" placeholder="Your step count…" value="${s||""}"/>
-      <button class="save-btn" onclick="saveSteps('${m.id}',true)" style="background:${m.color};">Share 🚀</button>
-      <button class="local-btn" onclick="saveSteps('${m.id}',false)">Save</button>
-      <button class="cancel-x" onclick="state.editingMemberId=null;renderMyBox()">✕</button>
+function renderMyBox(){
+  const box=document.getElementById("my-box");
+  const m=S.members.find(m=>m.id===S.myId);if(!m){box.innerHTML="";return;}
+  const today=todayKey(),s=getSteps(m.id,today);
+  const pct=Math.min((s/m.goal)*100,100);
+  const pushed=S.pushed[m.id];
+  const minSince=pushed?Math.floor((Date.now()-pushed)/60000):null;
+  const needsPush=s>0&&(!pushed||(Date.now()-pushed)>900000);
+  const isEditing=S.editingId===m.id;
+  let action="";
+  if(isEditing){
+    action=`<div class="edit-row">
+      <input class="steps-inp" id="my-inp" type="number" placeholder="Your steps…" value="${s||""}"/>
+      <button class="save-btn" onclick="saveSteps(${m.id},true)">Share 🚀</button>
+      <button class="local-btn" onclick="saveSteps(${m.id},false)">Save</button>
+      <button class="cancel-x" onclick="S.editingId=null;renderMyBox()">✕</button>
     </div>`;
   } else {
-    actionHtml = `<div class="action-row">
-      <button class="log-btn" style="border-color:${m.color}44;" onclick="startEdit('${m.id}')">${s>0?"✏️ Update my steps":"➕ Log my steps"}</button>
-      ${needsPush?`<button class="share-btn" style="background:${m.color};" onclick="pushMember('${m.id}')">Share 🚀</button>`:""}
+    action=`<div class="action-row">
+      <button class="log-btn" onclick="startEdit(${m.id})">${s>0?"✏️ Update my steps":"➕ Log my steps"}</button>
+      ${needsPush?`<button class="share-btn" onclick="pushMember(${m.id})">Share 🚀</button>`:""}
     </div>
-    ${needsPush?`<div class="push-hint">${state.isSynced?"Crew can't see your latest steps — tap Share":"Tap Share to send steps to your crew"}</div>`:""}`;
+    ${needsPush?`<div class="push-hint">${S.isSynced?"Your crew can't see your latest steps — tap Share":"Tap Share to push steps to your crew"}</div>`:""}`;
   }
-
-  box.innerHTML = `<div class="my-box" style="background:linear-gradient(135deg,${m.color}15,${m.color}06);border:1px solid ${m.color}44;">
-    <div class="member-row">
-      <div class="member-avatar">${m.avatar}</div>
-      <div style="flex:1;">
-        <div class="member-name">${m.name} <span class="tag" style="background:rgba(255,107,107,0.25);color:#FF6B6B;">YOU</span>${m.isMod?`<span class="tag" style="background:rgba(255,215,0,0.25);color:#FFD700;">MOD</span>`:""}</div>
-        <div class="member-sub">Goal ${m.goal.toLocaleString()}${minSince!==null?` · pushed ${minSince<1?"just now":minSince+"m ago"}`:""} ${!pushed?"· not yet shared":""}</div>
+  box.innerHTML=`<div class="my-box">
+    <div class="mb-row">
+      <div class="mb-av" style="background:${m.color}20;cursor:pointer;" onclick="openProfileModal()" title="Edit your profile">${m.avatar}</div>
+      <div class="mb-info">
+        <div class="mb-name">${m.name}<span class="tag tag-you">YOU</span>${m.isMod?`<span class="tag tag-mod">MOD</span>`:""}</div>
+        <div class="mb-sub">Goal ${m.goal.toLocaleString()}${minSince!==null?` · pushed ${minSince<1?"just now":minSince+"m ago"}`:""}</div>
       </div>
-      <div class="member-steps">
-        <div class="steps-big" style="color:${pct>=100?"#FFE66D":m.color};">${s.toLocaleString()}</div>
-        <div class="steps-pct">${pct.toFixed(0)}%</div>
+      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;">
+        <div class="mb-steps">
+          <div class="mb-num" style="color:${m.color};">${s.toLocaleString()}</div>
+          <div class="mb-pct">${pct.toFixed(0)}% of goal</div>
+        </div>
+        <button onclick="openProfileModal()" style="background:var(--surface2);border:1.5px solid var(--border);color:var(--text3);border-radius:8px;padding:3px 9px;font-size:10px;font-weight:600;cursor:pointer;">✏️ Edit profile</button>
       </div>
     </div>
-    <div class="pbar" style="margin-bottom:9px;"><div class="pbar-fill" style="width:${pct}%;background:${pct>=100?"#FFE66D":m.color};"></div></div>
-    ${actionHtml}
+    <div class="pbar"><div class="pbar-fill${pct>=100?" gold":""}" style="width:${pct}%;background:${pct>=100?"linear-gradient(90deg,#f59e0b,#fbbf24)":`linear-gradient(90deg,${m.color},${m.color}aa)`};"></div></div>
+    ${action}
   </div>`;
 }
 
-function renderChallenge() {
-  const box = document.getElementById("challenge-box");
-  const ch = CHALLENGES[state.chalIdx];
-  const today = todayKey();
-  let done = false;
-  if (ch.type==="everyone") done = state.members.length>0 && state.members.every(m=>getSteps(m.id,today)>=ch.target);
-  else if (ch.type==="group") done = state.members.reduce((s,m)=>s+getSteps(m.id,today),0)>=ch.target;
-
-  const selectHtml = CHALLENGES.map((c,i)=>`<option value="${i}"${i===state.chalIdx?" selected":""}>${c.label}</option>`).join("");
-  box.innerHTML = `<div class="challenge${done?" done":""}">
+function renderChallenge(){
+  const box=document.getElementById("challenge-box");
+  const ch=CHALLENGES[S.chalIdx];
+  const today=todayKey();
+  let done=false;
+  if(ch.type==="everyone")done=S.members.length>0&&S.members.every(m=>getSteps(m.id,today)>=ch.target);
+  else done=S.members.reduce((s,m)=>s+getSteps(m.id,today),0)>=ch.target;
+  const sel=CHALLENGES.map((c,i)=>`<option value="${i}"${i===S.chalIdx?" selected":""}>${c.label}</option>`).join("");
+  box.innerHTML=`<div class="challenge${done?" done":""}">
     <div class="chal-icon">${done?"🏆":"🎯"}</div>
     <div class="chal-info">
       <div class="chal-label">Today's Challenge</div>
-      <div class="chal-title${done?" done":""}">${ch.label}</div>
+      <div class="chal-name${done?" done":""}">${ch.label}</div>
       <div class="chal-desc">${ch.desc}</div>
     </div>
-    ${done?`<span style="font-size:11px;color:#FFE66D;font-weight:700;">Done ✓</span>`:`<select style="background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.1);color:#aaa;border-radius:7px;padding:4px 6px;font-size:10px;cursor:pointer;" onchange="state.chalIdx=Number(this.value);renderChallenge()">${selectHtml}</select>`}
+    ${done?`<span class="chal-done">Done ✓</span>`:`<select class="chal-select" onchange="S.chalIdx=Number(this.value);renderChallenge()">${sel}</select>`}
   </div>`;
 }
 
-function renderView() {
-  const today = todayKey();
-  const wDays = weekDays();
-  const mDays = monthDays();
-  if (state.view==="today") renderToday(today);
-  else if (state.view==="week") renderWeek(wDays, today);
-  else renderMonth(mDays, today);
+function renderView(){
+  const today=todayKey(),wDays=weekDays(),mDays=monthDays();
+  if(S.view==="today")renderToday(today);
+  else if(S.view==="week")renderWeek(wDays,today);
+  else renderHistory();
 }
 
-function renderToday(today) {
-  const box = document.getElementById("view-today");
-  const sorted = [...state.members].sort((a,b)=>getSteps(b.id,today)-getSteps(a.id,today));
-  const groupTotal = state.members.reduce((s,m)=>s+getSteps(m.id,today),0);
-  let html = `<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
-    <div style="font-size:11px;color:#444;">${fmtDate(today)} · crew: <b style="color:#ccc;">${groupTotal.toLocaleString()}</b></div>
-  </div>`;
+function renderToday(today){
+  const box=document.getElementById("view-today");
+  const sorted=[...S.members].sort((a,b)=>getSteps(b.id,today)-getSteps(a.id,today));
+  const gTotal=S.members.reduce((s,m)=>s+getSteps(m.id,today),0);
+  let h=`<div class="date-row"><div class="date-txt">${fmtDate(today)}</div><div class="date-total">Crew total: <b>${gTotal.toLocaleString()}</b></div></div>`;
   sorted.forEach((m,i)=>{
-    if (m.id===state.myId) return;
-    const s=getSteps(m.id,today), pct=Math.min((s/m.goal)*100,100), lp=state.pushed[m.id];
-    const isEditing=state.editingMemberId===m.id+"_today";
-    let actionHtml = isEditing
-      ? `<div class="edit-row"><input class="steps-inp" id="steps-inp-${m.id}" type="number" placeholder="Steps…" value="${s||""}"/><button class="save-btn" onclick="saveStepsFor('${m.id}','${today}',true)" style="background:${m.color};">Share 🚀</button><button class="local-btn" onclick="saveStepsFor('${m.id}','${today}',false)">Local</button><button class="cancel-x" onclick="state.editingMemberId=null;renderView()">✕</button></div>`
-      : `<div class="action-row"><button style="flex:1;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);color:#999;border-radius:7px;padding:6px 0;cursor:pointer;font-size:12px;" onclick="state.editingMemberId='${m.id}_today';renderView()">${s>0?"✏️ Update":"➕ Log steps"}</button><button style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);color:#555;border-radius:7px;padding:6px 9px;cursor:pointer;font-size:12px;" onclick="openEditModal('${m.id}')">⚙️</button></div>`;
-    html += `<div class="member-card${i===0&&s>0?" ":""}" style="${i===0&&s>0?"border-color:"+m.color+"44;":""}">
-      <div class="member-row" style="margin-bottom:8px;">
-        <div style="font-size:22px;">${m.avatar}</div>
+    if(m.id===S.myId)return;
+    const s=getSteps(m.id,today),pct=Math.min((s/m.goal)*100,100),lp=S.pushed[m.id];
+    const isEditing=S.editingId===m.id+"_t";
+    let action=isEditing
+      ?`<div class="edit-row"><input class="steps-inp" id="inp-${m.id}" type="number" value="${s||""}" placeholder="Steps…"/><button class="save-btn" onclick="saveStepsFor(${m.id},'${today}',true)" style="background:${m.color};">Share</button><button class="local-btn" onclick="saveStepsFor(${m.id},'${today}',false)">Local</button><button class="cancel-x" onclick="S.editingId=null;renderView()">✕</button></div>`
+      :`<div class="action-row" style="gap:6px;"><button style="flex:1;background:var(--surface2);border:1.5px solid var(--border);color:var(--text2);border-radius:var(--radius-sm);padding:8px;font-size:12px;font-weight:600;cursor:pointer;" onclick="S.editingId='${m.id}_t';renderView()">${s>0?"✏️ Update":"➕ Log steps"}</button><button style="background:var(--surface2);border:1.5px solid var(--border);color:var(--text3);border-radius:var(--radius-sm);padding:8px 10px;font-size:12px;cursor:pointer;" onclick="openEditModal(${m.id})">⚙️</button></div>`;
+    h+=`<div class="member-card${i===0&&s>0?" leader":""}">
+      <div class="mc-row">
+        <div class="mc-av" style="background:${m.color}18;">${m.avatar}</div>
         <div style="flex:1;">
-          <div style="display:flex;align-items:center;gap:5px;flex-wrap:wrap;">
-            <span style="font-weight:700;font-size:14px;">${m.name}</span>
-            ${i===0&&s>0?"<span>👑</span>":""}
-            ${m.isMod?`<span class="tag" style="background:rgba(255,215,0,0.25);color:#FFD700;">MOD</span>`:""}
-            ${m.isManual?`<span class="tag" style="background:rgba(255,204,102,0.25);color:#ffcc66;">MANUAL</span>`:""}
-          </div>
-          <div style="font-size:10px;color:#444;">Goal ${m.goal.toLocaleString()} · shared ${timeAgo(lp)}</div>
+          <div class="mc-name">${m.name}${i===0&&s>0?" 👑":""}${m.isMod?` <span class="tag tag-mod">MOD</span>`:""} ${m.isManual?`<span class="tag tag-manual">MANUAL</span>`:""}</div>
+          <div class="mc-sub">Goal ${m.goal.toLocaleString()} · ${timeAgo(lp)}</div>
         </div>
-        <div style="text-align:right;">
-          <div class="card-steps-big" style="color:${pct>=100?"#FFE66D":m.color};">${s.toLocaleString()}</div>
-          <div class="card-pct">${pct.toFixed(0)}%</div>
-        </div>
+        <div class="mc-steps"><div class="mc-num" style="color:${m.color};">${s.toLocaleString()}</div><div class="mc-pct">${pct.toFixed(0)}%</div></div>
       </div>
-      <div class="pbar" style="margin-bottom:8px;"><div class="pbar-fill" style="width:${pct}%;background:${pct>=100?"#FFE66D":m.color};"></div></div>
-      ${actionHtml}
+      <div class="pbar"><div class="pbar-fill" style="width:${pct}%;background:${pct>=100?"linear-gradient(90deg,#f59e0b,#fbbf24)":`linear-gradient(90deg,${m.color},${m.color}aa)`};"></div></div>
+      ${action}
     </div>`;
   });
-  box.innerHTML = html;
+  box.innerHTML=h;
 }
 
-function renderWeek(wDays, today) {
-  const box = document.getElementById("view-week");
-  const sorted = [...state.members].sort((a,b)=>getTotal(b.id,wDays)-getTotal(a.id,wDays));
-  const maxWeek = Math.max(...state.members.map(m=>getTotal(m.id,wDays)),1);
-  let html = `<div style="font-size:11px;color:#444;margin-bottom:12px;">Last 7 days · Leaderboard</div>`;
-
-  if (state.members.length>=2) {
-    const leader=sorted[0], myTotal=getTotal(state.myId,wDays), lTotal=getTotal(leader.id,wDays);
-    const myRank=sorted.findIndex(m=>m.id===state.myId)+1, gap=lTotal-myTotal;
-    const insightText = leader.id===state.myId
-      ? "🥇 You're leading the crew this week!"
-      : `You're <b style="color:#fff;">#${myRank}</b>. <b style="color:#fff;">${leader.name}</b> leads by <b style="color:#FF6B6B;">${gap.toLocaleString()}</b> steps — ~${Math.ceil(gap/1300)} more walks.`;
-    html += `<div class="insight"><div class="insight-label">Weekly Insight</div><div class="insight-text">${insightText}</div></div>`;
+function renderWeek(wDays,today){
+  const box=document.getElementById("view-week");
+  const sorted=[...S.members].sort((a,b)=>getTotal(b.id,wDays)-getTotal(a.id,wDays));
+  const maxW=Math.max(...S.members.map(m=>getTotal(m.id,wDays)),1);
+  let h=`<div style="font-size:11px;color:var(--text3);font-weight:500;margin-bottom:12px;">Last 7 days</div>`;
+  if(S.members.length>=2){
+    const leader=sorted[0],myTotal=getTotal(S.myId,wDays),lTotal=getTotal(leader.id,wDays);
+    const myRank=sorted.findIndex(m=>m.id===S.myId)+1,gap=lTotal-myTotal;
+    h+=`<div class="insight"><div class="insight-label">Your Week</div><div class="insight-text">${leader.id===S.myId?"🥇 You're leading the crew this week! Keep it up!":`You're <b>#${myRank}</b>. <b>${leader.name}</b> leads by <b style="color:var(--accent);">${gap.toLocaleString()}</b> steps — about ${Math.ceil(gap/1300)} more walks.`}</div></div>`;
   }
-
   sorted.forEach((m,i)=>{
-    const total=getTotal(m.id,wDays), pct=(total/maxWeek)*100, isMe=m.id===state.myId;
+    const total=getTotal(m.id,wDays),pct=(total/maxW)*100,isMe=m.id===S.myId;
+    const medals=["#f59e0b","#9ca3af","#b45309"];
     const activeDays=wDays.filter(d=>getSteps(m.id,d)>0).length;
-    const medals=["#FFE66D","#bbb","#cd7f32"];
-    let dayBars = wDays.map(d=>{
-      const ds=getSteps(m.id,d), dp=Math.min((ds/Math.max(m.goal,1))*100,100), isT=d===today;
-      return `<div class="day-bar-wrap"><div class="day-bar-bg"><div class="day-bar-fill" style="height:${dp}%;background:${isT?m.color:m.color+"66"};"></div></div><div class="day-label${isT?" today":""}">${shortDay(d)}</div></div>`;
-    }).join("");
-    html += `<div class="member-card${isMe?" me":""}">
-      <div class="member-row" style="margin-bottom:8px;">
-        <div class="rank" style="color:${i<3?medals[i]:"#333"};">#${i+1}</div>
-        <div style="font-size:20px;">${m.avatar}</div>
-        <div style="flex:1;">
-          <div style="font-weight:700;font-size:14px;">${m.name}${isMe?`<span class="tag" style="background:rgba(255,107,107,0.25);color:#FF6B6B;">YOU</span>`:""}${m.isMod?`<span class="tag" style="background:rgba(255,215,0,0.25);color:#FFD700;">MOD</span>`:""}</div>
-          <div style="font-size:10px;color:#444;">${activeDays}/7 days active</div>
-        </div>
-        <div style="font-weight:800;color:${m.color};font-size:17px;">${total.toLocaleString()}</div>
+    const bars=wDays.map(d=>{const ds=getSteps(m.id,d),dp=Math.min((ds/Math.max(m.goal,1))*100,100),isT=d===today;return`<div class="day-bar-wrap"><div class="day-bar-bg"><div class="day-bar-fill" style="height:${dp}%;background:${isT?m.color:m.color+"55"};"></div></div><div class="day-lbl${isT?" today":""}">${shortDay(d)}</div></div>`;}).join("");
+    h+=`<div class="member-card${i===0?" leader":""}">
+      <div class="mc-row">
+        <div style="width:26px;height:26px;border-radius:50%;background:${i<3?medals[i]+"22":"var(--surface2)"};display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;color:${i<3?medals[i]:"var(--text3)"};">${i+1}</div>
+        <div class="mc-av" style="background:${m.color}18;">${m.avatar}</div>
+        <div style="flex:1;"><div class="mc-name">${m.name}${isMe?` <span class="tag tag-you">YOU</span>`:""}</div><div class="mc-sub">${activeDays}/7 days active</div></div>
+        <div style="font-family:'Syne',sans-serif;font-size:18px;font-weight:800;color:${m.color};">${total.toLocaleString()}</div>
       </div>
-      <div class="pbar" style="margin-bottom:8px;"><div class="pbar-fill" style="width:${pct}%;background:${m.color};"></div></div>
-      <div class="day-bars">${dayBars}</div>
+      <div class="pbar"><div class="pbar-fill" style="width:${pct}%;background:${m.color};"></div></div>
+      <div class="day-bars">${bars}</div>
     </div>`;
   });
-  box.innerHTML = html;
+  box.innerHTML=h;
 }
 
-function renderMonth(mDays, today) {
-  const box = document.getElementById("view-month");
-  const sorted = [...state.members].sort((a,b)=>getTotal(b.id,mDays)-getTotal(a.id,mDays));
-  const maxDay = Math.max(...mDays.map(d=>state.members.reduce((s,m)=>s+getSteps(m.id,d),0)),1);
+function renderHistory(){
+  const box=document.getElementById("view-history");
+  const days=S.historyFilter==="7d"?daysAgo(7):S.historyFilter==="30d"?daysAgo(30):monthDays();
 
-  let chartBars = mDays.map(d=>{
-    const t=state.members.reduce((s,m)=>s+getSteps(m.id,d),0), h=(t/maxDay)*100, isT=d===today;
-    return `<div class="chart-bar" style="height:${Math.max(h,3)}%;background:${isT?"#FF6B6B":"rgba(255,255,255,0.1)"};" title="${fmtDate(d)}: ${t.toLocaleString()}"></div>`;
+  // Member filter buttons
+  const memberBtns=[{id:"all",name:"Everyone"},...S.members].map(m=>`<button class="mf-btn${S.historyMember===(m.id||"all")?" on":""}" onclick="S.historyMember='${m.id||"all"}';renderHistory()">${m.name||m}</button>`).join("");
+
+  // Build SVG line chart
+  const w=300,h=100;
+  let lines="";
+  const membersToShow=S.historyMember==="all"?S.members:S.members.filter(m=>m.id===S.historyMember);
+  const allVals=days.map(d=>membersToShow.reduce((s,m)=>s+getSteps(m.id,d),0));
+  const maxVal=Math.max(...allVals,1);
+
+  membersToShow.forEach(m=>{
+    const vals=days.map(d=>getSteps(m.id,d));
+    const pts=vals.map((v,i)=>`${(i/(days.length-1))*w},${h-(v/maxVal)*h*0.9}`).join(" L");
+    const area=`${pts} L${w},${h} L0,${h}Z`;
+    lines+=`<defs><linearGradient id="grad${m.id}" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="${m.color}" stop-opacity="0.15"/><stop offset="100%" stop-color="${m.color}" stop-opacity="0"/></linearGradient></defs>`;
+    lines+=`<path d="M${area}" fill="url(#grad${m.id})"/>`;
+    lines+=`<path d="M${pts}" fill="none" stroke="${m.color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>`;
+    // dot at last point
+    const lastX=(days.length-1)/(days.length-1)*w;
+    const lastY=h-(vals[vals.length-1]/maxVal)*h*0.9;
+    lines+=`<circle cx="${lastX}" cy="${lastY}" r="4" fill="${m.color}" stroke="#fff" stroke-width="2"/>`;
+  });
+
+  // X labels — show first, middle, last
+  const xLabels=days.length<=7
+    ?days.map(d=>shortDay(d))
+    :[shortDate(days[0]),shortDate(days[Math.floor(days.length/2)]),shortDate(days[days.length-1])];
+
+  // Calendar heatmap
+  const calDays=getCalDays(S.calMonth,S.calYear);
+  const maxCal=Math.max(...calDays.map(d=>d?S.members.reduce((s,m)=>s+getSteps(m.id,d),0):0),1);
+  const dow=["M","T","W","T","F","S","S"];
+  const calCells=calDays.map(d=>{
+    if(!d)return`<div></div>`;
+    const t=S.members.reduce((s,m)=>s+getSteps(m.id,d),0);
+    const pct=t/maxCal;
+    const isToday=d===todayKey();
+    const opacity=pct>0?Math.max(0.1,pct):0;
+    const bg=pct>0?`rgba(99,102,241,${opacity})`:"var(--surface2)";
+    const color=pct>0.5?"#fff":pct>0.2?"var(--accent)":"var(--text3)";
+    const num=new Date(d+"T00:00:00").getDate();
+    return`<div class="cal-day${isToday?" today":""}" style="background:${bg};color:${color};" title="${fmtDate(d)}: ${t.toLocaleString()} steps"><span class="cal-tooltip">${t.toLocaleString()}</span>${num}</div>`;
   }).join("");
 
-  let html = `<div style="font-size:11px;color:#444;margin-bottom:12px;">${monthName()}</div>
-  <div class="month-chart">
-    <div class="chart-label">Group Steps · Each Day</div>
-    <div class="chart-bars">${chartBars}</div>
-    <div class="chart-footer"><span>Day 1</span><span class="today-lbl">Today</span><span>Day ${mDays.length}</span></div>
-  </div>`;
-
-  sorted.forEach((m,i)=>{
-    const total=getTotal(m.id,mDays), active=mDays.filter(d=>getSteps(m.id,d)>0).length;
-    const pct=Math.min((total/(m.goal*mDays.length))*100,100), streak=calcStreak(m.id), isMe=m.id===state.myId;
-    html += `<div class="member-card${isMe?" me":""}">
-      <div class="member-row" style="margin-bottom:6px;">
-        <div style="font-size:20px;">${m.avatar}</div>
-        <div style="flex:1;">
-          <div style="font-weight:700;font-size:14px;">${m.name}${isMe?`<span class="tag" style="background:rgba(255,107,107,0.25);color:#FF6B6B;">YOU</span>`:""}${m.isMod?`<span class="tag" style="background:rgba(255,215,0,0.25);color:#FFD700;">MOD</span>`:""}</div>
-          <div style="font-size:10px;color:#444;">${active} active days${streak>0?` <span style="color:#FF8B94;">🔥 ${streak}-day streak</span>`:""}</div>
-        </div>
-        <div style="text-align:right;">
-          <div style="font-weight:800;color:${m.color};font-size:16px;">${total.toLocaleString()}</div>
-          <div style="font-size:10px;color:#444;">${pct.toFixed(0)}%</div>
-        </div>
+  // Per-member month stats
+  const mDays=monthDays();
+  const memberStats=([...S.members].sort((a,b)=>getTotal(b.id,mDays)-getTotal(a.id,mDays))).map(m=>{
+    const total=getTotal(m.id,mDays),active=mDays.filter(d=>getSteps(m.id,d)>0).length,streak=calcStreak(m.id);
+    const pct=Math.min((total/(m.goal*mDays.length))*100,100);
+    return`<div class="member-card">
+      <div class="mc-row">
+        <div class="mc-av" style="background:${m.color}18;">${m.avatar}</div>
+        <div style="flex:1;"><div class="mc-name">${m.name}${m.id===S.myId?` <span class="tag tag-you">YOU</span>`:""}</div><div class="mc-sub">${active} active days${streak>0?` · 🔥 ${streak}-day streak`:""}</div></div>
+        <div class="mc-steps"><div class="mc-num" style="color:${m.color};font-size:16px;">${total.toLocaleString()}</div><div class="mc-pct">${pct.toFixed(0)}%</div></div>
       </div>
       <div class="pbar"><div class="pbar-fill" style="width:${pct}%;background:${m.color};"></div></div>
     </div>`;
-  });
-  box.innerHTML = html;
+  }).join("");
+
+  box.innerHTML=`
+    <!-- Line Chart -->
+    <div class="chart-card">
+      <div class="chart-header">
+        <div class="chart-title-txt">Steps Over Time</div>
+        <div class="chart-filters">
+          <button class="cf-btn${S.historyFilter==="7d"?" on":" off"}" onclick="S.historyFilter='7d';renderHistory()">7D</button>
+          <button class="cf-btn${S.historyFilter==="30d"?" on":" off"}" onclick="S.historyFilter='30d';renderHistory()">30D</button>
+          <button class="cf-btn${S.historyFilter==="month"?" on":" off"}" onclick="S.historyFilter='month';renderHistory()">MTH</button>
+        </div>
+      </div>
+      <div class="member-filter">${memberBtns}</div>
+      <div class="line-chart-wrap">
+        <svg viewBox="0 0 300 100" preserveAspectRatio="none">${lines}</svg>
+      </div>
+      <div class="chart-x-labels">
+        ${days.length<=7?days.map(d=>`<span>${shortDay(d)}</span>`).join(""):
+        `<span>${shortDate(days[0])}</span><span>${shortDate(days[Math.floor(days.length/4)])}</span><span>${shortDate(days[Math.floor(days.length/2)])}</span><span>${shortDate(days[Math.floor(days.length*3/4)])}</span><span>${shortDate(days[days.length-1])}</span>`}
+      </div>
+    </div>
+
+    <!-- Calendar Heatmap -->
+    <div class="cal-wrap">
+      <div class="cal-header">
+        <div class="chart-title-txt">Calendar View</div>
+        <div class="cal-nav">
+          <button class="cal-nav-btn" onclick="prevMonth()">‹</button>
+          <span class="cal-month">${monthName(S.calMonth,S.calYear)}</span>
+          <button class="cal-nav-btn" onclick="nextMonth()">›</button>
+        </div>
+      </div>
+      <div class="cal-grid">
+        ${dow.map(d=>`<div class="cal-dow">${d}</div>`).join("")}
+        ${calCells}
+      </div>
+      <div class="cal-legend">
+        <div class="cal-legend-bars">
+          <div class="cal-legend-bar" style="background:var(--surface2);"></div>
+          <div class="cal-legend-bar" style="background:rgba(99,102,241,0.2);"></div>
+          <div class="cal-legend-bar" style="background:rgba(99,102,241,0.5);"></div>
+          <div class="cal-legend-bar" style="background:rgba(99,102,241,0.9);"></div>
+        </div>
+        <span class="cal-legend-txt">Less → More steps</span>
+      </div>
+    </div>
+
+    <!-- Monthly Member Stats -->
+    <div style="font-size:11px;color:var(--text3);font-weight:600;margin-bottom:10px;text-transform:uppercase;letter-spacing:1px;">This Month</div>
+    ${memberStats}
+  `;
 }
 
-// ── Actions ───────────────────────────────────────────────────────────────────
-function startEdit(mid) { state.editingMemberId=Number(mid); renderMyBox(); setTimeout(()=>document.getElementById("my-steps-inp")&&document.getElementById("my-steps-inp").focus(),100); }
+function getCalDays(month,year){
+  const firstDay=new Date(year,month,1).getDay();
+  // Convert Sunday=0 to Monday=0
+  const startOffset=(firstDay+6)%7;
+  const daysInMonth=new Date(year,month+1,0).getDate();
+  const cells=[];
+  for(let i=0;i<startOffset;i++)cells.push(null);
+  for(let i=1;i<=daysInMonth;i++){
+    const d=new Date(year,month,i);
+    cells.push(d.toISOString().split("T")[0]);
+  }
+  return cells;
+}
 
-async function saveSteps(mid, share) {
-  const val = parseInt(document.getElementById("my-steps-inp").value,10);
-  if (isNaN(val)||val<0) return;
-  const today = todayKey();
-  if (!state.steps[today]) state.steps[today]={};
-  state.steps[today][Number(mid)]=val;
-  state.editingMemberId=null;
-  if (share) {
-    state.pushed[mid]=Date.now();
-    if (!state.isSynced) { state.isSynced=true; document.getElementById("banner-code").textContent=state.crewCode; document.getElementById("crew-banner").classList.add("show"); state.syncInterval=setInterval(()=>pullSync(true),30000); }
-    await persist(); toast("Shared with crew! 🚀");
-  } else { await persist(); toast(state.isSynced?"Updated ✓":"Saved — tap Share to push to crew"); }
+function prevMonth(){S.calMonth--;if(S.calMonth<0){S.calMonth=11;S.calYear--;}renderHistory();}
+function nextMonth(){S.calMonth++;if(S.calMonth>11){S.calMonth=0;S.calYear++;}renderHistory();}
+
+// ── Step actions ──────────────────────────────────────────────────────────────
+function startEdit(mid){S.editingId=Number(mid);renderMyBox();setTimeout(()=>{const el=document.getElementById("my-inp");if(el)el.focus();},100);}
+
+async function saveSteps(mid,share){
+  const el=document.getElementById("my-inp");if(!el)return;
+  const val=parseInt(el.value,10);if(isNaN(val)||val<0)return;
+  const today=todayKey();
+  if(!S.steps[today])S.steps[today]={};
+  S.steps[today][Number(mid)]=val;S.editingId=null;
+  if(share){
+    S.pushed[Number(mid)]=Date.now();
+    if(!S.isSynced){S.isSynced=true;document.getElementById("banner-code").textContent=S.crewCode;document.getElementById("crew-banner").classList.add("show");S.syncInterval=setInterval(()=>pullSync(true),30000);}
+    await persist();toast("Shared with crew! 🚀");
+  } else {await persist();toast(S.isSynced?"Updated ✓":"Saved — tap Share to push to crew");}
   render();
 }
 
-async function saveStepsFor(mid, dk, share) {
-  const val = parseInt(document.getElementById("steps-inp-"+mid).value,10);
-  if (isNaN(val)||val<0) return;
-  if (!state.steps[dk]) state.steps[dk]={};
-  state.steps[dk][mid]=val;
-  state.editingMemberId=null;
-  if (share) { state.pushed[mid]=Date.now(); if (!state.isSynced){state.isSynced=true;document.getElementById("banner-code").textContent=state.crewCode;document.getElementById("crew-banner").classList.add("show");state.syncInterval=setInterval(()=>pullSync(true),30000);} await persist(); toast("Shared with crew! 🚀"); }
-  else { await persist(); toast(state.isSynced?"Updated ✓":"Saved — tap Share to push"); }
+async function saveStepsFor(mid,dk,share){
+  const el=document.getElementById("inp-"+mid);if(!el)return;
+  const val=parseInt(el.value,10);if(isNaN(val)||val<0)return;
+  if(!S.steps[dk])S.steps[dk]={};
+  S.steps[dk][Number(mid)]=val;S.editingId=null;
+  if(share){
+    S.pushed[Number(mid)]=Date.now();
+    if(!S.isSynced){S.isSynced=true;document.getElementById("banner-code").textContent=S.crewCode;document.getElementById("crew-banner").classList.add("show");S.syncInterval=setInterval(()=>pullSync(true),30000);}
+    await persist();toast("Shared with crew! 🚀");
+  } else {await persist();toast(S.isSynced?"Updated ✓":"Saved — tap Share to push");}
   render();
 }
 
-async function pushMember(mid) {
-  state.pushed[Number(mid)]=Date.now();
-  if (!state.isSynced){state.isSynced=true;document.getElementById("banner-code").textContent=state.crewCode;document.getElementById("crew-banner").classList.add("show");state.syncInterval=setInterval(()=>pullSync(true),30000);}
-  await persist(); toast("Pushed to crew! 🚀"); render();
+async function pushMember(mid){
+  S.pushed[Number(mid)]=Date.now();
+  if(!S.isSynced){S.isSynced=true;document.getElementById("banner-code").textContent=S.crewCode;document.getElementById("crew-banner").classList.add("show");S.syncInterval=setInterval(()=>pullSync(true),30000);}
+  await persist();toast("Pushed to crew! 🚀");render();
 }
 
-function setView(v, btn) {
-  state.view=v;
-  document.querySelectorAll(".nav-btn").forEach(b=>b.classList.remove("active"));
-  btn.classList.add("active");
-  document.getElementById("view-today").style.display=v==="today"?"block":"none";
-  document.getElementById("view-week").style.display=v==="week"?"block":"none";
-  document.getElementById("view-month").style.display=v==="month"?"block":"none";
+function setView(v,btn){
+  S.view=v;S.editingId=null;
+  document.querySelectorAll(".nav-btn").forEach(b=>b.classList.remove("active"));btn.classList.add("active");
+  ["today","week","history"].forEach(k=>{document.getElementById("view-"+k).style.display=k===v?"block":"none";});
   renderView();
 }
 
 // ── Member management ─────────────────────────────────────────────────────────
-function openAddModal() {
-  state.addAvatar="🏃";
-  buildAvatarRow("add-avatars","🏃","selectAddAvatar");
-  document.getElementById("add-name").value="";
-  document.getElementById("add-goal").value="8000";
-  document.getElementById("modal-add").classList.add("show");
-}
+function openAddModal(){S.addAvatar="🏃";buildAvatars("add-avatars","🏃","selectAddAvatar");document.getElementById("add-name").value="";document.getElementById("add-goal").value="8000";document.getElementById("modal-add").classList.add("show");}
 
-async function addMember() {
-  const name=document.getElementById("add-name").value.trim();
-  if (!name) return;
+async function addMember(){
+  const name=document.getElementById("add-name").value.trim();if(!name)return;
   const goal=parseInt(document.getElementById("add-goal").value)||8000;
   const id=Date.now();
-  const m={id,name,color:COLORS[state.members.length%COLORS.length],goal,avatar:state.addAvatar,isManual:true,isMod:false};
-  state.members.push(m);
-  closeModal("modal-add");
-  await persist(); toast(name+" added! 👋"); render();
+  const m={id,name,color:COLORS[S.members.length%COLORS.length],goal,avatar:S.addAvatar,isManual:true,isMod:false};
+  S.members.push(m);closeModal("modal-add");
+  await persist();toast(name+" added! 👋");render();
 }
 
-function openEditModal(mid) {
-  const m=state.members.find(m=>m.id==mid);
-  if (!m) return;
-  state.editingMemberModal=mid;
-  state.editAvatar=m.avatar;
+function openEditModal(mid){
+  const m=S.members.find(m=>m.id==mid);if(!m)return;
+  S.editingModal=mid;S.editAvatar=m.avatar;
   document.getElementById("edit-name").value=m.name;
   document.getElementById("edit-goal").value=m.goal;
-  buildAvatarRow("edit-avatars",m.avatar,"selectEditAvatar");
+  buildAvatars("edit-avatars",m.avatar,"selectEditAvatar");
   document.getElementById("modal-edit").classList.add("show");
 }
 
-async function saveMemberEdit() {
-  const m=state.members.find(m=>m.id==state.editingMemberModal);
-  if (!m) return;
+async function saveMemberEdit(){
+  const m=S.members.find(m=>m.id==S.editingModal);if(!m)return;
   m.name=document.getElementById("edit-name").value.trim()||m.name;
   m.goal=parseInt(document.getElementById("edit-goal").value)||m.goal;
-  m.avatar=state.editAvatar;
-  closeModal("modal-edit");
-  await persist(); toast("Saved ✓"); render();
+  m.avatar=S.editAvatar;
+  closeModal("modal-edit");await persist();toast("Saved ✓");render();
 }
 
-async function removeMemberModal() {
-  state.members=state.members.filter(m=>m.id!=state.editingMemberModal);
-  closeModal("modal-edit");
-  await persist(); toast("Removed"); render();
+async function removeMemberModal(){
+  S.members=S.members.filter(m=>m.id!=S.editingModal);
+  closeModal("modal-edit");await persist();toast("Removed");render();
 }
 
-// ── Mod panel ─────────────────────────────────────────────────────────────────
-function openModPanel() {
+// ── Mod ───────────────────────────────────────────────────────────────────────
+function openModPanel(){
   const body=document.getElementById("modal-mod-body");
-  const cg=state.crewGoals;
-  if (cg.modPin && !state.modUnlocked) {
-    body.innerHTML=`<p>Enter your mod PIN.</p>
+  const cg=S.crewGoals;
+  if(cg.modPin&&!S.modUnlocked){
+    body.innerHTML=`<p class="modal-p">Enter your mod PIN to access crew settings.</p>
       <input class="inp" id="mod-pin-inp" type="password" placeholder="PIN" style="letter-spacing:4px;margin-bottom:8px;"/>
-      <div id="mod-pin-err" style="color:#ff6b6b;font-size:12px;margin-bottom:8px;"></div>
+      <div id="mod-pin-err" style="color:var(--red);font-size:12px;margin-bottom:8px;"></div>
       <div class="btn-row"><button class="btn-cancel" onclick="closeModal('modal-mod')">Cancel</button><button class="btn-save" onclick="unlockMod()">Unlock</button></div>`;
   } else {
-    state.modUnlocked=true;
-    body.innerHTML=`<div class="mod-info">Goals you set are visible to all crew members in real time.</div>
-      <label class="field-label">📅 Daily Crew Goal (total steps)</label>
-      <input class="inp" id="mod-daily" type="number" value="${cg.dailySteps||""}" placeholder="e.g. 50000 (blank = off)"/>
-      <label class="field-label">📅 Daily Message</label>
-      <input class="inp" id="mod-daily-msg" value="${cg.dailyMsg||""}" placeholder='e.g. "Let&apos;s crush it!"'/>
-      <label class="field-label">📆 Weekly Crew Goal (total steps)</label>
-      <input class="inp" id="mod-weekly" type="number" value="${cg.weeklySteps||""}" placeholder="e.g. 350000 (blank = off)"/>
-      <label class="field-label">📆 Weekly Message</label>
-      <input class="inp" id="mod-weekly-msg" value="${cg.weeklyMsg||""}" placeholder='e.g. "Go the distance!"'/>
-      <label class="field-label">${cg.modPin?"Change PIN (blank = keep)":"Set a Moderator PIN"}</label>
-      <input class="inp" id="mod-pin-new" type="password" placeholder="${cg.modPin?"Blank to keep current":"Protect mod settings"}" style="letter-spacing:4px;"/>
-      <div class="btn-row"><button class="btn-cancel" onclick="closeModal('modal-mod');state.modUnlocked=false;">Cancel</button><button class="btn-gold" onclick="saveCrewGoals()">Save Goals 🎯</button></div>`;
+    S.modUnlocked=true;
+    body.innerHTML=`<div class="mod-info">⭐ Goals you set appear live for all crew members.</div>
+      <div class="field"><label class="field-label">📅 Daily Crew Goal (combined steps)</label><input class="inp" id="mod-daily" type="number" value="${cg.dailySteps||""}" placeholder="e.g. 60000 (blank = off)"/></div>
+      <div class="field"><label class="field-label">📅 Daily Message</label><input class="inp" id="mod-daily-msg" value="${cg.dailyMsg||""}" placeholder='e.g. "Let&apos;s crush it today!"'/></div>
+      <div class="field"><label class="field-label">📆 Weekly Crew Goal (combined steps)</label><input class="inp" id="mod-weekly" type="number" value="${cg.weeklySteps||""}" placeholder="e.g. 350000 (blank = off)"/></div>
+      <div class="field"><label class="field-label">📆 Weekly Message</label><input class="inp" id="mod-weekly-msg" value="${cg.weeklyMsg||""}" placeholder='e.g. "Go the distance!"'/></div>
+      <div class="field"><label class="field-label">${cg.modPin?"Change PIN (blank = keep)":"Set a Moderator PIN"}</label><input class="inp" id="mod-pin-new" type="password" placeholder="${cg.modPin?"Blank to keep current":"Protect your mod settings"}" style="letter-spacing:4px;"/></div>
+      <div class="btn-row"><button class="btn-cancel" onclick="closeModal('modal-mod');S.modUnlocked=false;">Cancel</button><button class="btn-gold" onclick="saveCrewGoals()">Save Goals 🎯</button></div>`;
   }
   document.getElementById("modal-mod").classList.add("show");
 }
 
-function unlockMod() {
+function unlockMod(){
   const pin=document.getElementById("mod-pin-inp").value;
-  if (pin===state.crewGoals.modPin) { state.modUnlocked=true; closeModal("modal-mod"); openModPanel(); }
-  else document.getElementById("mod-pin-err").textContent="Wrong PIN.";
+  if(pin===S.crewGoals.modPin){S.modUnlocked=true;closeModal("modal-mod");openModPanel();}
+  else document.getElementById("mod-pin-err").textContent="Incorrect PIN. Try again.";
 }
 
-async function saveCrewGoals() {
-  state.crewGoals.dailySteps=document.getElementById("mod-daily").value?parseInt(document.getElementById("mod-daily").value):null;
-  state.crewGoals.weeklySteps=document.getElementById("mod-weekly").value?parseInt(document.getElementById("mod-weekly").value):null;
-  state.crewGoals.dailyMsg=document.getElementById("mod-daily-msg").value;
-  state.crewGoals.weeklyMsg=document.getElementById("mod-weekly-msg").value;
-  const newPin=document.getElementById("mod-pin-new").value;
-  if (newPin) state.crewGoals.modPin=newPin;
-  closeModal("modal-mod"); state.modUnlocked=false;
-  await persist(); toast("Crew goals updated! 🎯"); render();
+async function saveCrewGoals(){
+  S.crewGoals.dailySteps=document.getElementById("mod-daily").value?parseInt(document.getElementById("mod-daily").value):null;
+  S.crewGoals.weeklySteps=document.getElementById("mod-weekly").value?parseInt(document.getElementById("mod-weekly").value):null;
+  S.crewGoals.dailyMsg=document.getElementById("mod-daily-msg").value;
+  S.crewGoals.weeklyMsg=document.getElementById("mod-weekly-msg").value;
+  const np=document.getElementById("mod-pin-new").value;if(np)S.crewGoals.modPin=np;
+  closeModal("modal-mod");S.modUnlocked=false;
+  await persist();toast("Crew goals updated! 🎯");render();
 }
 
-async function becomeMod() {
-  const pin=document.getElementById("become-pin").value.trim();
-  if (!pin) return;
-  if (state.crewGoals.modId) { toast("Crew already has a mod"); closeModal("modal-become-mod"); return; }
-  state.crewGoals.modId=state.myId; state.crewGoals.modPin=pin;
-  const m=state.members.find(m=>m.id===state.myId); if(m) m.isMod=true;
-  state.modUnlocked=true;
-  closeModal("modal-become-mod");
-  await persist(); toast("You're now the crew mod! 🎖️"); render();
+async function becomeMod(){
+  const pin=document.getElementById("become-pin").value.trim();if(!pin)return;
+  if(S.crewGoals.modId){toast("Crew already has a moderator");closeModal("modal-become-mod");return;}
+  S.crewGoals.modId=S.myId;S.crewGoals.modPin=pin;
+  const m=S.members.find(m=>m.id===S.myId);if(m)m.isMod=true;
+  S.modUnlocked=true;closeModal("modal-become-mod");
+  await persist();toast("You're now the crew moderator! 🎖️");render();
 }
 
-async function joinCrew() {
-  const code=document.getElementById("join-code-inp").value.trim().toUpperCase();
-  if (!code) return;
+async function joinCrew(){
+  const code=document.getElementById("join-code-inp").value.trim().toUpperCase();if(!code)return;
   const remote=await loadShared(code);
-  if (!remote) { toast("Code not found ❌"); return; }
-  const me=state.members.find(m=>m.id===state.myId);
-  const already=(remote.members||[]).find(m=>m.id===state.myId);
+  if(!remote){toast("Code not found ❌");return;}
+  const me=S.members.find(m=>m.id===S.myId);
+  const already=(remote.members||[]).find(m=>m.id===S.myId);
   const merged=already?remote.members:[...(remote.members||[]),{...me,color:COLORS[(remote.members||[]).length%COLORS.length]}];
-  state.members=merged; state.steps=remote.steps||{}; state.pushed=remote.pushed||{};
-  state.crewGoals=remote.crewGoals||state.crewGoals;
-  state.crewCode=code; state.isSynced=true;
-  await persist();
+  S.members=merged;S.steps=remote.steps||{};S.pushed=remote.pushed||{};
+  S.crewGoals=remote.crewGoals||S.crewGoals;S.crewCode=code;S.isSynced=true;
+  await persist();saveSession(code,S.myId,true);
   document.getElementById("banner-code").textContent=code;
   document.getElementById("crew-banner").classList.add("show");
-  if (state.syncInterval) clearInterval(state.syncInterval);
-  state.syncInterval=setInterval(()=>pullSync(true),30000);
-  closeModal("modal-join");
-  toast("Joined crew "+code+"! 🎉"); render();
+  if(S.syncInterval)clearInterval(S.syncInterval);
+  S.syncInterval=setInterval(()=>pullSync(true),30000);
+  closeModal("modal-join");toast("Joined crew "+code+"! 🎉");render();
 }
 
 function closeModal(id){document.getElementById(id).classList.remove("show");}
 
-// ── Session save/restore ──────────────────────────────────────────────────────
-function saveSession() {
-  try { localStorage.setItem("sc_session", JSON.stringify({
-    crewCode: state.crewCode, isSynced: state.isSynced, myId: state.myId
-  })); } catch(e) {}
+// ── Profile ───────────────────────────────────────────────────────────────────
+let profileAvatar="🏃", profileColor=COLORS[0], profileSync="manual";
+
+function openProfileModal(){
+  const m=S.members.find(m=>m.id===S.myId);if(!m)return;
+  profileAvatar=m.avatar; profileColor=m.color;
+  profileSync=m.isManual?"manual":"auto";
+  document.getElementById("profile-name").value=m.name;
+  document.getElementById("profile-goal").value=m.goal;
+
+  // Avatars
+  const avEl=document.getElementById("profile-avatars");
+  avEl.innerHTML=AVATARS.map(a=>`<button class="av-btn${a===profileAvatar?" sel":""}" onclick="profileAvatar='${a}';document.querySelectorAll('#profile-avatars .av-btn').forEach(b=>b.classList.remove('sel'));this.classList.add('sel')">${a}</button>`).join("");
+
+  // Colours
+  const colEl=document.getElementById("profile-colors");
+  colEl.innerHTML=COLORS.map(c=>`<div onclick="profileColor='${c}';document.querySelectorAll('#profile-colors .col-swatch').forEach(b=>b.style.outline='none');this.style.outline='3px solid '+this.dataset.c+';outline-offset:2px'" class="col-swatch" data-c="${c}" style="width:28px;height:28px;border-radius:50%;background:${c};cursor:pointer;outline:${c===profileColor?"3px solid "+c:"none"};outline-offset:${c===profileColor?"2px":"0"};transition:outline 0.15s;"></div>`).join("");
+
+  // Sync type
+  updateSyncBtns();
+  document.getElementById("modal-profile").classList.add("show");
 }
-async function restoreSession() {
-  try {
-    const s = localStorage.getItem("sc_session");
-    if (!s) return false;
-    const sess = JSON.parse(s);
-    if (!sess.crewCode) return false;
-    const local = loadLocal(sess.crewCode);
-    if (!local) return false;
-    state.crewCode = sess.crewCode;
-    state.isSynced = sess.isSynced;
-    state.myId = sess.myId;
-    state.members = local.members||[];
-    state.steps = local.steps||{};
-    state.pushed = local.pushed||{};
-    state.crewGoals = local.crewGoals||state.crewGoals;
-    if (state.isSynced) await pullSync(true);
-    return true;
-  } catch(e) { return false; }
+
+function setProfileSync(type){
+  profileSync=type;
+  updateSyncBtns();
+}
+
+function updateSyncBtns(){
+  const manBtn=document.getElementById("sync-manual-btn");
+  const autoBtn=document.getElementById("sync-auto-btn");
+  const info=document.getElementById("sync-info");
+  if(!manBtn||!autoBtn)return;
+  if(profileSync==="manual"){
+    manBtn.style.background="var(--accent-bg)";manBtn.style.borderColor="var(--accent)";manBtn.style.color="var(--accent)";
+    autoBtn.style.background="#fff";autoBtn.style.borderColor="var(--border)";autoBtn.style.color="var(--text2)";
+    info.textContent="📵 You log steps manually and choose when to share them with the crew.";
+  } else {
+    autoBtn.style.background="var(--accent-bg)";autoBtn.style.borderColor="var(--accent)";autoBtn.style.color="var(--accent)";
+    manBtn.style.background="#fff";manBtn.style.borderColor="var(--border)";manBtn.style.color="var(--text2)";
+    info.textContent="📱 Steps are pushed to the crew automatically each time you update them.";
+  }
+}
+
+async function saveProfile(){
+  const m=S.members.find(m=>m.id===S.myId);if(!m)return;
+  const newName=document.getElementById("profile-name").value.trim();
+  const newGoal=parseInt(document.getElementById("profile-goal").value)||m.goal;
+  if(!newName){toast("Please enter a name");return;}
+  m.name=newName;
+  m.goal=newGoal;
+  m.avatar=profileAvatar;
+  m.color=profileColor;
+  m.isManual=profileSync==="manual";
+  closeModal("modal-profile");
+  await persist();
+  toast("Profile updated ✓");
+  render();
 }
 
 // ── Init ──────────────────────────────────────────────────────────────────────
-buildAvatarRow("ob-avatars","🏃","selectAvatar");
-restoreSession().then(restored => {
-  if (restored) {
+buildAvatars("ob-avatars","🏃","selectAvatar");
+restoreSession().then(restored=>{
+  if(restored){
     document.getElementById("onboard").classList.remove("active");
     document.getElementById("app").classList.add("active");
-    if (state.isSynced) {
-      document.getElementById("banner-code").textContent = state.crewCode;
-      state.syncInterval = setInterval(()=>pullSync(true), 30000);
+    if(S.isSynced){
+      document.getElementById("banner-code").textContent=S.crewCode;
+      S.syncInterval=setInterval(()=>pullSync(true),30000);
     }
     render();
   }
