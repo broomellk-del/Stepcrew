@@ -238,7 +238,13 @@ input:focus,select:focus{outline:none;}
 <div class="toast" id="toast"></div>
 
 <!-- ══ ONBOARD ══ -->
-<div id="onboard" class="screen active">
+<div id="splash" style="position:fixed;inset:0;background:#f0f0f5;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:999;">
+  <div style="font-size:52px;margin-bottom:12px;">👟</div>
+  <div style="font-family:'Syne',sans-serif;font-size:24px;font-weight:800;color:#1a1a2e;letter-spacing:-1px;">StepCrew</div>
+  <div style="margin-top:20px;width:32px;height:32px;border:3px solid #dde0ff;border-top-color:#6366f1;border-radius:50%;animation:spin 0.8s linear infinite;"></div>
+</div>
+
+<div id="onboard" class="screen">
   <div class="ob-card">
     <div class="ob-logo">
       <span class="ob-logo-icon">👟</span>
@@ -422,7 +428,8 @@ let S={
   view:"today",editingId:null,editingModal:null,
   syncMode:"manual",
   chalIdx:0,modUnlocked:false,syncInterval:null,
-  historyFilter:"7d",historyMember:"all",calMonth:new Date().getMonth(),calYear:new Date().getFullYear()
+  historyFilter:"7d",historyMember:"all",calMonth:new Date().getMonth(),calYear:new Date().getFullYear(),
+  logDate:new Date().toISOString().split('T')[0]
 };
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -434,6 +441,7 @@ function fmtDate(s){return new Date(s+"T00:00:00").toLocaleDateString("en-US",{w
 function shortDay(s){return new Date(s+"T00:00:00").toLocaleDateString("en-US",{weekday:"short"});}
 function shortDate(s){return new Date(s+"T00:00:00").toLocaleDateString("en-US",{month:"short",day:"numeric"});}
 function monthName(m,y){return new Date(y,m,1).toLocaleDateString("en-US",{month:"long",year:"numeric"});}
+function yesterdayKey(){const d=new Date();d.setDate(d.getDate()-1);return d.toISOString().split('T')[0];}
 function genCode(){return Math.random().toString(36).slice(2,8).toUpperCase();}
 function timeAgo(ts){if(!ts)return"never";const s=Math.floor((Date.now()-ts)/1000);if(s<60)return"just now";if(s<3600)return Math.floor(s/60)+"m ago";return Math.floor(s/3600)+"h ago";}
 function getSteps(mid,dk){return(S.steps[dk]||{})[mid]||0;}
@@ -508,11 +516,16 @@ async function handleStart(){
     clearTimeout(safetyTimer);
     S.myId=id;S.crewCode=code;S.isSynced=synced;
     S.members=initM;S.steps=initS;S.pushed=initP;S.crewGoals=initCG;
-    await persist();
-    saveSession(code,id,synced);
 
+    // Switch screens immediately — before Firebase save — so spinner never lingers
     document.getElementById("onboard").classList.remove("active");
+    document.getElementById("onboard").style.display="none";
     document.getElementById("app").classList.add("active");
+    render();
+
+    // Now save in background
+    persist();
+    saveSession(code,id,synced);
 
     if(synced){
       document.getElementById("banner-code").textContent=code;
@@ -520,7 +533,6 @@ async function handleStart(){
       S.syncInterval=setInterval(()=>pullSync(true),30000);
     }
     if(isModerator){S.modUnlocked=true;openModPanel();}
-    render();
     if(synced)toast("Crew created! Share code: "+code+" 🎉");
   } catch(e) {
     clearTimeout(safetyTimer);
@@ -615,7 +627,10 @@ function avgSteps(mid,days){const active=days.filter(d=>getSteps(mid,d)>0);retur
 function renderMyBox(){
   const box=document.getElementById("my-box");
   const m=S.members.find(m=>m.id===S.myId);if(!m){box.innerHTML="";return;}
-  const today=todayKey(),s=getSteps(m.id,today);
+  const selectedDate=S.logDate||todayKey();
+  const today=selectedDate;
+  const isViewingToday=selectedDate===todayKey();
+  const s=getSteps(m.id,today);
   const pct=Math.min((s/m.goal)*100,100);
   const pushed=S.pushed[m.id];
   const minSince=pushed?Math.floor((Date.now()-pushed)/60000):null;
@@ -642,7 +657,7 @@ function renderMyBox(){
       ${avatar(m,44)}
       <div class="mb-info">
         <div class="mb-name">${m.name}<span class="tag tag-you">YOU</span>${m.isMod?`<span class="tag tag-mod">MOD</span>`:""}</div>
-        <div class="mb-sub">Goal ${m.goal.toLocaleString()} · 7-day avg <b>${avg7.toLocaleString()}</b>${minSince!==null?` · pushed ${minSince<1?"just now":minSince+"m ago"}`:""}</div>
+        <div class="mb-sub">${isViewingToday?`Goal ${m.goal.toLocaleString()} · 7-day avg <b>${avg7.toLocaleString()}</b>${minSince!==null?` · pushed ${minSince<1?"just now":minSince+"m ago"}`:""}`:`Editing steps for <b>${fmtDate(today)}</b>`}</div>
       </div>
       <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;">
         <div class="mb-steps">
@@ -678,16 +693,29 @@ function renderChallenge(){
 
 function renderView(){
   const today=todayKey(),wDays=weekDays(),mDays=monthDays();
-  if(S.view==="today")renderToday(today);
+  if(S.view==="today")renderToday(S.logDate||today);
   else if(S.view==="week")renderWeek(wDays,today);
   else renderHistory();
 }
 
 function renderToday(today){
+  const isViewingToday=today===new Date().toISOString().split('T')[0];
   const box=document.getElementById("view-today");
   const sorted=[...S.members].sort((a,b)=>getSteps(b.id,today)-getSteps(a.id,today));
   const gTotal=S.members.reduce((s,m)=>s+getSteps(m.id,today),0);
-  let h=`<div class="date-row"><div class="date-txt">${fmtDate(today)}</div><div class="date-total">Crew total: <b>${gTotal.toLocaleString()}</b></div></div>`;
+  const isToday=today===new Date().toISOString().split("T")[0];
+  const isYesterday=today===yesterdayKey();
+  let h=`<div style="background:#fff;border-radius:var(--radius);padding:12px 14px;margin-bottom:12px;box-shadow:var(--shadow);">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+      <div style="font-size:12px;font-weight:700;color:var(--text);">${isToday?"Today":isYesterday?"Yesterday":fmtDate(today)}</div>
+      <div style="font-size:11px;color:var(--text3);">Crew total: <b style="color:var(--text);">${gTotal.toLocaleString()}</b></div>
+    </div>
+    <div style="display:flex;gap:6px;align-items:center;">
+      <button onclick="S.logDate=new Date().toISOString().split('T')[0];renderView()" style="padding:6px 12px;border-radius:8px;border:1.5px solid ${isToday?'var(--accent)':'var(--border)'};background:${isToday?'var(--accent-bg)':'#fff'};color:${isToday?'var(--accent)':'var(--text3)'};font-size:11px;font-weight:700;cursor:pointer;">Today</button>
+      <button onclick="S.logDate=yesterdayKey();renderView()" style="padding:6px 12px;border-radius:8px;border:1.5px solid ${isYesterday?'var(--accent)':'var(--border)'};background:${isYesterday?'var(--accent-bg)':'#fff'};color:${isYesterday?'var(--accent)':'var(--text3)'};font-size:11px;font-weight:700;cursor:pointer;">Yesterday</button>
+      <input type="date" value="${today}" max="${new Date().toISOString().split('T')[0]}" onchange="S.logDate=this.value;renderView()" style="flex:1;background:var(--surface2);border:1.5px solid var(--border);color:var(--text2);border-radius:8px;padding:5px 8px;font-size:11px;outline:none;cursor:pointer;"/>
+    </div>
+  </div>`;
   sorted.forEach((m,i)=>{
     if(m.id===S.myId)return;
     const s=getSteps(m.id,today),pct=Math.min((s/m.goal)*100,100),lp=S.pushed[m.id];
@@ -1093,14 +1121,20 @@ async function saveProfile(){
 
 // ── Init ──────────────────────────────────────────────────────────────────────
 restoreSession().then(restored=>{
+  const splash=document.getElementById("splash");
   if(restored){
-    document.getElementById("onboard").classList.remove("active");
+    // Returning user — go straight to dashboard
+    splash.style.display="none";
     document.getElementById("app").classList.add("active");
     if(S.isSynced){
       document.getElementById("banner-code").textContent=S.crewCode;
       S.syncInterval=setInterval(()=>pullSync(true),30000);
     }
     render();
+  } else {
+    // New user — show onboard
+    splash.style.display="none";
+    document.getElementById("onboard").classList.add("active");
   }
 });
 </script>
