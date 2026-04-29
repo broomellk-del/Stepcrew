@@ -1,4 +1,4 @@
-  <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8"/>
@@ -249,10 +249,7 @@ input:focus,select:focus{outline:none;}
       <label class="field-label">Your Name</label>
       <input class="inp" id="ob-name" placeholder="e.g. Sarah" type="text"/>
     </div>
-    <div class="field">
-      <label class="field-label">Pick Your Avatar</label>
-      <div class="av-row" id="ob-avatars"></div>
-    </div>
+
     <div class="field">
       <label class="field-label">Daily Step Goal</label>
       <input class="inp" id="ob-goal" type="number" value="8000"/>
@@ -310,7 +307,7 @@ input:focus,select:focus{outline:none;}
     <div class="modal-handle"></div>
     <div class="modal-head"><span class="modal-title">Add Member</span><button class="modal-close" onclick="closeModal('modal-add')">✕</button></div>
     <div class="field"><label class="field-label">Name</label><input class="inp" id="add-name" placeholder="Name"/></div>
-    <div class="field"><label class="field-label">Avatar</label><div class="av-row" id="add-avatars"></div></div>
+    
     <div class="field"><label class="field-label">Daily Goal</label><input class="inp" id="add-goal" type="number" value="8000"/></div>
     <div class="btn-row"><button class="btn-cancel" onclick="closeModal('modal-add')">Cancel</button><button class="btn-save" onclick="addMember()">Add Member</button></div>
   </div>
@@ -321,7 +318,7 @@ input:focus,select:focus{outline:none;}
     <div class="modal-handle"></div>
     <div class="modal-head"><span class="modal-title">Edit Profile</span><button class="modal-close" onclick="closeModal('modal-edit')">✕</button></div>
     <div class="field"><label class="field-label">Name</label><input class="inp" id="edit-name"/></div>
-    <div class="field"><label class="field-label">Avatar</label><div class="av-row" id="edit-avatars"></div></div>
+    
     <div class="field"><label class="field-label">Daily Goal</label><input class="inp" id="edit-goal" type="number"/></div>
     <div class="btn-row">
       <button class="btn-danger" onclick="removeMemberModal()">Remove</button>
@@ -364,7 +361,7 @@ input:focus,select:focus{outline:none;}
     <div class="modal-handle"></div>
     <div class="modal-head"><span class="modal-title">My Profile</span><button class="modal-close" onclick="closeModal('modal-profile')">✕</button></div>
     <div class="field"><label class="field-label">Name</label><input class="inp" id="profile-name"/></div>
-    <div class="field"><label class="field-label">Avatar</label><div class="av-row" id="profile-avatars"></div></div>
+    
     <div class="field">
       <label class="field-label">Colour</label>
       <div id="profile-colors" style="display:flex;gap:8px;flex-wrap:wrap;margin-top:4px;"></div>
@@ -407,7 +404,8 @@ function loadSession(){try{const r=localStorage.getItem("sc_sess");return r?JSON
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 const COLORS=["#6366f1","#10b981","#f59e0b","#ef4444","#8b5cf6","#06b6d4","#f97316","#ec4899","#14b8a6","#84cc16"];
-const AVATARS=["🏃","🚶","🧍","🏋️","🧘","🚴","⛹️","🤸","👟","🥾"];
+function initials(name){return(name||"?").trim().split(/\s+/).map(w=>w[0]).join("").toUpperCase().slice(0,2);}
+function avatar(m,size){size=size||40;var fs=Math.round(size*0.38);return'<div style="width:'+size+'px;height:'+size+'px;border-radius:'+Math.round(size*0.3)+'px;background:'+m.color+';display:flex;align-items:center;justify-content:center;font-size:'+fs+'px;font-weight:800;color:#fff;flex-shrink:0;letter-spacing:-0.5px;">'+initials(m.name)+'</div>';}
 const CHALLENGES=[
   {id:"5k",  label:"5K Club",    desc:"Everyone hits 5,000 today",   target:5000, type:"everyone"},
   {id:"10k", label:"10K Club",   desc:"Everyone hits 10,000 today",  target:10000,type:"everyone"},
@@ -422,7 +420,7 @@ let S={
   members:[],steps:{},pushed:{},
   crewGoals:{dailySteps:null,weeklySteps:null,dailyMsg:"",weeklyMsg:"",modId:null,modPin:null},
   view:"today",editingId:null,editingModal:null,
-  syncMode:"manual",selAvatar:"🏃",addAvatar:"🏃",editAvatar:"🏃",
+  syncMode:"manual",
   chalIdx:0,modUnlocked:false,syncInterval:null,
   historyFilter:"7d",historyMember:"all",calMonth:new Date().getMonth(),calYear:new Date().getFullYear()
 };
@@ -465,13 +463,7 @@ async function pullSync(silent=false){
 }
 
 // ── Onboard ───────────────────────────────────────────────────────────────────
-function buildAvatars(id,cur,fn){
-  const el=document.getElementById(id);if(!el)return;
-  el.innerHTML=AVATARS.map(a=>`<button class="av-btn${a===cur?" sel":""}" onclick="${fn}('${a}',this)">${a}</button>`).join("");
-}
-function selectAvatar(a,b){S.selAvatar=a;document.querySelectorAll("#ob-avatars .av-btn").forEach(x=>x.classList.remove("sel"));b.classList.add("sel");}
-function selectAddAvatar(a,b){S.addAvatar=a;document.querySelectorAll("#add-avatars .av-btn").forEach(x=>x.classList.remove("sel"));b.classList.add("sel");}
-function selectEditAvatar(a,b){S.editAvatar=a;document.querySelectorAll("#edit-avatars .av-btn").forEach(x=>x.classList.remove("sel"));b.classList.add("sel");}
+
 
 function selectMode(btn){
   S.syncMode=btn.dataset.mode;
@@ -493,47 +485,90 @@ async function handleStart(){
   btn.disabled=true;
   btn.innerHTML=`<span class="spinner"></span> Setting up…`;
 
-  const id=Date.now();
-  const isModerator=S.syncMode==="create";
-  let code=genCode(),synced=false;
-  let initM=[{id,name,color:COLORS[0],goal,avatar:S.selAvatar,isManual:S.syncMode==="manual",isMod:isModerator}];
-  let initS={},initP={},initCG={...S.crewGoals};
+  // Safety timeout — always re-enable button after 10s if something goes wrong
+  const safetyTimer=setTimeout(()=>{btn.disabled=false;btn.innerHTML="Let's Walk 🚀";},10000);
 
-  if(S.syncMode==="create"){synced=true;initCG.modId=id;}
-  else if(S.syncMode==="join"){
-    code=document.getElementById("ob-code").value.trim().toUpperCase();synced=true;
-    const remote=await loadShared(code);
-    if(!remote){btn.disabled=false;btn.innerHTML="Let's Walk 🚀";errEl.textContent="Crew not found. Check the code.";return;}
-    const n=(remote.members||[]).length;
-    initM=[...(remote.members||[]),{id,name,color:COLORS[n%COLORS.length],goal,avatar:S.selAvatar,isManual:false,isMod:false}];
-    initS=remote.steps||{};initP=remote.pushed||{};initCG=remote.crewGoals||initCG;
+  try {
+    const id=Date.now();
+    const isModerator=S.syncMode==="create";
+    let code=genCode(),synced=false;
+    let initM=[{id,name,color:COLORS[0],goal,isManual:S.syncMode==="manual",isMod:isModerator}];
+    let initS={},initP={},initCG={...S.crewGoals};
+
+    if(S.syncMode==="create"){synced=true;initCG.modId=id;}
+    else if(S.syncMode==="join"){
+      code=document.getElementById("ob-code").value.trim().toUpperCase();synced=true;
+      const remote=await loadShared(code);
+      if(!remote){clearTimeout(safetyTimer);btn.disabled=false;btn.innerHTML="Let's Walk 🚀";errEl.textContent="Crew not found. Check the code.";return;}
+      const n=(remote.members||[]).length;
+      initM=[...(remote.members||[]),{id,name,color:COLORS[n%COLORS.length],goal,isManual:false,isMod:false}];
+      initS=remote.steps||{};initP=remote.pushed||{};initCG=remote.crewGoals||initCG;
+    }
+
+    clearTimeout(safetyTimer);
+    S.myId=id;S.crewCode=code;S.isSynced=synced;
+    S.members=initM;S.steps=initS;S.pushed=initP;S.crewGoals=initCG;
+    await persist();
+    saveSession(code,id,synced);
+
+    document.getElementById("onboard").classList.remove("active");
+    document.getElementById("app").classList.add("active");
+
+    if(synced){
+      document.getElementById("banner-code").textContent=code;
+      document.getElementById("crew-banner").classList.add("show");
+      S.syncInterval=setInterval(()=>pullSync(true),30000);
+    }
+    if(isModerator){S.modUnlocked=true;openModPanel();}
+    render();
+    if(synced)toast("Crew created! Share code: "+code+" 🎉");
+  } catch(e) {
+    clearTimeout(safetyTimer);
+    btn.disabled=false;btn.innerHTML="Let's Walk 🚀";
+    errEl.textContent="Something went wrong. Please try again.";
+    console.error(e);
   }
-
-  S.myId=id;S.crewCode=code;S.isSynced=synced;
-  S.members=initM;S.steps=initS;S.pushed=initP;S.crewGoals=initCG;
-  await persist();
-  saveSession(code,id,synced);
-
-  document.getElementById("onboard").classList.remove("active");
-  document.getElementById("app").classList.add("active");
-
-  if(synced){
-    document.getElementById("banner-code").textContent=code;
-    document.getElementById("crew-banner").classList.add("show");
-    S.syncInterval=setInterval(()=>pullSync(true),30000);
-  }
-  if(isModerator){S.modUnlocked=true;openModPanel();}
-  render();
-  if(synced)toast("Crew created! Share code: "+code+" 🎉");
 }
 
 // ── Session restore ───────────────────────────────────────────────────────────
 async function restoreSession(){
-  const sess=loadSession();if(!sess)return false;
-  const local=loadLocal(sess.code);if(!local)return false;
+  // Try current session key first
+  let sess=loadSession();
+
+  // Also check old session keys from previous app versions
+  if(!sess){
+    const oldKeys=["sc3_sess","sc2_sess","sc_session"];
+    for(const k of oldKeys){
+      try{const r=localStorage.getItem(k);if(r){sess=JSON.parse(r);break;}}catch(e){}
+    }
+  }
+
+  if(!sess||!sess.code)return false;
+
+  // Try loading local data, also check old prefixes
+  let local=loadLocal(sess.code);
+  if(!local){
+    const oldPrefixes=["sc3_","sc2_","stepcrew_local_"];
+    for(const p of oldPrefixes){
+      try{const r=localStorage.getItem(p+sess.code);if(r){local=JSON.parse(r);break;}}catch(e){}
+    }
+  }
+
+  // If no local data, try pulling from Firebase directly
+  if(!local&&sess.synced){
+    local=await loadShared(sess.code);
+  }
+
+  if(!local)return false;
+
   S.crewCode=sess.code;S.isSynced=sess.synced;S.myId=sess.id;
   S.members=local.members||[];S.steps=local.steps||{};
   S.pushed=local.pushed||{};S.crewGoals=local.crewGoals||S.crewGoals;
+
+  // Save in new format for next time
+  saveLocal(sess.code,local);
+  saveSession(sess.code,sess.id,sess.synced);
+
   if(S.isSynced)await pullSync(true);
   return true;
 }
@@ -575,6 +610,8 @@ function renderCrewGoals(){
   box.innerHTML=h;
 }
 
+function avgSteps(mid,days){const active=days.filter(d=>getSteps(mid,d)>0);return active.length?Math.round(getTotal(mid,days)/active.length):0;}
+
 function renderMyBox(){
   const box=document.getElementById("my-box");
   const m=S.members.find(m=>m.id===S.myId);if(!m){box.innerHTML="";return;}
@@ -584,6 +621,7 @@ function renderMyBox(){
   const minSince=pushed?Math.floor((Date.now()-pushed)/60000):null;
   const needsPush=s>0&&(!pushed||(Date.now()-pushed)>900000);
   const isEditing=S.editingId===m.id;
+  const avg7=avgSteps(m.id,weekDays());
   let action="";
   if(isEditing){
     action=`<div class="edit-row">
@@ -601,10 +639,10 @@ function renderMyBox(){
   }
   box.innerHTML=`<div class="my-box">
     <div class="mb-row">
-      <div class="mb-av" style="background:${m.color}20;cursor:pointer;" onclick="openProfileModal()" title="Edit your profile">${m.avatar}</div>
+      ${avatar(m,44)}
       <div class="mb-info">
         <div class="mb-name">${m.name}<span class="tag tag-you">YOU</span>${m.isMod?`<span class="tag tag-mod">MOD</span>`:""}</div>
-        <div class="mb-sub">Goal ${m.goal.toLocaleString()}${minSince!==null?` · pushed ${minSince<1?"just now":minSince+"m ago"}`:""}</div>
+        <div class="mb-sub">Goal ${m.goal.toLocaleString()} · 7-day avg <b>${avg7.toLocaleString()}</b>${minSince!==null?` · pushed ${minSince<1?"just now":minSince+"m ago"}`:""}</div>
       </div>
       <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;">
         <div class="mb-steps">
@@ -659,10 +697,10 @@ function renderToday(today){
       :`<div class="action-row" style="gap:6px;"><button style="flex:1;background:var(--surface2);border:1.5px solid var(--border);color:var(--text2);border-radius:var(--radius-sm);padding:8px;font-size:12px;font-weight:600;cursor:pointer;" onclick="S.editingId='${m.id}_t';renderView()">${s>0?"✏️ Update":"➕ Log steps"}</button><button style="background:var(--surface2);border:1.5px solid var(--border);color:var(--text3);border-radius:var(--radius-sm);padding:8px 10px;font-size:12px;cursor:pointer;" onclick="openEditModal(${m.id})">⚙️</button></div>`;
     h+=`<div class="member-card${i===0&&s>0?" leader":""}">
       <div class="mc-row">
-        <div class="mc-av" style="background:${m.color}18;">${m.avatar}</div>
+        ${avatar(m,38)}
         <div style="flex:1;">
           <div class="mc-name">${m.name}${i===0&&s>0?" 👑":""}${m.isMod?` <span class="tag tag-mod">MOD</span>`:""} ${m.isManual?`<span class="tag tag-manual">MANUAL</span>`:""}</div>
-          <div class="mc-sub">Goal ${m.goal.toLocaleString()} · ${timeAgo(lp)}</div>
+          <div class="mc-sub">Goal ${m.goal.toLocaleString()} · avg ${avgSteps(m.id,weekDays()).toLocaleString()}/day · ${timeAgo(lp)}</div>
         </div>
         <div class="mc-steps"><div class="mc-num" style="color:${m.color};">${s.toLocaleString()}</div><div class="mc-pct">${pct.toFixed(0)}%</div></div>
       </div>
@@ -691,8 +729,8 @@ function renderWeek(wDays,today){
     h+=`<div class="member-card${i===0?" leader":""}">
       <div class="mc-row">
         <div style="width:26px;height:26px;border-radius:50%;background:${i<3?medals[i]+"22":"var(--surface2)"};display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;color:${i<3?medals[i]:"var(--text3)"};">${i+1}</div>
-        <div class="mc-av" style="background:${m.color}18;">${m.avatar}</div>
-        <div style="flex:1;"><div class="mc-name">${m.name}${isMe?` <span class="tag tag-you">YOU</span>`:""}</div><div class="mc-sub">${activeDays}/7 days active</div></div>
+        ${avatar(m,38)}
+        <div style="flex:1;"><div class="mc-name">${m.name}${isMe?` <span class="tag tag-you">YOU</span>`:""}</div><div class="mc-sub">${activeDays}/7 days · avg ${avgSteps(m.id,wDays).toLocaleString()}/day</div></div>
         <div style="font-family:'Syne',sans-serif;font-size:18px;font-weight:800;color:${m.color};">${total.toLocaleString()}</div>
       </div>
       <div class="pbar"><div class="pbar-fill" style="width:${pct}%;background:${m.color};"></div></div>
@@ -705,6 +743,11 @@ function renderWeek(wDays,today){
 function renderHistory(){
   const box=document.getElementById("view-history");
   const days=S.historyFilter==="7d"?daysAgo(7):S.historyFilter==="30d"?daysAgo(30):monthDays();
+  const periodLabel=S.historyFilter==="7d"?"Last 7 days":S.historyFilter==="30d"?"Last 30 days":"This month";
+  const membersToShow=S.historyMember==="all"?S.members:S.members.filter(m=>m.id===Number(S.historyMember));
+  const periodTotal=membersToShow.reduce((s,m)=>s+getTotal(m.id,days),0);
+  const periodAvg=membersToShow.length?Math.round(periodTotal/(days.filter(d=>membersToShow.some(m=>getSteps(m.id,d)>0)).length||1)):0;
+  const topMember=S.historyMember==="all"&&S.members.length>0?[...S.members].sort((a,b)=>getTotal(b.id,days)-getTotal(a.id,days))[0]:null;
 
   // Member filter buttons
   const memberBtns=[{id:"all",name:"Everyone"},...S.members].map(m=>`<button class="mf-btn${S.historyMember===(m.id||"all")?" on":""}" onclick="S.historyMember='${m.id||"all"}';renderHistory()">${m.name||m}</button>`).join("");
@@ -712,7 +755,6 @@ function renderHistory(){
   // Build SVG line chart
   const w=300,h=100;
   let lines="";
-  const membersToShow=S.historyMember==="all"?S.members:S.members.filter(m=>m.id===S.historyMember);
   const allVals=days.map(d=>membersToShow.reduce((s,m)=>s+getSteps(m.id,d),0));
   const maxVal=Math.max(...allVals,1);
 
@@ -757,8 +799,8 @@ function renderHistory(){
     const pct=Math.min((total/(m.goal*mDays.length))*100,100);
     return`<div class="member-card">
       <div class="mc-row">
-        <div class="mc-av" style="background:${m.color}18;">${m.avatar}</div>
-        <div style="flex:1;"><div class="mc-name">${m.name}${m.id===S.myId?` <span class="tag tag-you">YOU</span>`:""}</div><div class="mc-sub">${active} active days${streak>0?` · 🔥 ${streak}-day streak`:""}</div></div>
+        ${avatar(m,38)}
+        <div style="flex:1;"><div class="mc-name">${m.name}${m.id===S.myId?` <span class="tag tag-you">YOU</span>`:""}</div><div class="mc-sub">${active} active days · avg ${avgSteps(m.id,mDays).toLocaleString()}/day${streak>0?` · 🔥 ${streak}-day streak`:""}</div></div>
         <div class="mc-steps"><div class="mc-num" style="color:${m.color};font-size:16px;">${total.toLocaleString()}</div><div class="mc-pct">${pct.toFixed(0)}%</div></div>
       </div>
       <div class="pbar"><div class="pbar-fill" style="width:${pct}%;background:${m.color};"></div></div>
@@ -766,6 +808,25 @@ function renderHistory(){
   }).join("");
 
   box.innerHTML=`
+    <!-- Stats summary -->
+    <div style="display:grid;grid-template-columns:1fr 1fr${topMember?' 1fr':'1fr'};gap:8px;margin-bottom:14px;">
+      <div style="background:#fff;border-radius:var(--radius);padding:12px;box-shadow:var(--shadow);text-align:center;">
+        <div style="font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:1px;font-weight:600;margin-bottom:4px;">${periodLabel}</div>
+        <div style="font-family:'Syne',sans-serif;font-size:18px;font-weight:800;color:var(--accent);">${periodTotal.toLocaleString()}</div>
+        <div style="font-size:10px;color:var(--text3);margin-top:2px;">total steps</div>
+      </div>
+      <div style="background:#fff;border-radius:var(--radius);padding:12px;box-shadow:var(--shadow);text-align:center;">
+        <div style="font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:1px;font-weight:600;margin-bottom:4px;">Daily Avg</div>
+        <div style="font-family:'Syne',sans-serif;font-size:18px;font-weight:800;color:var(--green);">${periodAvg.toLocaleString()}</div>
+        <div style="font-size:10px;color:var(--text3);margin-top:2px;">steps/active day</div>
+      </div>
+      ${topMember?`<div style="background:#fff;border-radius:var(--radius);padding:12px;box-shadow:var(--shadow);text-align:center;">
+        <div style="font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:1px;font-weight:600;margin-bottom:4px;">Top Walker</div>
+        <div style="font-size:16px;font-weight:800;color:${topMember.color};">${topMember.name.split(' ')[0]}</div>
+        <div style="font-size:10px;color:var(--text3);margin-top:2px;">${getTotal(topMember.id,days).toLocaleString()} steps</div>
+      </div>`:''}
+    </div>
+
     <!-- Line Chart -->
     <div class="chart-card">
       <div class="chart-header">
@@ -878,23 +939,22 @@ function setView(v,btn){
 }
 
 // ── Member management ─────────────────────────────────────────────────────────
-function openAddModal(){S.addAvatar="🏃";buildAvatars("add-avatars","🏃","selectAddAvatar");document.getElementById("add-name").value="";document.getElementById("add-goal").value="8000";document.getElementById("modal-add").classList.add("show");}
+function openAddModal(){document.getElementById("add-name").value="";document.getElementById("add-goal").value="8000";document.getElementById("modal-add").classList.add("show");}
 
 async function addMember(){
   const name=document.getElementById("add-name").value.trim();if(!name)return;
   const goal=parseInt(document.getElementById("add-goal").value)||8000;
   const id=Date.now();
-  const m={id,name,color:COLORS[S.members.length%COLORS.length],goal,avatar:S.addAvatar,isManual:true,isMod:false};
+  const m={id,name,color:COLORS[S.members.length%COLORS.length],goal,isManual:true,isMod:false};
   S.members.push(m);closeModal("modal-add");
   await persist();toast(name+" added! 👋");render();
 }
 
 function openEditModal(mid){
   const m=S.members.find(m=>m.id==mid);if(!m)return;
-  S.editingModal=mid;S.editAvatar=m.avatar;
+  S.editingModal=mid;
   document.getElementById("edit-name").value=m.name;
   document.getElementById("edit-goal").value=m.goal;
-  buildAvatars("edit-avatars",m.avatar,"selectEditAvatar");
   document.getElementById("modal-edit").classList.add("show");
 }
 
@@ -902,7 +962,6 @@ async function saveMemberEdit(){
   const m=S.members.find(m=>m.id==S.editingModal);if(!m)return;
   m.name=document.getElementById("edit-name").value.trim()||m.name;
   m.goal=parseInt(document.getElementById("edit-goal").value)||m.goal;
-  m.avatar=S.editAvatar;
   closeModal("modal-edit");await persist();toast("Saved ✓");render();
 }
 
@@ -978,18 +1037,14 @@ async function joinCrew(){
 function closeModal(id){document.getElementById(id).classList.remove("show");}
 
 // ── Profile ───────────────────────────────────────────────────────────────────
-let profileAvatar="🏃", profileColor=COLORS[0], profileSync="manual";
+let profileColor=COLORS[0], profileSync="manual";
 
 function openProfileModal(){
   const m=S.members.find(m=>m.id===S.myId);if(!m)return;
-  profileAvatar=m.avatar; profileColor=m.color;
+  profileColor=m.color;
   profileSync=m.isManual?"manual":"auto";
   document.getElementById("profile-name").value=m.name;
   document.getElementById("profile-goal").value=m.goal;
-
-  // Avatars
-  const avEl=document.getElementById("profile-avatars");
-  avEl.innerHTML=AVATARS.map(a=>`<button class="av-btn${a===profileAvatar?" sel":""}" onclick="profileAvatar='${a}';document.querySelectorAll('#profile-avatars .av-btn').forEach(b=>b.classList.remove('sel'));this.classList.add('sel')">${a}</button>`).join("");
 
   // Colours
   const colEl=document.getElementById("profile-colors");
@@ -1028,7 +1083,6 @@ async function saveProfile(){
   if(!newName){toast("Please enter a name");return;}
   m.name=newName;
   m.goal=newGoal;
-  m.avatar=profileAvatar;
   m.color=profileColor;
   m.isManual=profileSync==="manual";
   closeModal("modal-profile");
@@ -1038,7 +1092,6 @@ async function saveProfile(){
 }
 
 // ── Init ──────────────────────────────────────────────────────────────────────
-buildAvatars("ob-avatars","🏃","selectAvatar");
 restoreSession().then(restored=>{
   if(restored){
     document.getElementById("onboard").classList.remove("active");
