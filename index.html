@@ -1,0 +1,767 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>StepCrew 👟</title>
+  <meta name="description" content="Family step tracking — walk together, go further"/>
+  <meta name="theme-color" content="#07070e"/>
+  <link rel="manifest" href="manifest.json"/>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0;}
+    body{background:#07070e;color:#f0f0f0;font-family:'Palatino Linotype','Book Antiqua',Palatino,serif;min-height:100vh;}
+    input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;}
+    input:focus{outline:none;}
+    select{outline:none;}
+    #root{min-height:100vh;}
+  </style>
+</head>
+<body>
+<div id="root"></div>
+
+<!-- ░░ IMPORTANT: Replace the Firebase config below with YOUR project values ░░ -->
+<!-- ░░ See README.md for instructions on how to get these values             ░░ -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+// ── PASTE YOUR FIREBASE CONFIG HERE ──────────────────────────────────────────
+const firebaseConfig = {
+  apiKey: "PASTE_YOUR_API_KEY_HERE",
+  authDomain: "PASTE_YOUR_AUTH_DOMAIN_HERE",
+  projectId: "PASTE_YOUR_PROJECT_ID_HERE",
+  storageBucket: "PASTE_YOUR_STORAGE_BUCKET_HERE",
+  messagingSenderId: "PASTE_YOUR_SENDER_ID_HERE",
+  appId: "PASTE_YOUR_APP_ID_HERE"
+};
+// ─────────────────────────────────────────────────────────────────────────────
+
+const app = initializeApp(firebaseConfig);
+const db  = getFirestore(app);
+
+// Expose DB helpers globally so React app can use them
+window._scDB = {
+  async save(crewCode, data) {
+    try {
+      await setDoc(doc(db, "crews", crewCode), { ...data, updatedAt: Date.now() });
+      return true;
+    } catch(e) { console.error("Save error:", e); return false; }
+  },
+  async load(crewCode) {
+    try {
+      const snap = await getDoc(doc(db, "crews", crewCode));
+      return snap.exists() ? snap.data() : null;
+    } catch(e) { console.error("Load error:", e); return null; }
+  }
+};
+
+// Signal app that DB is ready
+window._scDBReady = true;
+window.dispatchEvent(new Event("scDBReady"));
+</script>
+
+<script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+<script type="text/babel" data-presets="react">
+const { useState, useEffect, useCallback, useRef } = React;
+
+// ── constants ─────────────────────────────────────────────────────────────────
+const COLORS  = ["#FF6B6B","#4ECDC4","#FFE66D","#A8E6CF","#FF8B94","#B4A7D6","#74B9FF","#FD79A8","#FDCB6E","#6C5CE7"];
+const AVATARS = ["🏃","🚶","🧍","🏋️","🧘","🚴","⛹️","🤸","👟","🥾"];
+const CHALLENGES = [
+  {id:"5k",   label:"5K Club",    desc:"Everyone hits 5,000 steps today",      check:(mb,gS,dk)=>mb.length>0&&mb.every(m=>gS(m.id,dk)>=5000)},
+  {id:"10k",  label:"10K Club",   desc:"Everyone hits 10,000 steps today",     check:(mb,gS,dk)=>mb.length>0&&mb.every(m=>gS(m.id,dk)>=10000)},
+  {id:"g30k", label:"Group 30K",  desc:"Combined crew total hits 30,000",      check:(mb,gS,dk)=>mb.reduce((s,m)=>s+gS(m.id,dk),0)>=30000},
+  {id:"g50k", label:"Group 50K",  desc:"Combined crew total hits 50,000",      check:(mb,gS,dk)=>mb.reduce((s,m)=>s+gS(m.id,dk),0)>=50000},
+  {id:"nozero",label:"No Zero Day",desc:"Everyone logs at least 1,000 steps",  check:(mb,gS,dk)=>mb.length>0&&mb.every(m=>gS(m.id,dk)>=1000)},
+];
+const DEFAULT_GOALS = { dailySteps:null, weeklySteps:null, dailyMsg:"", weeklyMsg:"", modId:null, modPin:null };
+
+// ── helpers ───────────────────────────────────────────────────────────────────
+function todayKey(){return new Date().toISOString().split("T")[0];}
+function weekDays(){const t=new Date(),d=[];for(let i=6;i>=0;i--){const x=new Date(t);x.setDate(t.getDate()-i);d.push(x.toISOString().split("T")[0]);}return d;}
+function monthDays(){const t=new Date(),d=[];const n=new Date(t.getFullYear(),t.getMonth()+1,0).getDate();for(let i=1;i<=n;i++)d.push(new Date(t.getFullYear(),t.getMonth(),i).toISOString().split("T")[0]);return d;}
+function fmtDate(s){return new Date(s+"T00:00:00").toLocaleDateString("en-US",{weekday:"short",month:"short",day:"numeric"});}
+function shortDay(s){return new Date(s+"T00:00:00").toLocaleDateString("en-US",{weekday:"short"});}
+function monthName(){return new Date().toLocaleDateString("en-US",{month:"long",year:"numeric"});}
+function genCode(){return Math.random().toString(36).slice(2,8).toUpperCase();}
+function timeAgo(ts){if(!ts)return"never";const s=Math.floor((Date.now()-ts)/1000);if(s<60)return"just now";if(s<3600)return`${Math.floor(s/60)}m ago`;return`${Math.floor(s/3600)}h ago`;}
+
+// ── storage (Firebase + localStorage fallback) ────────────────────────────────
+async function saveShared(code, data) {
+  if (window._scDB) return window._scDB.save(code, data);
+}
+async function loadShared(code) {
+  if (window._scDB) return window._scDB.load(code);
+  return null;
+}
+function saveLocal(code, data) {
+  try { localStorage.setItem(`sc_${code}`, JSON.stringify(data)); } catch(e){}
+}
+function loadLocal(code) {
+  try { const r=localStorage.getItem(`sc_${code}`); return r?JSON.parse(r):null; } catch(e){return null;}
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+function App() {
+  // onboard
+  const [screen,    setScreen]    = useState("onboard");
+  const [myName,    setMyName]    = useState("");
+  const [myAvatar,  setMyAvatar]  = useState("🏃");
+  const [myGoal,    setMyGoal]    = useState(8000);
+  const [syncMode,  setSyncMode]  = useState("manual");
+  const [codeInput, setCodeInput] = useState("");
+  const [loading,   setLoading]   = useState(false);
+  const [err,       setErr]       = useState("");
+  const [dbReady,   setDbReady]   = useState(!!window._scDBReady);
+
+  // app
+  const [crewCode,   setCrewCode]   = useState(null);
+  const [isSynced,   setIsSynced]   = useState(false);
+  const [myId,       setMyId]       = useState(null);
+  const [members,    setMembers]    = useState([]);
+  const [steps,      setSteps]      = useState({});
+  const [pushed,     setPushed]     = useState({});
+  const [crewGoals,  setCrewGoals]  = useState({...DEFAULT_GOALS});
+  const [view,       setView]       = useState("today");
+  const [editingId,  setEditingId]  = useState(null);
+  const [inputVal,   setInputVal]   = useState("");
+  const [editMember, setEditMember] = useState(null);
+  const [showAdd,    setShowAdd]    = useState(false);
+  const [newMem,     setNewMem]     = useState({name:"",goal:8000,avatar:"🏃"});
+  const [notif,      setNotif]      = useState(null);
+  const [syncing,    setSyncing]    = useState(false);
+  const [crewBanner, setCrewBanner] = useState(false);
+  const [joinPrompt, setJoinPrompt] = useState(false);
+  const [joinCode,   setJoinCode]   = useState("");
+  const [logDate,    setLogDate]    = useState(todayKey());
+  const [chalIdx,    setChalIdx]    = useState(0);
+
+  // mod
+  const [showMod,      setShowMod]      = useState(false);
+  const [modUnlocked,  setModUnlocked]  = useState(false);
+  const [modPinInput,  setModPinInput]  = useState("");
+  const [modPinErr,    setModPinErr]    = useState("");
+  const [modForm,      setModForm]      = useState({dailySteps:"",weeklySteps:"",dailyMsg:"",weeklyMsg:"",newPin:""});
+  const [showBecomeMod,setShowBecomeMod]= useState(false);
+  const [becomePin,    setBecomePin]    = useState("");
+
+  useEffect(()=>{
+    const h=()=>setDbReady(true);
+    window.addEventListener("scDBReady",h);
+    return()=>window.removeEventListener("scDBReady",h);
+  },[]);
+
+  function toast(msg){setNotif(msg);setTimeout(()=>setNotif(null),3000);}
+
+  async function persist(m,s,code,synced,p,cg){
+    const data={members:m,steps:s,pushed:p??pushed,crewGoals:cg??crewGoals,updatedAt:Date.now()};
+    saveLocal(code,data);
+    if(synced) await saveShared(code,data);
+  }
+
+  const pull=useCallback(async(code,silent=false)=>{
+    setSyncing(true);
+    const remote=await loadShared(code);
+    setSyncing(false);
+    if(!remote)return;
+    const local=loadLocal(code);
+    if(!local||remote.updatedAt>(local.updatedAt||0)){
+      setMembers(remote.members||[]);
+      setSteps(remote.steps||{});
+      setPushed(remote.pushed||{});
+      setCrewGoals(remote.crewGoals||{...DEFAULT_GOALS});
+      saveLocal(code,remote);
+      if(!silent)toast("Crew synced ☁️");
+    }
+  },[]);
+
+  useEffect(()=>{
+    if(!isSynced||!crewCode)return;
+    const id=setInterval(()=>pull(crewCode,true),30000);
+    return()=>clearInterval(id);
+  },[isSynced,crewCode,pull]);
+
+  async function handleStart(){
+    if(!myName.trim()){setErr("Enter your name");return;}
+    if(syncMode==="join"&&!codeInput.trim()){setErr("Enter a crew code");return;}
+    setLoading(true);setErr("");
+    const id=Date.now();
+    const isModerator=syncMode==="create";
+    let code=genCode(),synced=false;
+    let initM=[{id,name:myName.trim(),color:COLORS[0],goal:myGoal,avatar:myAvatar,isManual:syncMode==="manual",isMod:isModerator}];
+    let initS={},initP={},initCG={...DEFAULT_GOALS};
+    if(syncMode==="create"){
+      synced=true; initCG.modId=id;
+    } else if(syncMode==="join"){
+      code=codeInput.trim().toUpperCase(); synced=true;
+      const remote=await loadShared(code);
+      if(!remote){setErr("Crew not found. Check the code.");setLoading(false);return;}
+      const n=(remote.members||[]).length;
+      initM=[...(remote.members||[]),{id,name:myName.trim(),color:COLORS[n%COLORS.length],goal:myGoal,avatar:myAvatar,isManual:syncMode==="manual",isMod:false}];
+      initS=remote.steps||{}; initP=remote.pushed||{}; initCG=remote.crewGoals||{...DEFAULT_GOALS};
+    }
+    setMyId(id);setCrewCode(code);setIsSynced(synced);
+    setMembers(initM);setSteps(initS);setPushed(initP);setCrewGoals(initCG);
+    await persist(initM,initS,code,synced,initP,initCG);
+    setLoading(false);setScreen("app");
+    if(synced)setCrewBanner(true);
+    if(isModerator){setModUnlocked(true);setShowMod(true);}
+  }
+
+  function getSteps(mid,dk){return(steps[dk]||{})[mid]||0;}
+  function getTotal(mid,days){return days.reduce((s,d)=>s+getSteps(mid,d),0);}
+
+  async function logSteps(mid,dk,val,share=false){
+    const num=parseInt(val,10);
+    if(isNaN(num)||num<0)return;
+    const ns={...steps,[dk]:{...(steps[dk]||{}),[mid]:num}};
+    setSteps(ns);setEditingId(null);setInputVal("");
+    let synced=isSynced,newP={...pushed};
+    if(share){
+      newP[mid]=Date.now();setPushed(newP);
+      if(!isSynced){setIsSynced(true);synced=true;setCrewBanner(true);}
+      await persist(members,ns,crewCode,true,newP);
+      toast("Shared with crew! 🚀");
+    } else {
+      await persist(members,ns,crewCode,synced,newP);
+      toast(isSynced?"Updated ✓":"Saved locally — tap Share to push");
+    }
+  }
+
+  async function pushToCrew(mid){
+    const np={...pushed,[mid]:Date.now()};setPushed(np);
+    if(!isSynced){setIsSynced(true);setCrewBanner(true);}
+    await persist(members,steps,crewCode,true,np);
+    toast("Pushed to crew! 🚀");
+  }
+
+  async function joinCrew(){
+    const code=joinCode.trim().toUpperCase();
+    if(!code)return;
+    setSyncing(true);
+    const remote=await loadShared(code);
+    setSyncing(false);
+    if(!remote){toast("Code not found ❌");return;}
+    const me=members.find(m=>m.id===myId);
+    const already=(remote.members||[]).find(m=>m.id===myId);
+    const merged=already?remote.members:[...(remote.members||[]),{...me,color:COLORS[(remote.members||[]).length%COLORS.length]}];
+    setMembers(merged);setSteps(remote.steps||{});setPushed(remote.pushed||{});
+    setCrewGoals(remote.crewGoals||{...DEFAULT_GOALS});
+    setCrewCode(code);setIsSynced(true);
+    await persist(merged,remote.steps||{},code,true,pushed,remote.crewGoals||{...DEFAULT_GOALS});
+    setJoinPrompt(false);setJoinCode("");setCrewBanner(true);
+    toast(`Joined crew ${code}! 🎉`);
+  }
+
+  async function addMember(){
+    if(!newMem.name.trim())return;
+    const id=Date.now();
+    const m={id,name:newMem.name.trim(),color:COLORS[members.length%COLORS.length],goal:newMem.goal,avatar:newMem.avatar,isManual:true,isMod:false};
+    const nm=[...members,m];
+    setMembers(nm);setNewMem({name:"",goal:8000,avatar:"🏃"});setShowAdd(false);
+    await persist(nm,steps,crewCode,isSynced);
+    toast(`${m.name} added! 👋`);
+  }
+
+  async function saveMemberEdit(){
+    const nm=members.map(m=>m.id===editMember.id?editMember:m);
+    setMembers(nm);setEditMember(null);
+    await persist(nm,steps,crewCode,isSynced);
+    toast("Saved ✓");
+  }
+
+  async function removeMember(id){
+    const nm=members.filter(m=>m.id!==id);
+    setMembers(nm);
+    await persist(nm,steps,crewCode,isSynced);
+    toast("Removed");
+  }
+
+  const amMod=()=>crewGoals.modId===myId;
+
+  function openMod(){
+    if(!amMod())return;
+    if(crewGoals.modPin&&!modUnlocked){setShowMod(true);return;}
+    setModForm({dailySteps:crewGoals.dailySteps||"",weeklySteps:crewGoals.weeklySteps||"",dailyMsg:crewGoals.dailyMsg||"",weeklyMsg:crewGoals.weeklyMsg||"",newPin:""});
+    setModUnlocked(true);setShowMod(true);
+  }
+
+  function unlockMod(){
+    if(modPinInput===crewGoals.modPin){
+      setModUnlocked(true);setModPinErr("");
+      setModForm({dailySteps:crewGoals.dailySteps||"",weeklySteps:crewGoals.weeklySteps||"",dailyMsg:crewGoals.dailyMsg||"",weeklyMsg:crewGoals.weeklyMsg||"",newPin:""});
+    } else setModPinErr("Wrong PIN.");
+    setModPinInput("");
+  }
+
+  async function saveCrewGoals(){
+    const updated={...crewGoals,
+      dailySteps:modForm.dailySteps?parseInt(modForm.dailySteps):null,
+      weeklySteps:modForm.weeklySteps?parseInt(modForm.weeklySteps):null,
+      dailyMsg:modForm.dailyMsg,weeklyMsg:modForm.weeklyMsg,
+      modPin:modForm.newPin||crewGoals.modPin
+    };
+    setCrewGoals(updated);
+    await persist(members,steps,crewCode,isSynced,pushed,updated);
+    setShowMod(false);setModUnlocked(false);
+    toast("Crew goals updated! 🎯");
+  }
+
+  async function becomeMod(){
+    if(!becomePin.trim())return;
+    if(crewGoals.modId){toast("Crew already has a mod");setShowBecomeMod(false);return;}
+    const updated={...crewGoals,modId:myId,modPin:becomePin};
+    const nm=members.map(m=>m.id===myId?{...m,isMod:true}:m);
+    setCrewGoals(updated);setMembers(nm);
+    await persist(nm,steps,crewCode,isSynced,pushed,updated);
+    setShowBecomeMod(false);setBecomePin("");setModUnlocked(true);
+    toast("You're now the crew mod! 🎖️");
+  }
+
+  function calcStreak(mid){
+    let streak=0,d=new Date();
+    for(let i=0;i<365;i++){
+      const k=d.toISOString().split("T")[0];
+      if(getSteps(mid,k)>0)streak++; else break;
+      d.setDate(d.getDate()-1);
+    }
+    return streak;
+  }
+
+  // derived
+  const today=todayKey(), wDays=weekDays(), mDays=monthDays();
+  const rankedToday=[...members].sort((a,b)=>getSteps(b.id,today)-getSteps(a.id,today));
+  const rankedWeek=[...members].sort((a,b)=>getTotal(b.id,wDays)-getTotal(a.id,wDays));
+  const rankedMonth=[...members].sort((a,b)=>getTotal(b.id,mDays)-getTotal(a.id,mDays));
+  const maxWeek=Math.max(...members.map(m=>getTotal(m.id,wDays)),1);
+  const maxDayMonth=Math.max(...mDays.map(d=>members.reduce((s,m)=>s+getSteps(m.id,d),0)),1);
+  const groupToday=members.reduce((s,m)=>s+getSteps(m.id,today),0);
+  const groupWeek=members.reduce((s,m)=>s+getTotal(m.id,wDays),0);
+  const challenge=CHALLENGES[chalIdx];
+  const challengeDone=challenge.check(members,getSteps,today);
+  const myMember=members.find(m=>m.id===myId);
+  const crewDailyPct=crewGoals.dailySteps?Math.min((groupToday/crewGoals.dailySteps)*100,100):0;
+  const crewWeeklyPct=crewGoals.weeklySteps?Math.min((groupWeek/crewGoals.weeklySteps)*100,100):0;
+
+  // ── ONBOARD ────────────────────────────────────────────────────────────────
+  if(screen==="onboard") return (
+    <div style={{minHeight:"100vh",background:"#07070e",display:"flex",alignItems:"center",justifyContent:"center",padding:20}}>
+      <div style={{width:"100%",maxWidth:400}}>
+        <div style={{textAlign:"center",marginBottom:28}}>
+          <div style={{fontSize:56}}>👟</div>
+          <div style={{fontSize:30,fontWeight:900,color:"#fff",letterSpacing:"-1px",marginTop:4}}>StepCrew</div>
+          <div style={{fontSize:12,color:"#444",marginTop:4,letterSpacing:"3px",textTransform:"uppercase"}}>Walk Together · Go Further</div>
+        </div>
+        {!dbReady&&(
+          <div style={{background:"rgba(255,200,80,0.1)",border:"1px solid rgba(255,200,80,0.25)",borderRadius:10,padding:"10px 14px",fontSize:12,color:"#ffcc66",marginBottom:16,textAlign:"center"}}>
+            ⚠️ Firebase not configured yet. See README.md to set up sync.
+          </div>
+        )}
+        <div style={{background:"rgba(255,255,255,0.04)",borderRadius:20,padding:22,border:"1px solid rgba(255,255,255,0.08)"}}>
+          <Field label="Your Name">
+            <input value={myName} onChange={e=>setMyName(e.target.value)} placeholder="e.g. Sarah" style={IS}/>
+          </Field>
+          <Field label="Pick Your Avatar">
+            <div style={{display:"flex",gap:5,flexWrap:"wrap"}}>
+              {AVATARS.map(a=><AB key={a} a={a} sel={myAvatar===a} onClick={()=>setMyAvatar(a)}/>)}
+            </div>
+          </Field>
+          <Field label="Daily Step Goal">
+            <input type="number" value={myGoal} onChange={e=>setMyGoal(parseInt(e.target.value)||8000)} style={IS}/>
+          </Field>
+          <Field label="Crew Sync">
+            <div style={{display:"flex",gap:6}}>
+              {[["manual","📵 Manual"],["create","☁️ New Crew"],["join","🔗 Join Crew"]].map(([k,l])=>(
+                <button key={k} onClick={()=>setSyncMode(k)} style={{flex:1,padding:"8px 3px",borderRadius:9,border:"none",cursor:"pointer",fontSize:11,background:syncMode===k?"linear-gradient(135deg,#FF6B6B,#c62a47)":"rgba(255,255,255,0.07)",color:syncMode===k?"#fff":"#666",fontWeight:syncMode===k?700:400}}>{l}</button>
+              ))}
+            </div>
+          </Field>
+          {syncMode==="manual"&&<IB color="#ffcc66">📵 Log steps freely. Share to the crew whenever you like — your pace, your choice.</IB>}
+          {syncMode==="create"&&<IB color="#4ecdc4">☁️ You'll be the <b>crew moderator</b> — set shared goals for everyone. You'll get a 6-character crew code to share.</IB>}
+          {syncMode==="join"&&<input value={codeInput} onChange={e=>setCodeInput(e.target.value.toUpperCase())} placeholder="Crew code (e.g. XK3F2A)" style={{...IS,letterSpacing:3,marginTop:8}}/>}
+          {err&&<div style={{color:"#ff6b6b",fontSize:12,marginBottom:10}}>{err}</div>}
+          <button onClick={handleStart} disabled={loading} style={{width:"100%",marginTop:4,padding:"13px 0",borderRadius:12,border:"none",cursor:"pointer",background:"linear-gradient(135deg,#FF6B6B,#c62a47)",color:"#fff",fontWeight:800,fontSize:16,opacity:loading?0.6:1}}>
+            {loading?"Setting up…":"Let's Walk 🚀"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+
+  // ── APP ────────────────────────────────────────────────────────────────────
+  return (
+    <div style={{minHeight:"100vh",background:"#07070e",color:"#f0f0f0",paddingBottom:80}}>
+      {notif&&<Toast msg={notif}/>}
+
+      {/* Header */}
+      <div style={{background:"linear-gradient(180deg,#10101f,#07070e)",padding:"14px 20px 10px",borderBottom:"1px solid rgba(255,255,255,0.06)",position:"sticky",top:0,zIndex:100}}>
+        <div style={{maxWidth:640,margin:"0 auto",display:"flex",alignItems:"center",justifyContent:"space-between"}}>
+          <div>
+            <div style={{fontSize:18,fontWeight:900}}>👟 StepCrew</div>
+            <div style={{fontSize:10,marginTop:1,display:"flex",alignItems:"center",gap:5}}>
+              {isSynced
+                ?<><span style={{color:"#4ecdc4",fontSize:7}}>●</span><span style={{color:"#4ecdc4"}}>Crew <b style={{letterSpacing:1}}>{crewCode}</b>{syncing&&" ⏳"}</span></>
+                :<><span style={{color:"#444",fontSize:7}}>●</span><span style={{color:"#555"}}>Local · </span><button onClick={()=>setJoinPrompt(true)} style={{background:"none",border:"none",color:"#FF6B6B",cursor:"pointer",fontSize:10,padding:0}}>Join a crew →</button></>
+              }
+            </div>
+          </div>
+          <div style={{display:"flex",gap:6}}>
+            {amMod()&&<button onClick={openMod} style={{...SB,background:"rgba(255,215,0,0.1)",border:"1px solid rgba(255,215,0,0.25)",color:"#FFD700"}}>🎖️ Mod</button>}
+            {isSynced&&!crewGoals.modId&&!amMod()&&<button onClick={()=>setShowBecomeMod(true)} style={{...SB,color:"#aa9900",fontSize:10}}>Become Mod</button>}
+            {isSynced&&<button onClick={()=>pull(crewCode)} style={{...SB,background:"rgba(78,205,196,0.1)",border:"1px solid rgba(78,205,196,0.25)",color:"#4ecdc4"}}>↻</button>}
+            <button onClick={()=>setShowAdd(true)} style={SB}>+ Member</button>
+          </div>
+        </div>
+      </div>
+
+      {crewBanner&&isSynced&&(
+        <div style={{background:"rgba(78,205,196,0.08)",borderBottom:"1px solid rgba(78,205,196,0.15)",padding:"9px 20px"}}>
+          <div style={{maxWidth:640,margin:"0 auto",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+            <span style={{fontSize:12,color:"#4ecdc4"}}>☁️ Share code <b style={{letterSpacing:2,color:"#fff"}}>{crewCode}</b> with family &amp; friends</span>
+            <button onClick={()=>setCrewBanner(false)} style={{background:"none",border:"none",color:"#444",cursor:"pointer",fontSize:15}}>✕</button>
+          </div>
+        </div>
+      )}
+
+      <div style={{maxWidth:640,margin:"0 auto",padding:"12px 20px 0"}}>
+
+        {/* Crew Goals Banner */}
+        {(crewGoals.dailySteps||crewGoals.weeklySteps)&&(
+          <div style={{background:"linear-gradient(135deg,rgba(255,215,0,0.08),rgba(255,215,0,0.03))",borderRadius:15,padding:"13px 16px",marginBottom:10,border:"1px solid rgba(255,215,0,0.2)"}}>
+            <div style={{fontSize:10,color:"#FFD700",textTransform:"uppercase",letterSpacing:"1.5px",marginBottom:8,display:"flex",alignItems:"center",gap:6}}>
+              🎖️ Crew Goals
+              {crewGoals.modId&&members.find(m=>m.id===crewGoals.modId)&&<span style={{color:"#666",fontWeight:400,textTransform:"none",letterSpacing:0}}>set by {members.find(m=>m.id===crewGoals.modId)?.name}</span>}
+            </div>
+            {crewGoals.dailySteps&&(
+              <div style={{marginBottom:crewGoals.weeklySteps?10:0}}>
+                <div style={{display:"flex",justifyContent:"space-between",alignItems:"baseline",marginBottom:4}}>
+                  <span style={{fontSize:12,color:"#ccc"}}>📅 Daily{crewGoals.dailyMsg&&<span style={{color:"#777",marginLeft:6,fontStyle:"italic"}}>"{crewGoals.dailyMsg}"</span>}</span>
+                  <span style={{fontSize:13,fontWeight:700,color:crewDailyPct>=100?"#FFE66D":"#FFD700"}}>{groupToday.toLocaleString()} / {crewGoals.dailySteps.toLocaleString()}{crewDailyPct>=100&&" 🏆"}</span>
+                </div>
+                <div style={{background:"rgba(255,255,255,0.08)",borderRadius:4,height:6,overflow:"hidden"}}>
+                  <div style={{width:`${crewDailyPct}%`,height:"100%",background:crewDailyPct>=100?"#FFE66D":"#FFD700",borderRadius:4,transition:"width 0.5s"}}/>
+                </div>
+                <div style={{fontSize:10,color:"#555",marginTop:3}}>{crewDailyPct.toFixed(0)}% · {Math.max(0,crewGoals.dailySteps-groupToday).toLocaleString()} to go</div>
+              </div>
+            )}
+            {crewGoals.weeklySteps&&(
+              <div>
+                <div style={{display:"flex",justifyContent:"space-between",alignItems:"baseline",marginBottom:4}}>
+                  <span style={{fontSize:12,color:"#ccc"}}>📆 Weekly{crewGoals.weeklyMsg&&<span style={{color:"#777",marginLeft:6,fontStyle:"italic"}}>"{crewGoals.weeklyMsg}"</span>}</span>
+                  <span style={{fontSize:13,fontWeight:700,color:crewWeeklyPct>=100?"#FFE66D":"#FFD700"}}>{groupWeek.toLocaleString()} / {crewGoals.weeklySteps.toLocaleString()}{crewWeeklyPct>=100&&" 🏆"}</span>
+                </div>
+                <div style={{background:"rgba(255,255,255,0.08)",borderRadius:4,height:6,overflow:"hidden"}}>
+                  <div style={{width:`${crewWeeklyPct}%`,height:"100%",background:crewWeeklyPct>=100?"#FFE66D":"#FFD700",borderRadius:4,transition:"width 0.5s"}}/>
+                </div>
+                <div style={{fontSize:10,color:"#555",marginTop:3}}>{crewWeeklyPct.toFixed(0)}% · {Math.max(0,crewGoals.weeklySteps-groupWeek).toLocaleString()} to go</div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* My Box */}
+        {myMember&&<MyBox member={myMember} steps={getSteps(myMember.id,today)} pushed={pushed[myMember.id]} isSynced={isSynced} onLog={(v,sh)=>logSteps(myMember.id,today,v,sh)} onPush={()=>pushToCrew(myMember.id)}/>}
+
+        {/* Challenge */}
+        <div style={{background:challengeDone?"rgba(255,230,109,0.1)":"rgba(255,255,255,0.03)",borderRadius:13,padding:"11px 14px",marginBottom:12,border:`1px solid ${challengeDone?"rgba(255,230,109,0.35)":"rgba(255,255,255,0.07)"}`,display:"flex",alignItems:"center",gap:10}}>
+          <div style={{fontSize:22}}>{challengeDone?"🏆":"🎯"}</div>
+          <div style={{flex:1}}>
+            <div style={{fontSize:10,color:"#555",textTransform:"uppercase",letterSpacing:"1px"}}>Today's Challenge</div>
+            <div style={{fontSize:13,fontWeight:700,color:challengeDone?"#FFE66D":"#ddd",marginTop:1}}>{challenge.label}</div>
+            <div style={{fontSize:11,color:"#555"}}>{challenge.desc}</div>
+          </div>
+          {challengeDone
+            ?<span style={{fontSize:11,color:"#FFE66D",fontWeight:700}}>Done ✓</span>
+            :<select value={chalIdx} onChange={e=>setChalIdx(Number(e.target.value))} style={{background:"rgba(255,255,255,0.07)",border:"1px solid rgba(255,255,255,0.1)",color:"#aaa",borderRadius:7,padding:"4px 6px",fontSize:10,cursor:"pointer"}}>
+              {CHALLENGES.map((c,i)=><option key={c.id} value={i}>{c.label}</option>)}
+            </select>
+          }
+        </div>
+
+        {/* Nav */}
+        <div style={{display:"flex",gap:6,marginBottom:12}}>
+          {[["today","Today"],["week","Week"],["month","Month"]].map(([k,l])=>(
+            <button key={k} onClick={()=>setView(k)} style={{flex:1,padding:"8px 0",borderRadius:10,border:"none",cursor:"pointer",background:view===k?"linear-gradient(135deg,#FF6B6B,#c62a47)":"rgba(255,255,255,0.06)",color:view===k?"#fff":"#666",fontWeight:view===k?700:400,fontSize:13}}>{l}</button>
+          ))}
+        </div>
+
+        {/* TODAY */}
+        {view==="today"&&(
+          <>
+            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
+              <div style={{fontSize:11,color:"#444"}}>{fmtDate(logDate)} · crew: <b style={{color:"#ccc"}}>{groupToday.toLocaleString()}</b></div>
+              <input type="date" value={logDate} max={todayKey()} onChange={e=>setLogDate(e.target.value)} style={{background:"rgba(255,255,255,0.05)",border:"1px solid rgba(255,255,255,0.09)",color:"#888",borderRadius:7,padding:"3px 7px",fontSize:10,outline:"none"}}/>
+            </div>
+            {rankedToday.map((m,i)=>{
+              if(m.id===myId)return null;
+              const s=getSteps(m.id,logDate),pct=Math.min((s/m.goal)*100,100),isEditing=editingId===m.id,lp=pushed[m.id];
+              return(
+                <div key={m.id} style={{background:"rgba(255,255,255,0.035)",borderRadius:13,padding:"12px 14px",marginBottom:9,border:`1px solid ${i===0&&s>0?m.color+"44":"rgba(255,255,255,0.06)"}`}}>
+                  <div style={{display:"flex",alignItems:"center",gap:9,marginBottom:8}}>
+                    <div style={{fontSize:22}}>{m.avatar}</div>
+                    <div style={{flex:1}}>
+                      <div style={{display:"flex",alignItems:"center",gap:5,flexWrap:"wrap"}}>
+                        <span style={{fontWeight:700,fontSize:14}}>{m.name}</span>
+                        {i===0&&s>0&&<span>👑</span>}
+                        {m.isMod&&<Tg color="#FFD700">MOD</Tg>}
+                        {m.isManual&&<Tg color="#ffcc66">MANUAL</Tg>}
+                      </div>
+                      <div style={{fontSize:10,color:"#444"}}>Goal {m.goal.toLocaleString()} · shared {timeAgo(lp)}</div>
+                    </div>
+                    <div style={{textAlign:"right"}}>
+                      <div style={{fontSize:19,fontWeight:800,color:pct>=100?"#FFE66D":m.color}}>{s.toLocaleString()}</div>
+                      <div style={{fontSize:10,color:"#444"}}>{pct.toFixed(0)}%</div>
+                    </div>
+                  </div>
+                  <div style={{background:"rgba(255,255,255,0.07)",borderRadius:3,height:4,overflow:"hidden",marginBottom:8}}>
+                    <div style={{width:`${pct}%`,height:"100%",background:pct>=100?"#FFE66D":m.color,borderRadius:3,transition:"width 0.4s"}}/>
+                  </div>
+                  {isEditing?(
+                    <div style={{display:"flex",gap:5}}>
+                      <input autoFocus type="number" value={inputVal} onChange={e=>setInputVal(e.target.value)} onKeyDown={e=>e.key==="Enter"&&logSteps(m.id,logDate,inputVal,true)} placeholder="Steps…" style={{flex:1,background:"rgba(255,255,255,0.08)",border:`1px solid ${m.color}55`,color:"#fff",borderRadius:7,padding:"7px 10px",fontSize:13,outline:"none"}}/>
+                      <button onClick={()=>logSteps(m.id,logDate,inputVal,true)} style={{background:m.color,border:"none",color:"#000",borderRadius:7,padding:"7px 12px",cursor:"pointer",fontWeight:700,fontSize:12}}>Share 🚀</button>
+                      <button onClick={()=>logSteps(m.id,logDate,inputVal,false)} style={{background:"rgba(255,255,255,0.07)",border:"none",color:"#aaa",borderRadius:7,padding:"7px 9px",cursor:"pointer",fontSize:11}}>Local</button>
+                      <button onClick={()=>setEditingId(null)} style={{background:"none",border:"none",color:"#444",cursor:"pointer",fontSize:14}}>✕</button>
+                    </div>
+                  ):(
+                    <div style={{display:"flex",gap:5}}>
+                      <button onClick={()=>{setEditingId(m.id);setInputVal(s>0?String(s):"");}} style={{flex:1,background:"rgba(255,255,255,0.05)",border:"1px solid rgba(255,255,255,0.08)",color:"#999",borderRadius:7,padding:"6px 0",cursor:"pointer",fontSize:12}}>{s>0?"✏️ Update":"➕ Log steps"}</button>
+                      <button onClick={()=>setEditMember({...m})} style={{background:"rgba(255,255,255,0.05)",border:"1px solid rgba(255,255,255,0.08)",color:"#555",borderRadius:7,padding:"6px 9px",cursor:"pointer",fontSize:12}}>⚙️</button>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </>
+        )}
+
+        {/* WEEK */}
+        {view==="week"&&(
+          <>
+            <div style={{fontSize:11,color:"#444",marginBottom:12}}>Last 7 days · Leaderboard</div>
+            {members.length>=2&&(()=>{
+              const leader=rankedWeek[0],myTotal=getTotal(myId,wDays),lTotal=getTotal(leader.id,wDays);
+              const myRank=rankedWeek.findIndex(m=>m.id===myId)+1,gap=lTotal-myTotal;
+              return(
+                <div style={{background:"rgba(255,107,107,0.07)",borderRadius:13,padding:"11px 14px",marginBottom:12,border:"1px solid rgba(255,107,107,0.18)"}}>
+                  <div style={{fontSize:10,color:"#FF6B6B",textTransform:"uppercase",letterSpacing:"1.5px",marginBottom:3}}>Weekly Insight</div>
+                  <div style={{fontSize:13,color:"#ccc",lineHeight:1.7}}>
+                    {leader.id===myId?<>🥇 You're leading the crew this week!</>:<>You're <b style={{color:"#fff"}}>#{myRank}</b>. <b style={{color:"#fff"}}>{leader.name}</b> leads by <b style={{color:"#FF6B6B"}}>{gap.toLocaleString()}</b> steps — ~{Math.ceil(gap/1300)} more walks.</>}
+                  </div>
+                </div>
+              );
+            })()}
+            {rankedWeek.map((m,i)=>{
+              const total=getTotal(m.id,wDays),pct=(total/maxWeek)*100,isMe=m.id===myId;
+              return(
+                <div key={m.id} style={{background:isMe?"rgba(255,107,107,0.05)":"rgba(255,255,255,0.03)",borderRadius:13,padding:"12px 14px",marginBottom:9,border:`1px solid ${isMe?"rgba(255,107,107,0.2)":"rgba(255,255,255,0.06)"}`}}>
+                  <div style={{display:"flex",alignItems:"center",gap:9,marginBottom:8}}>
+                    <div style={{width:20,textAlign:"center",fontWeight:800,fontSize:13,color:i<3?["#FFE66D","#bbb","#cd7f32"][i]:"#333"}}>#{i+1}</div>
+                    <div style={{fontSize:20}}>{m.avatar}</div>
+                    <div style={{flex:1}}>
+                      <div style={{fontWeight:700,fontSize:14}}>{m.name}{isMe&&<Tg color="#FF6B6B" ml>YOU</Tg>}{m.isMod&&<Tg color="#FFD700" ml>MOD</Tg>}</div>
+                      <div style={{fontSize:10,color:"#444"}}>{wDays.filter(d=>getSteps(m.id,d)>0).length}/7 days active</div>
+                    </div>
+                    <div style={{fontWeight:800,color:m.color,fontSize:17}}>{total.toLocaleString()}</div>
+                  </div>
+                  <div style={{background:"rgba(255,255,255,0.06)",borderRadius:3,height:4,overflow:"hidden",marginBottom:8}}>
+                    <div style={{width:`${pct}%`,height:"100%",background:m.color,borderRadius:3}}/>
+                  </div>
+                  <div style={{display:"flex",gap:3}}>
+                    {wDays.map(d=>{const ds=getSteps(m.id,d),dp=Math.min((ds/Math.max(m.goal,1))*100,100),isT=d===today;return(
+                      <div key={d} style={{flex:1,textAlign:"center"}}>
+                        <div style={{background:"rgba(255,255,255,0.05)",borderRadius:3,height:26,position:"relative",overflow:"hidden"}}>
+                          <div style={{position:"absolute",bottom:0,left:0,right:0,height:`${dp}%`,background:isT?m.color:m.color+"66",borderRadius:3}}/>
+                        </div>
+                        <div style={{fontSize:8,color:isT?"#ccc":"#333",marginTop:2}}>{shortDay(d)}</div>
+                      </div>
+                    );})}
+                  </div>
+                </div>
+              );
+            })}
+          </>
+        )}
+
+        {/* MONTH */}
+        {view==="month"&&(
+          <>
+            <div style={{fontSize:11,color:"#444",marginBottom:12}}>{monthName()}</div>
+            <div style={{background:"rgba(255,255,255,0.03)",borderRadius:13,padding:"12px 14px",marginBottom:12,border:"1px solid rgba(255,255,255,0.06)"}}>
+              <div style={{fontSize:10,color:"#444",textTransform:"uppercase",letterSpacing:"1px",marginBottom:8}}>Group Steps · Each Day</div>
+              <div style={{display:"flex",alignItems:"flex-end",gap:2,height:52}}>
+                {mDays.map(d=>{const t=members.reduce((s,m)=>s+getSteps(m.id,d),0),h=(t/maxDayMonth)*100,isT=d===today;return<div key={d} title={`${fmtDate(d)}: ${t.toLocaleString()}`} style={{flex:1,height:`${Math.max(h,3)}%`,minHeight:2,background:isT?"#FF6B6B":"rgba(255,255,255,0.1)",borderRadius:"2px 2px 0 0",transition:"height 0.3s"}}/>;})}</div>
+              <div style={{display:"flex",justifyContent:"space-between",marginTop:3}}>
+                <span style={{fontSize:8,color:"#333"}}>Day 1</span>
+                <span style={{fontSize:8,color:"#FF6B6B"}}>Today</span>
+                <span style={{fontSize:8,color:"#333"}}>Day {mDays.length}</span>
+              </div>
+            </div>
+            {rankedMonth.map((m,i)=>{
+              const total=getTotal(m.id,mDays),active=mDays.filter(d=>getSteps(m.id,d)>0).length;
+              const pct=Math.min((total/(m.goal*mDays.length))*100,100),streak=calcStreak(m.id),isMe=m.id===myId;
+              return(
+                <div key={m.id} style={{background:isMe?"rgba(255,107,107,0.05)":"rgba(255,255,255,0.03)",borderRadius:13,padding:"12px 14px",marginBottom:9,border:`1px solid ${isMe?"rgba(255,107,107,0.2)":"rgba(255,255,255,0.06)"}`}}>
+                  <div style={{display:"flex",alignItems:"center",gap:9,marginBottom:6}}>
+                    <div style={{fontSize:20}}>{m.avatar}</div>
+                    <div style={{flex:1}}>
+                      <div style={{fontWeight:700,fontSize:14}}>{m.name}{isMe&&<Tg color="#FF6B6B" ml>YOU</Tg>}{m.isMod&&<Tg color="#FFD700" ml>MOD</Tg>}</div>
+                      <div style={{fontSize:10,color:"#444"}}>{active} active days{streak>0&&<span style={{color:"#FF8B94",marginLeft:6}}>🔥 {streak}-day streak</span>}</div>
+                    </div>
+                    <div style={{textAlign:"right"}}>
+                      <div style={{fontWeight:800,color:m.color,fontSize:16}}>{total.toLocaleString()}</div>
+                      <div style={{fontSize:10,color:"#444"}}>{pct.toFixed(0)}%</div>
+                    </div>
+                  </div>
+                  <div style={{background:"rgba(255,255,255,0.06)",borderRadius:3,height:4,overflow:"hidden"}}>
+                    <div style={{width:`${pct}%`,height:"100%",background:m.color,borderRadius:3}}/>
+                  </div>
+                </div>
+              );
+            })}
+          </>
+        )}
+      </div>
+
+      {/* MOD PANEL */}
+      {showMod&&(
+        <Modal title="🎖️ Moderator Panel" onClose={()=>{setShowMod(false);setModUnlocked(false);setModPinInput("");setModPinErr("");}}>
+          {!modUnlocked?(
+            <>
+              <p style={{fontSize:12,color:"#777",marginTop:0,marginBottom:12}}>Enter your mod PIN to access crew settings.</p>
+              <input type="password" value={modPinInput} onChange={e=>setModPinInput(e.target.value)} onKeyDown={e=>e.key==="Enter"&&unlockMod()} placeholder="PIN" style={{...IS,marginBottom:8,letterSpacing:4}}/>
+              {modPinErr&&<div style={{color:"#ff6b6b",fontSize:12,marginBottom:8}}>{modPinErr}</div>}
+              <div style={{display:"flex",gap:8}}><button onClick={()=>{setShowMod(false);setModPinInput("");}} style={CB}>Cancel</button><button onClick={unlockMod} style={SvB}>Unlock</button></div>
+            </>
+          ):(
+            <>
+              <div style={{fontSize:11,color:"#FFD700",marginBottom:14,background:"rgba(255,215,0,0.07)",borderRadius:8,padding:"8px 12px",border:"1px solid rgba(255,215,0,0.15)"}}>Goals you set are visible to all crew members in real time.</div>
+              <Field label="📅 Daily Crew Goal (combined steps)">
+                <input type="number" value={modForm.dailySteps} onChange={e=>setModForm(p=>({...p,dailySteps:e.target.value}))} placeholder="e.g. 50000 (blank = off)" style={IS}/>
+              </Field>
+              <Field label="📅 Daily Message (optional)">
+                <input value={modForm.dailyMsg} onChange={e=>setModForm(p=>({...p,dailyMsg:e.target.value}))} placeholder='e.g. "Let\'s crush it!"' style={IS}/>
+              </Field>
+              <Field label="📆 Weekly Crew Goal (combined steps)">
+                <input type="number" value={modForm.weeklySteps} onChange={e=>setModForm(p=>({...p,weeklySteps:e.target.value}))} placeholder="e.g. 350000 (blank = off)" style={IS}/>
+              </Field>
+              <Field label="📆 Weekly Message (optional)">
+                <input value={modForm.weeklyMsg} onChange={e=>setModForm(p=>({...p,weeklyMsg:e.target.value}))} placeholder='e.g. "This week we go the distance!"' style={IS}/>
+              </Field>
+              <Field label={crewGoals.modPin?"Change PIN (blank = keep current)":"Set a Moderator PIN"}>
+                <input type="password" value={modForm.newPin} onChange={e=>setModForm(p=>({...p,newPin:e.target.value}))} placeholder={crewGoals.modPin?"Blank to keep current":"Protect your mod settings"} style={{...IS,letterSpacing:4}}/>
+              </Field>
+              <div style={{display:"flex",gap:8,marginTop:4}}>
+                <button onClick={()=>{setShowMod(false);setModUnlocked(false);}} style={CB}>Cancel</button>
+                <button onClick={saveCrewGoals} style={{...SvB,background:"linear-gradient(135deg,#FFD700,#b8860b)",color:"#000"}}>Save Goals 🎯</button>
+              </div>
+            </>
+          )}
+        </Modal>
+      )}
+
+      {showBecomeMod&&(
+        <Modal title="Become Crew Moderator" onClose={()=>setShowBecomeMod(false)}>
+          <p style={{fontSize:12,color:"#888",marginTop:0,marginBottom:12}}>No moderator yet. Set a PIN to claim the role — you'll be able to set crew goals for everyone.</p>
+          <input type="password" value={becomePin} onChange={e=>setBecomePin(e.target.value)} placeholder="Choose a PIN" style={{...IS,letterSpacing:4,marginBottom:14}}/>
+          <div style={{display:"flex",gap:8}}><button onClick={()=>setShowBecomeMod(false)} style={CB}>Cancel</button><button onClick={becomeMod} style={{...SvB,background:"linear-gradient(135deg,#FFD700,#b8860b)",color:"#000"}}>Claim 🎖️</button></div>
+        </Modal>
+      )}
+
+      {joinPrompt&&(
+        <Modal title="Join a Crew" onClose={()=>setJoinPrompt(false)}>
+          <p style={{fontSize:12,color:"#666",marginTop:0,marginBottom:12}}>Enter the crew code to sync with your family &amp; friends.</p>
+          <input value={joinCode} onChange={e=>setJoinCode(e.target.value.toUpperCase())} placeholder="e.g. XK3F2A" style={{...IS,letterSpacing:3,marginBottom:12}}/>
+          {syncing&&<div style={{fontSize:11,color:"#888",marginBottom:8}}>Checking… ⏳</div>}
+          <div style={{display:"flex",gap:8}}><button onClick={()=>setJoinPrompt(false)} style={CB}>Cancel</button><button onClick={joinCrew} style={SvB}>Join</button></div>
+        </Modal>
+      )}
+
+      {showAdd&&(
+        <Modal title="Add Member / Friend" onClose={()=>setShowAdd(false)}>
+          <input value={newMem.name} onChange={e=>setNewMem(p=>({...p,name:e.target.value}))} placeholder="Name" style={{...IS,marginBottom:10}}/>
+          <div style={{display:"flex",gap:5,flexWrap:"wrap",marginBottom:10}}>{AVATARS.map(a=><AB key={a} a={a} sel={newMem.avatar===a} onClick={()=>setNewMem(p=>({...p,avatar:a}))}/>)}</div>
+          <input type="number" value={newMem.goal} onChange={e=>setNewMem(p=>({...p,goal:parseInt(e.target.value)||8000}))} placeholder="Daily goal" style={{...IS,marginBottom:14}}/>
+          <div style={{display:"flex",gap:8}}><button onClick={()=>setShowAdd(false)} style={CB}>Cancel</button><button onClick={addMember} style={SvB}>Add</button></div>
+        </Modal>
+      )}
+
+      {editMember&&(
+        <Modal title="Edit Profile" onClose={()=>setEditMember(null)}>
+          <input value={editMember.name} onChange={e=>setEditMember(p=>({...p,name:e.target.value}))} style={{...IS,marginBottom:10}}/>
+          <div style={{display:"flex",gap:5,flexWrap:"wrap",marginBottom:10}}>{AVATARS.map(a=><AB key={a} a={a} sel={editMember.avatar===a} onClick={()=>setEditMember(p=>({...p,avatar:a}))}/>)}</div>
+          <input type="number" value={editMember.goal} onChange={e=>setEditMember(p=>({...p,goal:parseInt(e.target.value)||8000}))} style={{...IS,marginBottom:14}}/>
+          <div style={{display:"flex",gap:8}}>
+            <button onClick={()=>{removeMember(editMember.id);setEditMember(null);}} style={{...CB,color:"#ff6b6b",borderColor:"rgba(255,80,80,0.25)"}}>Remove</button>
+            <button onClick={()=>setEditMember(null)} style={CB}>Cancel</button>
+            <button onClick={saveMemberEdit} style={SvB}>Save</button>
+          </div>
+        </Modal>
+      )}
+    </div>
+  );
+}
+
+function MyBox({member,steps,pushed,isSynced,onLog,onPush}){
+  const [editing,setEditing]=useState(false);
+  const [val,setVal]=useState("");
+  const pct=Math.min((steps/member.goal)*100,100);
+  const minSince=pushed?Math.floor((Date.now()-pushed)/60000):null;
+  const needsPush=steps>0&&(!pushed||(Date.now()-pushed)>900000);
+  return(
+    <div style={{background:`linear-gradient(135deg,${member.color}15,${member.color}06)`,borderRadius:15,padding:"13px 15px",marginBottom:10,border:`1px solid ${member.color}44`}}>
+      <div style={{display:"flex",alignItems:"center",gap:9,marginBottom:9}}>
+        <div style={{fontSize:26}}>{member.avatar}</div>
+        <div style={{flex:1}}>
+          <div style={{fontWeight:800,fontSize:15}}>{member.name} <Tg color="#FF6B6B" ml>YOU</Tg>{member.isMod&&<Tg color="#FFD700" ml>MOD</Tg>}</div>
+          <div style={{fontSize:10,color:"#555",marginTop:1}}>Goal {member.goal.toLocaleString()}{minSince!==null&&<span style={{marginLeft:6}}>· pushed {minSince<1?"just now":`${minSince}m ago`}</span>}{!pushed&&<span style={{marginLeft:6,color:"#666"}}>· not yet shared</span>}</div>
+        </div>
+        <div style={{textAlign:"right"}}>
+          <div style={{fontSize:25,fontWeight:900,color:pct>=100?"#FFE66D":member.color}}>{steps.toLocaleString()}</div>
+          <div style={{fontSize:10,color:"#555"}}>{pct.toFixed(0)}%</div>
+        </div>
+      </div>
+      <div style={{background:"rgba(255,255,255,0.08)",borderRadius:4,height:5,overflow:"hidden",marginBottom:9}}>
+        <div style={{width:`${pct}%`,height:"100%",background:pct>=100?"#FFE66D":member.color,borderRadius:4,transition:"width 0.5s"}}/>
+      </div>
+      {editing?(
+        <div style={{display:"flex",gap:5}}>
+          <input autoFocus type="number" value={val} onChange={e=>setVal(e.target.value)} onKeyDown={e=>{if(e.key==="Enter"){onLog(val,true);setEditing(false);}}} placeholder="Your step count…" style={{flex:1,background:"rgba(255,255,255,0.1)",border:`1px solid ${member.color}66`,color:"#fff",borderRadius:8,padding:"8px 11px",fontSize:14,outline:"none"}}/>
+          <button onClick={()=>{onLog(val,true);setEditing(false);}} style={{background:member.color,border:"none",color:"#000",borderRadius:8,padding:"8px 13px",cursor:"pointer",fontWeight:800,fontSize:12}}>Share 🚀</button>
+          <button onClick={()=>{onLog(val,false);setEditing(false);}} style={{background:"rgba(255,255,255,0.07)",border:"none",color:"#aaa",borderRadius:8,padding:"8px 9px",cursor:"pointer",fontSize:11}}>Save</button>
+          <button onClick={()=>setEditing(false)} style={{background:"none",border:"none",color:"#444",cursor:"pointer",fontSize:14}}>✕</button>
+        </div>
+      ):(
+        <div style={{display:"flex",gap:5}}>
+          <button onClick={()=>{setEditing(true);setVal(steps>0?String(steps):"");}} style={{flex:1,background:"rgba(255,255,255,0.07)",border:`1px solid ${member.color}33`,color:"#ccc",borderRadius:8,padding:"8px 0",cursor:"pointer",fontSize:12}}>
+            {steps>0?"✏️ Update my steps":"➕ Log my steps"}
+          </button>
+          {needsPush&&<button onClick={onPush} style={{background:member.color,border:"none",color:"#000",borderRadius:8,padding:"8px 13px",cursor:"pointer",fontWeight:700,fontSize:12}}>Share 🚀</button>}
+        </div>
+      )}
+      {needsPush&&!editing&&<div style={{fontSize:10,color:"#666",marginTop:5,textAlign:"center"}}>{isSynced?"Crew can't see your latest steps — tap Share":"Tap Share to send steps to your crew"}</div>}
+    </div>
+  );
+}
+
+// small components
+function Toast({msg}){return<div style={{position:"fixed",top:16,left:"50%",transform:"translateX(-50%)",background:"#1c1c2e",border:"1px solid rgba(255,255,255,0.12)",color:"#fff",padding:"9px 18px",borderRadius:20,zIndex:999,fontSize:12,boxShadow:"0 6px 30px rgba(0,0,0,0.5)",whiteSpace:"nowrap"}}>{msg}</div>;}
+function Tg({color,children,ml}){return<span style={{fontSize:9,background:`${color}25`,color,borderRadius:4,padding:"1px 5px",marginLeft:ml?5:0,letterSpacing:"0.5px"}}>{children}</span>;}
+function Field({label,children}){return<div style={{marginBottom:12}}><label style={{fontSize:10,color:"#555",letterSpacing:"1.5px",textTransform:"uppercase",display:"block",marginBottom:5}}>{label}</label>{children}</div>;}
+function IB({color,children}){return<div style={{background:`${color}12`,border:`1px solid ${color}25`,borderRadius:9,padding:"9px 12px",fontSize:11,color,marginBottom:12,lineHeight:1.55}}>{children}</div>;}
+function AB({a,sel,onClick}){return<button onClick={onClick} style={{fontSize:18,background:sel?"rgba(255,107,107,0.3)":"rgba(255,255,255,0.04)",border:sel?"2px solid #FF6B6B":"2px solid transparent",borderRadius:7,padding:"4px 6px",cursor:"pointer"}}>{a}</button>;}
+function Modal({title,children,onClose}){return<div style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.78)",zIndex:300,display:"flex",alignItems:"center",justifyContent:"center",padding:20}}><div style={{background:"#121220",borderRadius:18,padding:22,width:"100%",maxWidth:380,border:"1px solid rgba(255,255,255,0.09)"}}><div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:14}}><b style={{fontSize:15}}>{title}</b><button onClick={onClose} style={{background:"none",border:"none",color:"#444",fontSize:16,cursor:"pointer"}}>✕</button></div>{children}</div></div>;}
+
+const IS={width:"100%",background:"rgba(255,255,255,0.06)",border:"1px solid rgba(255,255,255,0.1)",color:"#fff",borderRadius:9,padding:"9px 12px",fontSize:14,outline:"none",boxSizing:"border-box"};
+const SB={background:"rgba(255,255,255,0.07)",border:"1px solid rgba(255,255,255,0.1)",color:"#ccc",borderRadius:18,padding:"5px 11px",fontSize:11,cursor:"pointer"};
+const CB={flex:1,padding:"9px 0",borderRadius:9,border:"1px solid rgba(255,255,255,0.09)",background:"transparent",color:"#666",cursor:"pointer",fontSize:13};
+const SvB={flex:1,padding:"9px 0",borderRadius:9,border:"none",background:"linear-gradient(135deg,#FF6B6B,#c62a47)",color:"#fff",fontWeight:700,cursor:"pointer",fontSize:13};
+
+const root = ReactDOM.createRoot(document.getElementById("root"));
+root.render(<App/>);
+</script>
+</body>
+</html>
