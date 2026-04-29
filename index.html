@@ -429,7 +429,7 @@ async function handleStart() {
 
   document.getElementById("onboard").classList.remove("active");
   document.getElementById("app").classList.add("active");
-
+  saveSession();
   if (synced) {
     document.getElementById("banner-code").textContent=code;
     document.getElementById("crew-banner").classList.add("show");
@@ -681,14 +681,14 @@ function renderMonth(mDays, today) {
 }
 
 // ── Actions ───────────────────────────────────────────────────────────────────
-function startEdit(mid) { state.editingMemberId=mid; renderMyBox(); setTimeout(()=>document.getElementById("my-steps-inp")&&document.getElementById("my-steps-inp").focus(),100); }
+function startEdit(mid) { state.editingMemberId=Number(mid); renderMyBox(); setTimeout(()=>document.getElementById("my-steps-inp")&&document.getElementById("my-steps-inp").focus(),100); }
 
 async function saveSteps(mid, share) {
   const val = parseInt(document.getElementById("my-steps-inp").value,10);
   if (isNaN(val)||val<0) return;
   const today = todayKey();
   if (!state.steps[today]) state.steps[today]={};
-  state.steps[today][mid]=val;
+  state.steps[today][Number(mid)]=val;
   state.editingMemberId=null;
   if (share) {
     state.pushed[mid]=Date.now();
@@ -710,7 +710,7 @@ async function saveStepsFor(mid, dk, share) {
 }
 
 async function pushMember(mid) {
-  state.pushed[mid]=Date.now();
+  state.pushed[Number(mid)]=Date.now();
   if (!state.isSynced){state.isSynced=true;document.getElementById("banner-code").textContent=state.crewCode;document.getElementById("crew-banner").classList.add("show");state.syncInterval=setInterval(()=>pullSync(true),30000);}
   await persist(); toast("Pushed to crew! 🚀"); render();
 }
@@ -849,8 +849,45 @@ async function joinCrew() {
 
 function closeModal(id){document.getElementById(id).classList.remove("show");}
 
+// ── Session save/restore ──────────────────────────────────────────────────────
+function saveSession() {
+  try { localStorage.setItem("sc_session", JSON.stringify({
+    crewCode: state.crewCode, isSynced: state.isSynced, myId: state.myId
+  })); } catch(e) {}
+}
+async function restoreSession() {
+  try {
+    const s = localStorage.getItem("sc_session");
+    if (!s) return false;
+    const sess = JSON.parse(s);
+    if (!sess.crewCode) return false;
+    const local = loadLocal(sess.crewCode);
+    if (!local) return false;
+    state.crewCode = sess.crewCode;
+    state.isSynced = sess.isSynced;
+    state.myId = sess.myId;
+    state.members = local.members||[];
+    state.steps = local.steps||{};
+    state.pushed = local.pushed||{};
+    state.crewGoals = local.crewGoals||state.crewGoals;
+    if (state.isSynced) await pullSync(true);
+    return true;
+  } catch(e) { return false; }
+}
+
 // ── Init ──────────────────────────────────────────────────────────────────────
 buildAvatarRow("ob-avatars","🏃","selectAvatar");
+restoreSession().then(restored => {
+  if (restored) {
+    document.getElementById("onboard").classList.remove("active");
+    document.getElementById("app").classList.add("active");
+    if (state.isSynced) {
+      document.getElementById("banner-code").textContent = state.crewCode;
+      state.syncInterval = setInterval(()=>pullSync(true), 30000);
+    }
+    render();
+  }
+});
 </script>
 </body>
 </html>
