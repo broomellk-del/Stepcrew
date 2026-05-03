@@ -121,9 +121,11 @@ input:focus,select:focus{outline:none;}
 .cal-month{font-size:14px;font-weight:700;color:var(--text);}
 .cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;}
 .cal-dow{font-size:9px;color:var(--text3);text-align:center;padding-bottom:4px;font-weight:700;}
-.cal-cell{aspect-ratio:1;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;cursor:pointer;transition:transform 0.1s;}
-.cal-cell:hover{transform:scale(1.12);}
+.cal-cell{border-radius:6px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:3px 1px;min-height:36px;cursor:pointer;transition:transform 0.1s;}
+.cal-cell:hover{transform:scale(1.05);}
 .cal-cell.today{box-shadow:0 0 0 2px var(--accent);}
+.cal-date{font-size:10px;font-weight:700;line-height:1.2;}
+.cal-steps-lbl{font-size:7px;font-weight:700;line-height:1;margin-top:1px;opacity:0.9;}
 .profile-hero{background:linear-gradient(135deg,var(--accent),var(--accent2));border-radius:var(--r);padding:22px 20px;margin-bottom:14px;color:#fff;position:relative;overflow:hidden;}
 .profile-hero::before{content:"";position:absolute;top:-30px;right:-30px;width:120px;height:120px;background:rgba(255,255,255,0.07);border-radius:50%;}
 .ph-av{width:60px;height:60px;border-radius:17px;display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:800;color:var(--accent);background:#fff;margin-bottom:12px;box-shadow:0 4px 16px rgba(0,0,0,0.15);}
@@ -260,8 +262,15 @@ input:focus,select:focus{outline:none;}
     <div class="stat-grid" id="hist-stats"></div>
     <div class="chart-card">
       <div class="chart-head"><div class="chart-ttl" id="hist-chart-ttl">Steps</div></div>
-      <svg class="chart-svg" id="hist-svg" viewBox="0 0 300 100" preserveAspectRatio="none"></svg>
-      <div class="chart-x" id="hist-x"></div>
+      <div style="display:flex;gap:0;">
+        <div id="hist-y-axis" style="display:flex;flex-direction:column;justify-content:space-between;align-items:flex-end;padding-right:5px;padding-bottom:20px;min-width:32px;">
+        </div>
+        <div style="flex:1;">
+          <svg class="chart-svg" id="hist-svg" viewBox="0 0 300 100" preserveAspectRatio="none"></svg>
+          <div class="chart-x" id="hist-x" style="display:flex;justify-content:space-between;font-size:9px;color:var(--text3);margin-bottom:2px;"></div>
+          <div style="text-align:center;font-size:9px;color:var(--text3);font-weight:600;text-transform:uppercase;letter-spacing:0.5px;" id="hist-x-title"></div>
+        </div>
+      </div>
       <div class="chart-legend" id="hist-legend"></div>
     </div>
     <div class="cal-card">
@@ -416,8 +425,18 @@ firebase.auth().setPersistence(firebase.auth.Auth.Persistence.LOCAL);
 function signInWithGoogle(){
   const provider=new firebase.auth.GoogleAuthProvider();
   provider.setCustomParameters({prompt:"select_account"});
-  auth.signInWithPopup(provider).catch(e=>console.error("Sign in error:",e));
+  // Use redirect instead of popup — works on all mobile browsers including iPhone Safari
+  firebase.auth().signInWithRedirect(provider).catch(e=>{
+    console.error("Sign in error:",e);
+    // Fallback to popup for desktop
+    auth.signInWithPopup(provider).catch(e2=>console.error("Popup error:",e2));
+  });
 }
+
+// Handle redirect result on page load
+firebase.auth().getRedirectResult().then(result=>{
+  if(result&&result.user) console.log("Redirect sign-in complete:",result.user.displayName);
+}).catch(e=>console.error("Redirect result error:",e));
 
 function signOut(){
   auth.signOut().then(()=>{
@@ -861,7 +880,7 @@ function renderHistory(){
   const avg=members.length?Math.round(total/(activeDays*members.length)):0;
   const top=members.length>1?[...members].sort((a,b)=>getTotal(b.id,days)-getTotal(a.id,days))[0]:null;
   document.getElementById("hist-stats").innerHTML=`<div class="stat-card"><div class="stat-val" style="color:var(--accent);">${total.toLocaleString()}</div><div class="stat-lbl">${pLbl}</div></div><div class="stat-card"><div class="stat-val" style="color:var(--green);">${avg.toLocaleString()}</div><div class="stat-lbl">Daily Avg</div></div><div class="stat-card"><div class="stat-val" style="color:${top?top.color:"var(--gold)"}; font-size:${top?"15px":"19px"}">${top?top.name.split(" ")[0]:activeDays}</div><div class="stat-lbl">${top?"Top Walker":"Active Days"}</div></div>`;
-  document.getElementById("hist-chart-ttl").textContent=members.length===1?`${members[0].name} &middot; ${pLbl}`:`Crew &middot; ${pLbl}`;
+  document.getElementById("hist-chart-ttl").textContent=members.length===1?`${members[0].name} · ${pLbl}`:`Crew · ${pLbl}`;
   const svg=document.getElementById("hist-svg");
   if(days.length===1){
     const maxV=Math.max(...members.map(m=>getSteps(m.id,days[0])),1);
@@ -870,8 +889,22 @@ function renderHistory(){
     fo+="</div></foreignObject>";svg.innerHTML=fo;
     document.getElementById("hist-x").innerHTML="";document.getElementById("hist-legend").innerHTML="";
   } else {
-    const maxV=Math.max(...members.flatMap(m=>days.map(d=>getSteps(m.id,d))),1);
+    const rawMax=Math.max(...members.flatMap(m=>days.map(d=>getSteps(m.id,d))),1);
+    // Round max up to nearest 5k for clean axis
+    const maxV=Math.ceil(rawMax/5000)*5000||5000;
+    const yTicks=4;
+    // Y axis labels
+    const yLabels=Array.from({length:yTicks+1},(_,i)=>{
+      const v=Math.round((maxV/yTicks)*i);
+      return v>=1000?(v/1000).toFixed(v%1000===0?0:1)+"k":v;
+    }).reverse();
+    document.getElementById("hist-y-axis").innerHTML=yLabels.map(l=>`<span style="font-size:8px;color:var(--text3);font-weight:600;">${l}</span>`).join("");
     let lines="";
+    // Grid lines
+    for(let i=0;i<=yTicks;i++){
+      const gy=((i/yTicks)*92).toFixed(1);
+      lines+=`<line x1="0" y1="${gy}" x2="300" y2="${gy}" stroke="#e4e4ec" stroke-width="0.5" stroke-dasharray="3,3"/>`;
+    }
     members.forEach(m=>{
       const vals=days.map(d=>getSteps(m.id,d));
       const pts=vals.map((v,i)=>`${(i/(days.length-1))*300},${100-(v/maxV)*92}`).join(" L");
@@ -880,12 +913,16 @@ function renderHistory(){
       lines+=`<defs><linearGradient id="${gid}" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="${m.color}" stop-opacity="0.18"/><stop offset="100%" stop-color="${m.color}" stop-opacity="0"/></linearGradient></defs>`;
       lines+=`<path d="M${pts} L300,100 L0,100Z" fill="url(#${gid})"/>`;
       lines+=`<path d="M${pts}" fill="none" stroke="${m.color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>`;
-      lines+=`<circle cx="300" cy="${ly}" r="4" fill="${m.color}" stroke="white" stroke-width="2"/>`;
+      // Dot on each data point
+      vals.forEach((v,i)=>{
+        if(v>0){const cx=(i/(days.length-1))*300,cy=100-(v/maxV)*92;lines+=`<circle cx="${cx}" cy="${cy}" r="2.5" fill="${m.color}" stroke="white" stroke-width="1.5"/>`;}
+      });
     });
     svg.innerHTML=lines;
     let xHtml="";
-    if(days.length<=7)xHtml=days.map(d=>`<span>${shortDay(d)}</span>`).join("");
-    else xHtml=`<span>${shortDate(days[0])}</span><span>${shortDate(days[Math.floor(days.length/4)])}</span><span>${shortDate(days[Math.floor(days.length/2)])}</span><span>${shortDate(days[Math.floor(days.length*3/4)])}</span><span>${shortDate(days[days.length-1])}</span>`;
+    const xTitle=document.getElementById("hist-x-title");
+    if(days.length<=7){xHtml=days.map(d=>`<span>${shortDay(d)}</span>`).join("");if(xTitle)xTitle.textContent="Day of Week";}
+    else{xHtml=`<span>${shortDate(days[0])}</span><span>${shortDate(days[Math.floor(days.length/4)])}</span><span>${shortDate(days[Math.floor(days.length/2)])}</span><span>${shortDate(days[Math.floor(days.length*3/4)])}</span><span>${shortDate(days[days.length-1])}</span>`;if(xTitle)xTitle.textContent="Date";}
     document.getElementById("hist-x").innerHTML=xHtml;
     document.getElementById("hist-legend").innerHTML=members.length>1?members.map(m=>`<div class="legend-item"><div style="width:10px;height:10px;border-radius:50%;background:${m.color};"></div>${m.name}</div>`).join(""):"";
   }
@@ -916,7 +953,11 @@ function renderCalendar(members){
     const bg=t>0?`rgba(99,102,241,${Math.max(0.12,p*0.95)})`:"var(--bg)";
     const color=p>0.5?"#fff":p>0.15?"var(--accent)":"var(--text3)";
     const num=new Date(dk+"T00:00:00").getDate();
-    h+=`<div class="cal-cell${isT?" today":""}" style="background:${bg};color:${color};" title="${t?t.toLocaleString()+" steps":"No data"}">${num}</div>`;
+    const stepsLbl=t>0?(t>=1000?(t/1000).toFixed(t%1000===0?0:1)+"k":t):"";
+    h+=`<div class="cal-cell${isT?" today":""}" style="background:${bg};color:${color};" title="${t?t.toLocaleString()+" steps":"No data"}">
+      <div class="cal-date">${num}</div>
+      ${stepsLbl?`<div class="cal-steps-lbl">${stepsLbl}</div>`:""}
+    </div>`;
   });
   document.getElementById("cal-grid").innerHTML=h;
 }
@@ -1085,4 +1126,4 @@ const maxDate=todayStr();
 // Auth flow handled by auth.onAuthStateChanged above
 </script>
 </body>
-</html>
+                                                                                                     </html>
