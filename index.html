@@ -8,6 +8,8 @@
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700;9..40,800&family=Syne:wght@700;800&display=swap" rel="stylesheet"/>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="https://accounts.google.com/gsi/client" async defer></script>
 <style>
 :root{--bg:#f4f4f8;--surface:#fff;--border:#e4e4ec;--text:#18181f;--text2:#6b7280;--text3:#9ca3af;--accent:#6366f1;--accent2:#818cf8;--accent-bg:#eef0ff;--green:#10b981;--gold:#f59e0b;--red:#ef4444;--shadow:0 2px 16px rgba(99,102,241,0.07);--shadow-lg:0 8px 40px rgba(99,102,241,0.13);--r:14px;--r-sm:9px;}
 *{box-sizing:border-box;margin:0;padding:0;}
@@ -178,17 +180,25 @@ input:focus,select:focus{outline:none;}
 <div id="splash">
   <div style="font-size:56px;margin-bottom:10px;">👟</div>
   <div style="font-family:Syne,sans-serif;font-size:26px;font-weight:800;color:var(--text);letter-spacing:-1px;">StepCrew</div>
-  <div class="sp-spin"></div>
+  <div class="sp-spin" id="splash-spin"></div>
+  <div id="splash-google" style="display:none;margin-top:24px;text-align:center;">
+    <div style="font-size:13px;color:var(--text3);margin-bottom:16px;">Sign in to access your crew</div>
+    <button onclick="signInWithGoogle()" style="display:flex;align-items:center;gap:10px;background:#fff;border:1.5px solid var(--border);border-radius:12px;padding:12px 20px;font-size:14px;font-weight:600;color:var(--text);cursor:pointer;box-shadow:var(--shadow);margin:0 auto;">
+      <svg width="18" height="18" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/><path fill="none" d="M0 0h48v48H0z"/></svg>
+      Sign in with Google
+    </button>
+  </div>
 </div>
 <div class="toast" id="toast"></div>
 <div id="onboard" class="screen">
   <div class="ob-wrap">
     <div class="ob-logo">
       <div style="font-size:52px;">👟</div>
-      <div class="ob-title">StepCrew</div>
-      <div class="ob-sub">Walk Together &middot; Go Further</div>
+      <div class="ob-title">Welcome!</div>
+      <div class="ob-sub" id="ob-google-name" style="color:var(--accent);font-size:13px;font-weight:600;letter-spacing:0;text-transform:none;margin-top:6px;"></div>
     </div>
-    <div class="fld"><label class="fld-lbl">Your Name</label><input class="inp" id="ob-name" placeholder="e.g. Kevin" type="text"/></div>
+    <!-- Name comes from Google -->
+    <div id="ob-name-display" style="background:var(--accent-bg);border-radius:var(--r-sm);padding:10px 14px;font-size:14px;font-weight:600;color:var(--accent);margin-bottom:13px;"></div>
     <div class="fld"><label class="fld-lbl">Daily Step Goal</label><input class="inp" id="ob-goal" type="number" value="8000"/></div>
     <div class="fld">
       <label class="fld-lbl">Crew Sync</label>
@@ -391,10 +401,63 @@ input:focus,select:focus{outline:none;}
   <div class="btn-row"><button class="btn-cancel" onclick="closeModal('modal-crews')">Close</button></div></div>
 </div>
 <script>
+// Google Auth state
+let G = { uid: null, name: null, email: null, photoURL: null };
+
 // Firebase
 const firebaseConfig={apiKey:"AIzaSyB94tl_ApfMV0SKz47aV-nWun9XBKtj7Vo",authDomain:"stepcrew-50997.firebaseapp.com",projectId:"stepcrew-50997",storageBucket:"stepcrew-50997.firebasestorage.app",messagingSenderId:"455354914193",appId:"1:455354914193:web:eba08b801cf75dc98cb630"};
 firebase.initializeApp(firebaseConfig);
 const db=firebase.firestore();
+const auth=firebase.auth();
+
+// Google Sign-In
+function signInWithGoogle(){
+  const provider=new firebase.auth.GoogleAuthProvider();
+  provider.setCustomParameters({prompt:"select_account"});
+  auth.signInWithPopup(provider).catch(e=>console.error("Sign in error:",e));
+}
+
+function signOut(){
+  auth.signOut().then(()=>{
+    lsSet("sc_session_v2",null);
+    location.reload();
+  });
+}
+
+// Watch auth state — this is the entry point
+auth.onAuthStateChanged(async user=>{
+  const splash=document.getElementById("splash");
+  const splashSpin=document.getElementById("splash-spin");
+  const splashGoogle=document.getElementById("splash-google");
+  if(user){
+    // Signed in — store Google identity
+    G.uid=user.uid;
+    G.name=user.displayName||user.email.split("@")[0];
+    G.email=user.email;
+    G.photoURL=user.photoURL;
+    // Try to restore session
+    const restored=await restoreSession();
+    splash.style.opacity="0";
+    setTimeout(()=>splash.style.display="none",300);
+    if(restored&&S.activeCrew&&cd().members.length>0){
+      document.getElementById("app").classList.add("active");
+      document.getElementById("banner-code").textContent=S.activeCrew;
+      S.syncInterval=setInterval(()=>pullLatest(true),30000);
+      render();
+    } else {
+      // New user or no crew yet — show onboard
+      const nameDisp=document.getElementById("ob-name-display");
+      const googleName=document.getElementById("ob-google-name");
+      if(nameDisp)nameDisp.textContent=G.name;
+      if(googleName)googleName.textContent="Signed in as "+G.email;
+      document.getElementById("onboard").classList.add("active");
+    }
+  } else {
+    // Not signed in — show Google sign in button
+    if(splashSpin)splashSpin.style.display="none";
+    if(splashGoogle)splashGoogle.style.display="block";
+  }
+});
 async function fbSave(code,data){try{await db.collection("crews").doc(code).set({...data,updatedAt:Date.now()});return true;}catch(e){console.error("Save:",e);return false;}}
 async function fbLoad(code){try{const s=await db.collection("crews").doc(code).get();return s.exists?s.data():null;}catch(e){console.error("Load:",e);return null;}}
 function lsSet(k,v){try{localStorage.setItem(k,JSON.stringify(v));}catch(e){}}
@@ -457,7 +520,7 @@ async function syncFromFirebase(code,silent){
 
 function saveSession(){
   const me=myMember();
-  lsSet("sc_session_v2",{myId:S.myId,crews:S.crews,activeCrew:S.activeCrew,myName:me?me.name:null});
+  lsSet("sc_session_v2",{myId:S.myId,crews:S.crews,activeCrew:S.activeCrew,myName:me?me.name:null,googleUid:G.uid});
 }
 
 async function restoreSession(){
@@ -486,6 +549,8 @@ async function restoreSession(){
       return false;
     }
   } else {
+    // Can't match — clear bad session so next load starts clean
+    try{localStorage.removeItem("sc_session_v2");}catch(e){}
     return false;
   }
   // Clean up duplicate members — keep oldest (most data), remove newer empty duplicates
@@ -524,28 +589,39 @@ function selMode(btn){
 }
 
 async function handleStart(){
-  const name=document.getElementById("ob-name").value.trim();
+  const name=G.name||"Member";
   const goal=parseInt(document.getElementById("ob-goal").value)||8000;
   const errEl=document.getElementById("ob-err"),btn=document.getElementById("ob-btn");
-  if(!name){errEl.textContent="Please enter your name";return;}
+  if(!G.uid){errEl.textContent="Please sign in with Google first";return;}
   if(S.syncMode==="join"&&!document.getElementById("ob-code").value.trim()){errEl.textContent="Enter a crew code";return;}
   errEl.textContent="";btn.disabled=true;btn.innerHTML="<span class=\"spinner\"></span> Setting up…";
   const timer=setTimeout(()=>{btn.disabled=false;btn.innerHTML="Let\'s Walk 🚀";errEl.textContent="Took too long — please try again.";},15000);
   try{
-    const id=Date.now(),isModerator=S.syncMode==="create";
+    const id=G.uid,isModerator=S.syncMode==="create";
     let code=genCode();
-    let members=[{id,name,color:COLORS[0],goal,isManual:S.syncMode==="manual",isMod:isModerator}];
+    let members=[{id,name,color:COLORS[0],goal,isManual:S.syncMode==="manual",isMod:isModerator,googleUid:G.uid}];
     let steps={},pushed={},crewGoals={dailySteps:null,weeklySteps:null,dailyMsg:"",weeklyMsg:"",modId:isModerator?id:null,modPin:null};
     if(S.syncMode==="join"){
       code=document.getElementById("ob-code").value.trim().toUpperCase();
       const remote=await fbLoad(code);
-      if(!remote){clearTimeout(timer);btn.disabled=false;btn.innerHTML="Let\'s Walk 🚀";errEl.textContent="Crew not found. Check the code.";return;}
-      const n=(remote.members||[]).length;
-      members=[...(remote.members||[]),{id,name,color:COLORS[n%COLORS.length],goal,isManual:false,isMod:false}];
+      if(!remote){clearTimeout(timer);btn.disabled=false;btn.innerHTML="Let\'s Walk \U0001f680";errEl.textContent="Crew not found. Check the code.";return;}
       steps=remote.steps||{};pushed=remote.pushed||{};crewGoals=remote.crewGoals||crewGoals;
+      const existingMember=(remote.members||[]).find(m=>m.name.toLowerCase()===name.toLowerCase());
+      if(existingMember){
+        members=remote.members;
+        clearTimeout(timer);
+        S.myId=Number(existingMember.id);
+      } else {
+        const n=(remote.members||[]).length;
+        members=[...(remote.members||[]),{id,name,color:COLORS[n%COLORS.length],goal,isManual:false,isMod:false}];
+        clearTimeout(timer);
+        S.myId=id;
+      }
+    } else {
+      clearTimeout(timer);
+      S.myId=id;
     }
-    clearTimeout(timer);
-    S.myId=id;S.activeCrew=code;S.crews=[{code,joinedAt:Date.now()}];
+    S.activeCrew=code;S.crews=[{code,joinedAt:Date.now()}];
     S.crewData[code]={members,steps,pushed,crewGoals,updatedAt:Date.now()};
     lsSet("sc_data_"+code,S.crewData[code]);
     await fbSave(code,S.crewData[code]);
@@ -587,6 +663,7 @@ function renderHeader(){
   if(S.activeCrew&&!cd().crewGoals?.modId&&!isMod())h+=`<button class="hbtn" onclick="openModal('modal-become-mod')" style="font-size:10px;">Become Mod</button>`;
   h+=`<button class="hbtn blue" onclick="pullLatest()">&circlearrowright;</button>`;
   h+=`<button class="hbtn" onclick="openModal('modal-add')">+ Member</button>`;
+  h+=`<button class="hbtn" onclick="signOut()" style="font-size:10px;" title="Sign out">${G.photoURL?`<img src="${G.photoURL}" style="width:20px;height:20px;border-radius:50%;vertical-align:middle;"/>`:"👤"}</button>`;
   btns.innerHTML=h;
 }
 
@@ -939,8 +1016,11 @@ async function joinCrew(){
   const remote=await fbLoad(code);
   if(!remote){toast("Code not found ❌");return;}
   const me=myMember()||{id:S.myId,name:"Member",color:COLORS[0],goal:8000};
+  // Match by ID first, then by name — never create duplicates
   const already=(remote.members||[]).find(m=>Number(m.id)===Number(S.myId));
-  const merged=already?remote.members:[...(remote.members||[]),{...me,color:COLORS[(remote.members||[]).length%COLORS.length]}];
+  const byName=!already&&me.name?(remote.members||[]).find(m=>m.name.toLowerCase()===me.name.toLowerCase()):null;
+  if(byName)S.myId=Number(byName.id);
+  const merged=already||byName?remote.members:[...(remote.members||[]),{...me,color:COLORS[(remote.members||[]).length%COLORS.length]}];
   S.crewData[code]={members:merged,steps:remote.steps||{},pushed:remote.pushed||{},crewGoals:remote.crewGoals||{dailySteps:null,weeklySteps:null,dailyMsg:"",weeklyMsg:"",modId:null,modPin:null},updatedAt:Date.now()};
   S.activeCrew=code;if(!S.crews.find(c=>c.code===code))S.crews.push({code,joinedAt:Date.now()});
   lsSet("sc_data_"+code,S.crewData[code]);await fbSave(code,S.crewData[code]);saveSession();
@@ -982,23 +1062,14 @@ async function saveSync(){const m=myMember();if(!m)return;m.isManual=S.selectedS
 
 document.querySelectorAll(".modal-overlay").forEach(o=>{o.addEventListener("click",e=>{if(e.target===o)o.classList.remove("show");});});
 
-(async function init(){
-  const maxDate=todayStr();
-  ["profile-date-inp","hist-start","hist-end","date-pick-inp"].forEach(id=>{const el=document.getElementById(id);if(el){el.max=maxDate;if(id==="profile-date-inp"||id==="date-pick-inp")el.value=maxDate;}});
-  const restored=await restoreSession();
-  const splash=document.getElementById("splash");
-  if(restored&&S.activeCrew&&cd().members.length>0){
-    splash.style.opacity="0";
-    setTimeout(()=>splash.style.display="none",300);
-    document.getElementById("app").classList.add("active");
-    document.getElementById("banner-code").textContent=S.activeCrew;
-    S.syncInterval=setInterval(()=>pullLatest(true),30000);
-    render();
-  } else {
-    splash.style.opacity="0";
-    setTimeout(()=>{splash.style.display="none";document.getElementById("onboard").classList.add("active");},300);
-  }
-})();
+// Set max dates on inputs
+const maxDate=todayStr();
+["profile-date-inp","hist-start","hist-end","date-pick-inp"].forEach(id=>{
+  const el=document.getElementById(id);
+  if(el){el.max=maxDate;if(id==="profile-date-inp"||id==="date-pick-inp")el.value=maxDate;}
+});
+// Add sign out button to header after render
+// Auth flow handled by auth.onAuthStateChanged above
 </script>
 </body>
-    </html>
+  </html>
