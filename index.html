@@ -410,7 +410,9 @@ firebase.initializeApp(firebaseConfig);
 const db=firebase.firestore();
 const auth=firebase.auth();
 
-// Google Sign-In
+// Google Sign-In — persist across refreshes
+firebase.auth().setPersistence(firebase.auth.Auth.Persistence.LOCAL);
+
 function signInWithGoogle(){
   const provider=new firebase.auth.GoogleAuthProvider();
   provider.setCustomParameters({prompt:"select_account"});
@@ -490,12 +492,17 @@ function avEl(m,sz){sz=sz||40;const fs=Math.round(sz*0.38);return`<div style="wi
 function toast(msg){const t=document.getElementById("toast");t.textContent=msg;t.classList.add("show");setTimeout(()=>t.classList.remove("show"),2800);}
 
 function cd(){return S.crewData[S.activeCrew]||{members:[],steps:{},pushed:{},crewGoals:{dailySteps:null,weeklySteps:null,dailyMsg:"",weeklyMsg:"",modId:null,modPin:null}};}
-function getSteps(mid,dk){return(cd().steps[dk]||{})[Number(mid)]||0;}
+function getSteps(mid,dk){
+  const day=cd().steps[dk]||{};
+  // Try both string and numeric key
+  return day[mid]||day[Number(mid)]||day[String(mid)]||0;
+}
 function getTotal(mid,days){return days.reduce((s,d)=>s+getSteps(mid,d),0);}
 function getAvg(mid,days){const a=days.filter(d=>getSteps(mid,d)>0);return a.length?Math.round(getTotal(mid,days)/a.length):0;}
 function calcStreak(mid){let st=0,d=new Date();for(let i=0;i<365;i++){const k=d.toISOString().split("T")[0];if(getSteps(mid,k)>0)st++;else break;d.setDate(d.getDate()-1);}return st;}
-function isMod(){return cd().crewGoals&&cd().crewGoals.modId===S.myId;}
-function myMember(){return cd().members.find(m=>Number(m.id)===Number(S.myId));}
+function isMod(){return cd().crewGoals&&idMatch(cd().crewGoals.modId,S.myId);}
+function idMatch(a,b){return String(a)===String(b);}
+function myMember(){return cd().members.find(m=>idMatch(m.id,S.myId)||idMatch(m.googleUid,G.uid));}
 
 async function persist(code){
   const c=code||S.activeCrew;
@@ -532,25 +539,23 @@ async function restoreSession(){
   if(local)S.crewData[sess.activeCrew]=local;
   await syncFromFirebase(sess.activeCrew,true);
   if(!cd().members.length)return false;
-  // Try to find myId in members — exact match first
-  let me=cd().members.find(m=>Number(m.id)===Number(sess.myId));
+  // Match priority: 1) googleUid 2) stored myId 3) Google display name 4) stored name
+  let me=null;
+  if(G.uid) me=cd().members.find(m=>idMatch(m.googleUid,G.uid));
+  if(!me&&sess.myId) me=cd().members.find(m=>idMatch(m.id,sess.myId));
+  if(!me&&G.name) me=cd().members.find(m=>m.name.toLowerCase()===G.name.toLowerCase().split(" ")[0]);
+  if(!me&&sess.myName) me=cd().members.find(m=>m.name.toLowerCase()===sess.myName.toLowerCase().split(" ")[0]);
   if(me){
-    S.myId=Number(me.id);
-  } else if(sess.myName){
-    // Fallback: match by name (case-insensitive)
-    me=cd().members.find(m=>m.name.toLowerCase()===sess.myName.toLowerCase());
-    if(me){
-      S.myId=Number(me.id);
-      // Update session with correct id
-      sess.myId=me.id;
-      lsSet("sc_session_v2",sess);
-    } else {
-      // Name not found either — show onboard so they can rejoin
-      return false;
+    S.myId=me.id;
+    // Permanently link Google UID to this member so future logins are instant
+    if(G.uid&&!me.googleUid){
+      me.googleUid=G.uid;
+      S.crewData[S.activeCrew].members=cd().members.map(m=>idMatch(m.id,me.id)?{...m,googleUid:G.uid}:m);
+      lsSet("sc_data_"+S.activeCrew,S.crewData[S.activeCrew]);
+      fbSave(S.activeCrew,S.crewData[S.activeCrew]);
     }
+    saveSession();
   } else {
-    // Can't match — clear bad session so next load starts clean
-    try{localStorage.removeItem("sc_session_v2");}catch(e){}
     return false;
   }
   // Clean up duplicate members — keep oldest (most data), remove newer empty duplicates
@@ -568,7 +573,7 @@ async function restoreSession(){
         // Replace with newer one that has more data
         const idx=cleaned.findIndex(x=>x.name.toLowerCase()===key);
         cleaned[idx]=m;
-        if(Number(S.myId)===Number(m.id)||Number(S.myId)===Number(existing.id))S.myId=Number(m.id);
+        if(idMatch(S.myId,m.id)||idMatch(S.myId,existing.id))S.myId=m.id;
       }
     }
   }
@@ -606,11 +611,18 @@ async function handleStart(){
       const remote=await fbLoad(code);
       if(!remote){clearTimeout(timer);btn.disabled=false;btn.innerHTML="Let\'s Walk \U0001f680";errEl.textContent="Crew not found. Check the code.";return;}
       steps=remote.steps||{};pushed=remote.pushed||{};crewGoals=remote.crewGoals||crewGoals;
-      const existingMember=(remote.members||[]).find(m=>m.name.toLowerCase()===name.toLowerCase());
+      // Match by googleUid first, then first name
+      const existingMember=(remote.members||[]).find(m=>
+        (G.uid&&idMatch(m.googleUid,G.uid))||
+        m.name.toLowerCase()===name.toLowerCase().split(" ")[0]
+      );
       if(existingMember){
+        // Link Google UID to this existing member
         members=remote.members;
+        const idx=members.findIndex(m=>idMatch(m.id,existingMember.id));
+        if(idx>=0&&G.uid)members[idx].googleUid=G.uid;
         clearTimeout(timer);
-        S.myId=Number(existingMember.id);
+        S.myId=existingMember.id;
       } else {
         const n=(remote.members||[]).length;
         members=[...(remote.members||[]),{id,name,color:COLORS[n%COLORS.length],goal,isManual:false,isMod:false}];
@@ -641,8 +653,9 @@ async function saveStepsForDate(mid,dk,val,share){
   const num=parseInt(val,10);if(isNaN(num)||num<0)return false;
   const c=S.crewData[S.activeCrew];
   if(!c.steps[dk])c.steps[dk]={};
-  c.steps[dk][Number(mid)]=num;
-  if(share)c.pushed[Number(mid)]=Date.now();
+  // Store under the member's actual ID (string or number)
+  c.steps[dk][mid]=num;
+  if(share)c.pushed[mid]=Date.now();
   await persist();
   return true;
 }
@@ -686,7 +699,7 @@ function renderMyBox(){
   const m=myMember();if(!m){box.innerHTML="";return;}
   const s=getSteps(m.id,S.logDate);
   const pct=Math.min((s/m.goal)*100,100);
-  const pushed=cd().pushed[m.id];
+  const pushed=cd().pushed[m.id]||cd().pushed[String(m.id)]||cd().pushed[Number(m.id)];
   const minSince=pushed?Math.floor((Date.now()-pushed)/60000):null;
   const needsPush=s>0&&(!pushed||(Date.now()-pushed)>900000);
   const isEditing=S.editingId===m.id;
@@ -756,7 +769,7 @@ function setLogDate(type,el){
 function renderTodayList(){
   const box=document.getElementById("today-list");
   const dk=S.logDate,td=todayStr(),wD=daysAgo(7);
-  const sorted=[...cd().members].filter(m=>Number(m.id)!==Number(S.myId)).sort((a,b)=>getSteps(b.id,dk)-getSteps(a.id,dk));
+  const sorted=[...cd().members].filter(m=>!idMatch(m.id,S.myId)&&!idMatch(m.googleUid,G.uid)).sort((a,b)=>getSteps(b.id,dk)-getSteps(a.id,dk));
   const gTotal=cd().members.reduce((s,m)=>s+getSteps(m.id,dk),0);
   let h=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;"><div style="font-size:11px;color:var(--text2);font-weight:500;">${fmtDate(dk)} &middot; Crew: <b>${gTotal.toLocaleString()}</b></div></div>`;
   sorted.forEach((m,i)=>{
@@ -883,7 +896,7 @@ function renderHistory(){
     const total=getTotal(m.id,days),avg2=getAvg(m.id,days);
     const active=days.filter(d=>getSteps(m.id,d)>0).length;
     const pct=(total/maxTotal)*100,goalPct=Math.min((total/(m.goal*days.length))*100,100);
-    const streak=calcStreak(m.id),isMe=Number(m.id)===Number(S.myId);
+    const streak=calcStreak(m.id),isMe=idMatch(m.id,S.myId)||idMatch(m.googleUid,G.uid);
     return`<div class="member-card${isMe?" leader":""}"><div class="mc-row"><div style="font-size:14px;width:22px;text-align:center;">${["🥇","🥈","🥉"][i]||"#"+(i+1)}</div>${avEl(m,36)}<div style="flex:1;"><div style="font-weight:700;font-size:14px;">${m.name}${isMe?`<span class="tag tag-you">YOU</span>`:""}</div><div style="font-size:10px;color:var(--text3);">${active}/${days.length} active &middot; avg ${avg2.toLocaleString()}/day${streak>0?` &middot; 🔥 ${streak}d`:""}</div></div><div style="text-align:right;"><div class="mc-num" style="color:${m.color};font-size:17px;">${total.toLocaleString()}</div><div style="font-size:10px;color:var(--text3);">${goalPct.toFixed(0)}% of goal</div></div></div><div class="pbar"><div class="pbar-fill" style="width:${pct}%;background:${m.color};"></div></div></div>`;
   }).join("");
 }
@@ -1017,7 +1030,7 @@ async function joinCrew(){
   if(!remote){toast("Code not found ❌");return;}
   const me=myMember()||{id:S.myId,name:"Member",color:COLORS[0],goal:8000};
   // Match by ID first, then by name — never create duplicates
-  const already=(remote.members||[]).find(m=>Number(m.id)===Number(S.myId));
+  const already=(remote.members||[]).find(m=>idMatch(m.id,S.myId)||idMatch(m.googleUid,G.uid));
   const byName=!already&&me.name?(remote.members||[]).find(m=>m.name.toLowerCase()===me.name.toLowerCase()):null;
   if(byName)S.myId=Number(byName.id);
   const merged=already||byName?remote.members:[...(remote.members||[]),{...me,color:COLORS[(remote.members||[]).length%COLORS.length]}];
@@ -1072,4 +1085,4 @@ const maxDate=todayStr();
 // Auth flow handled by auth.onAuthStateChanged above
 </script>
 </body>
-  </html>
+</html>
