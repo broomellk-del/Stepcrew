@@ -455,16 +455,63 @@ async function syncFromFirebase(code,silent){
   return true;
 }
 
-function saveSession(){lsSet("sc_session_v2",{myId:S.myId,crews:S.crews,activeCrew:S.activeCrew});}
+function saveSession(){
+  const me=myMember();
+  lsSet("sc_session_v2",{myId:S.myId,crews:S.crews,activeCrew:S.activeCrew,myName:me?me.name:null});
+}
 
 async function restoreSession(){
   const sess=lsGet("sc_session_v2");
   if(!sess||!sess.activeCrew)return false;
-  S.myId=Number(sess.myId);S.crews=sess.crews||[];S.activeCrew=sess.activeCrew;
+  S.crews=sess.crews||[];S.activeCrew=sess.activeCrew;
+  // Load local first, then sync Firebase
   const local=lsGet("sc_data_"+sess.activeCrew);
   if(local)S.crewData[sess.activeCrew]=local;
   await syncFromFirebase(sess.activeCrew,true);
-  return !!(cd().members.length);
+  if(!cd().members.length)return false;
+  // Try to find myId in members — exact match first
+  let me=cd().members.find(m=>Number(m.id)===Number(sess.myId));
+  if(me){
+    S.myId=Number(me.id);
+  } else if(sess.myName){
+    // Fallback: match by name (case-insensitive)
+    me=cd().members.find(m=>m.name.toLowerCase()===sess.myName.toLowerCase());
+    if(me){
+      S.myId=Number(me.id);
+      // Update session with correct id
+      sess.myId=me.id;
+      lsSet("sc_session_v2",sess);
+    } else {
+      // Name not found either — show onboard so they can rejoin
+      return false;
+    }
+  } else {
+    return false;
+  }
+  // Clean up duplicate members — keep oldest (most data), remove newer empty duplicates
+  const seen={};
+  const cleaned=[];
+  for(const m of cd().members){
+    const key=m.name.toLowerCase();
+    if(!seen[key]){seen[key]=true;cleaned.push(m);}
+    else{
+      // Keep whichever has more steps
+      const existing=cleaned.find(x=>x.name.toLowerCase()===key);
+      const existTotal=Object.values(S.crewData[S.activeCrew].steps||{}).reduce((s,dk)=>s+(dk[existing.id]||0),0);
+      const newTotal=Object.values(S.crewData[S.activeCrew].steps||{}).reduce((s,dk)=>s+(dk[m.id]||0),0);
+      if(newTotal>existTotal){
+        // Replace with newer one that has more data
+        const idx=cleaned.findIndex(x=>x.name.toLowerCase()===key);
+        cleaned[idx]=m;
+        if(Number(S.myId)===Number(m.id)||Number(S.myId)===Number(existing.id))S.myId=Number(m.id);
+      }
+    }
+  }
+  if(cleaned.length<cd().members.length){
+    S.crewData[S.activeCrew].members=cleaned;
+    await persist();
+  }
+  return true;
 }
 
 function selMode(btn){
@@ -954,4 +1001,4 @@ document.querySelectorAll(".modal-overlay").forEach(o=>{o.addEventListener("clic
 })();
 </script>
 </body>
-</html>
+    </html>
