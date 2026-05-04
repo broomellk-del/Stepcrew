@@ -435,79 +435,107 @@ firebase.auth().setPersistence(firebase.auth.Auth.Persistence.LOCAL);
 function signInWithGoogle(){
   const provider=new firebase.auth.GoogleAuthProvider();
   provider.setCustomParameters({prompt:"select_account"});
-  // Use redirect instead of popup — works on all mobile browsers including iPhone Safari
   firebase.auth().signInWithRedirect(provider).catch(e=>{
-    console.error("Sign in error:",e);
-    // Fallback to popup for desktop
+    console.error("Redirect error:",e);
     auth.signInWithPopup(provider).catch(e2=>console.error("Popup error:",e2));
   });
 }
 
-// Handle redirect result on page load — fires after Google redirects back
-firebase.auth().getRedirectResult().then(result=>{
-  if(result&&result.user){
-    console.log("Redirect sign-in complete:",result.user.displayName);
-    // onAuthStateChanged will handle the rest
-  }
-}).catch(e=>{
-  console.error("Redirect result error:",e);
-  // If redirect fails, show sign-in button
-  const splash=document.getElementById("splash");
-  const splashSpin=document.getElementById("splash-spin");
-  const splashGoogle=document.getElementById("splash-google");
-  if(splashSpin)splashSpin.style.display="none";
-  if(splashGoogle)splashGoogle.style.display="block";
-});
-
 function signOut(){
   auth.signOut().then(()=>{
-    lsSet("sc_session_v2",null);
+    try{localStorage.removeItem("sc_session_v2");}catch(e){}
     location.reload();
   });
 }
 
 function confirmSignOut(){
-  if(confirm("Sign out of StepCrew? You\'ll need to sign in with Google again.")){
-    signOut();
-  }
+  if(confirm("Sign out of StepCrew? You'll need to sign in with Google again.")){signOut();}
 }
 
-// Watch auth state — this is the entry point
-auth.onAuthStateChanged(async user=>{
+function showSignIn(){
   const splash=document.getElementById("splash");
   const splashSpin=document.getElementById("splash-spin");
   const splashGoogle=document.getElementById("splash-google");
-  if(user){
-    // Signed in — store Google identity
-    G.uid=user.uid;
-    G.name=user.displayName||user.email.split("@")[0];
-    G.email=user.email;
-    G.photoURL=user.photoURL;
-    // Try to restore session
-    const restored=await restoreSession();
-    splash.style.opacity="0";
-    setTimeout(()=>splash.style.display="none",300);
-    if(restored&&S.activeCrew&&cd().members.length>0){
-      document.getElementById("app").classList.add("active");
-      document.getElementById("banner-code").textContent=S.activeCrew;
-      if(!S.syncInterval)S.syncInterval=setInterval(()=>pullLatest(true),30000);
-      render();
-    } else {
-      // New user or no crew yet — show onboard
-      const nameDisp=document.getElementById("ob-name-display");
-      const googleName=document.getElementById("ob-google-name");
-      if(nameDisp)nameDisp.textContent=G.name;
-      if(googleName)googleName.textContent="Signed in as "+G.email;
-      document.getElementById("onboard").classList.add("active");
+  splash.style.display="flex";splash.style.opacity="1";
+  if(splashSpin)splashSpin.style.display="none";
+  if(splashGoogle)splashGoogle.style.display="block";
+  document.getElementById("app").classList.remove("active");
+  document.getElementById("onboard").classList.remove("active");
+}
+
+function showApp(){
+  const splash=document.getElementById("splash");
+  splash.style.opacity="0";
+  setTimeout(()=>splash.style.display="none",300);
+  document.getElementById("app").classList.add("active");
+  document.getElementById("banner-code").textContent=S.activeCrew||"";
+  if(!S.syncInterval)S.syncInterval=setInterval(()=>pullLatest(true),30000);
+  render();
+}
+
+function showOnboard(){
+  const splash=document.getElementById("splash");
+  splash.style.opacity="0";
+  setTimeout(()=>splash.style.display="none",300);
+  const nameDisp=document.getElementById("ob-name-display");
+  const googleName=document.getElementById("ob-google-name");
+  if(nameDisp)nameDisp.textContent=G.name||"";
+  if(googleName)googleName.textContent=G.email?"Signed in as "+G.email:"";
+  document.getElementById("onboard").classList.add("active");
+}
+
+async function findCrewByGoogleUid(uid,name){
+  const knownCodes=[];
+  try{
+    for(let i=0;i<localStorage.length;i++){
+      const k=localStorage.key(i);
+      if(k&&k.startsWith("sc_data_"))knownCodes.push(k.replace("sc_data_",""));
     }
+    const sess=JSON.parse(localStorage.getItem("sc_session_v2")||"{}");
+    if(sess.activeCrew&&!knownCodes.includes(sess.activeCrew))knownCodes.push(sess.activeCrew);
+    if(sess.crews)sess.crews.forEach(c=>{if(!knownCodes.includes(c.code))knownCodes.push(c.code);});
+  }catch(e){}
+  for(const code of knownCodes){
+    try{
+      const remote=await fbLoad(code);
+      if(!remote)continue;
+      const firstName=name?name.toLowerCase().split(" ")[0]:"";
+      const match=(remote.members||[]).find(m=>
+        idMatch(m.googleUid,uid)||(firstName&&m.name.toLowerCase()===firstName)
+      );
+      if(match){
+        S.myId=match.id;S.activeCrew=code;S.crews=[{code,joinedAt:Date.now()}];
+        S.crewData[code]={members:remote.members||[],steps:remote.steps||{},pushed:remote.pushed||{},crewGoals:remote.crewGoals||{},updatedAt:remote.updatedAt};
+        lsSet("sc_data_"+code,S.crewData[code]);
+        if(uid&&!match.googleUid){
+          const idx=S.crewData[code].members.findIndex(m=>idMatch(m.id,match.id));
+          if(idx>=0)S.crewData[code].members[idx].googleUid=uid;
+          fbSave(code,S.crewData[code]);
+        }
+        saveSession();
+        return true;
+      }
+    }catch(e){console.error("findCrew error:",e);}
+  }
+  return false;
+}
+
+auth.onAuthStateChanged(async user=>{
+  if(!user){showSignIn();return;}
+  G.uid=user.uid;
+  G.name=user.displayName||user.email.split("@")[0];
+  G.email=user.email;
+  G.photoURL=user.photoURL;
+  const restored=await restoreSession();
+  if(restored&&S.activeCrew&&cd().members.length>0){
+    showApp();
   } else {
-    // Not signed in — show Google sign in button, hide spinner
-    if(splashSpin)splashSpin.style.display="none";
-    if(splashGoogle)splashGoogle.style.display="block";
-    document.getElementById("app").classList.remove("active");
-    document.getElementById("onboard").classList.remove("active");
+    const found=await findCrewByGoogleUid(G.uid,G.name);
+    if(found){showApp();}
+    else{showOnboard();}
   }
 });
+
 async function fbSave(code,data){try{await db.collection("crews").doc(code).set({...data,updatedAt:Date.now()});return true;}catch(e){console.error("Save:",e);return false;}}
 async function fbLoad(code){try{const s=await db.collection("crews").doc(code).get();return s.exists?s.data():null;}catch(e){console.error("Load:",e);return null;}}
 function lsSet(k,v){try{localStorage.setItem(k,JSON.stringify(v));}catch(e){}}
@@ -1164,4 +1192,4 @@ S.logDate=maxDate;
 // Auth flow handled by auth.onAuthStateChanged above
 </script>
 </body>
-          </html>
+</html>
