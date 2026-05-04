@@ -342,6 +342,16 @@ input:focus,select:focus{outline:none;}
       </div>
     </div>
   </div>
+    <div class="settings-section">
+      <div class="settings-hdr">🔒 Account</div>
+      <div class="settings-row" onclick="confirmSignOut()">
+        <div style="display:flex;align-items:center;gap:12px;">
+          <div class="sr-icon" style="background:#fef2f2;">🚪</div>
+          <div><div class="sr-lbl" style="color:var(--red);">Sign Out</div><div class="sr-sub" id="sr-google-email"></div></div>
+        </div>
+        <span style="color:var(--text3);">&rsaquo;</span>
+      </div>
+    </div>
   <div class="bnav">
     <div class="bnav-inner">
       <button class="bnav-btn active" id="bnav-dashboard" onclick="switchView('dashboard',this)">
@@ -433,16 +443,33 @@ function signInWithGoogle(){
   });
 }
 
-// Handle redirect result on page load
+// Handle redirect result on page load — fires after Google redirects back
 firebase.auth().getRedirectResult().then(result=>{
-  if(result&&result.user) console.log("Redirect sign-in complete:",result.user.displayName);
-}).catch(e=>console.error("Redirect result error:",e));
+  if(result&&result.user){
+    console.log("Redirect sign-in complete:",result.user.displayName);
+    // onAuthStateChanged will handle the rest
+  }
+}).catch(e=>{
+  console.error("Redirect result error:",e);
+  // If redirect fails, show sign-in button
+  const splash=document.getElementById("splash");
+  const splashSpin=document.getElementById("splash-spin");
+  const splashGoogle=document.getElementById("splash-google");
+  if(splashSpin)splashSpin.style.display="none";
+  if(splashGoogle)splashGoogle.style.display="block";
+});
 
 function signOut(){
   auth.signOut().then(()=>{
     lsSet("sc_session_v2",null);
     location.reload();
   });
+}
+
+function confirmSignOut(){
+  if(confirm("Sign out of StepCrew? You\'ll need to sign in with Google again.")){
+    signOut();
+  }
 }
 
 // Watch auth state — this is the entry point
@@ -463,7 +490,7 @@ auth.onAuthStateChanged(async user=>{
     if(restored&&S.activeCrew&&cd().members.length>0){
       document.getElementById("app").classList.add("active");
       document.getElementById("banner-code").textContent=S.activeCrew;
-      S.syncInterval=setInterval(()=>pullLatest(true),30000);
+      if(!S.syncInterval)S.syncInterval=setInterval(()=>pullLatest(true),30000);
       render();
     } else {
       // New user or no crew yet — show onboard
@@ -474,9 +501,11 @@ auth.onAuthStateChanged(async user=>{
       document.getElementById("onboard").classList.add("active");
     }
   } else {
-    // Not signed in — show Google sign in button
+    // Not signed in — show Google sign in button, hide spinner
     if(splashSpin)splashSpin.style.display="none";
     if(splashGoogle)splashGoogle.style.display="block";
+    document.getElementById("app").classList.remove("active");
+    document.getElementById("onboard").classList.remove("active");
   }
 });
 async function fbSave(code,data){try{await db.collection("crews").doc(code).set({...data,updatedAt:Date.now()});return true;}catch(e){console.error("Save:",e);return false;}}
@@ -493,7 +522,7 @@ const CHALLENGES=[
   {id:"nozero",label:"No Zero",desc:"Everyone logs 1,000+ steps",t:1000,type:"all"},
 ];
 
-let S={myId:null,crews:[],activeCrew:null,crewData:{},view:"dashboard",editingId:null,editingModal:null,syncMode:"manual",selectedColor:COLORS[0],selectedSync:"manual",chalIdx:0,modUnlocked:false,syncInterval:null,histPeriod:"7d",histMembers:["all"],histStart:null,histEnd:null,calMonth:new Date().getMonth(),calYear:new Date().getFullYear(),profileDate:new Date().toISOString().split("T")[0],logDate:new Date().toISOString().split("T")[0]};
+let S={myId:null,crews:[],activeCrew:null,crewData:{},view:"dashboard",editingId:null,editingModal:null,syncMode:"manual",selectedColor:COLORS[0],selectedSync:"manual",chalIdx:0,modUnlocked:false,syncInterval:null,histPeriod:"7d",histMembers:["all"],histStart:null,histEnd:null,calMonth:new Date().getMonth(),calYear:new Date().getFullYear(),profileDate:"",logDate:""};
 
 function todayStr(){const d=new Date();return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");}
 function yesterdayStr(){const d=new Date();d.setDate(d.getDate()-1);return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");}
@@ -695,7 +724,6 @@ function renderHeader(){
   if(S.activeCrew&&!cd().crewGoals?.modId&&!isMod())h+=`<button class="hbtn" onclick="openModal('modal-become-mod')" style="font-size:10px;">Become Mod</button>`;
   h+=`<button class="hbtn blue" onclick="pullLatest()">&circlearrowright;</button>`;
   h+=`<button class="hbtn" onclick="openModal('modal-add')">+ Member</button>`;
-  h+=`<button class="hbtn" onclick="signOut()" style="font-size:10px;" title="Sign out">${G.photoURL?`<img src="${G.photoURL}" style="width:20px;height:20px;border-radius:50%;vertical-align:middle;"/>`:"👤"}</button>`;
   btns.innerHTML=h;
 }
 
@@ -981,6 +1009,7 @@ function renderProfileView(){
   const sc=document.getElementById("sr-color");if(sc)sc.style.background=m.color;
   const scc=document.getElementById("sr-crew-code");if(scc)scc.textContent=S.activeCrew||"";
   const smr=document.getElementById("sr-mod-row");if(smr)smr.style.display=isMod()?"flex":"none";
+  const sge=document.getElementById("sr-google-email");if(sge)sge.textContent=G.email||"Signed in with Google";
   updateProfileLogInfo();
 }
 
@@ -1002,7 +1031,7 @@ function updateProfileLogInfo(){
   const isT=S.profileDate===todayStr(),isY=S.profileDate===yesterdayStr();
   const cur=getSteps(S.myId,S.profileDate);
   const lbl=isT?"today":isY?"yesterday":fmtDate(S.profileDate);
-  el.textContent=`Logging for ${lbl}${cur>0?` &middot; current: ${cur.toLocaleString()} steps`:" &middot; no steps logged yet"}`;
+  el.textContent=`Logging for ${lbl}${cur>0?` · current: ${cur.toLocaleString()} steps`:` · no steps logged yet`}`;
 }
 
 async function saveProfileSteps(){
@@ -1125,6 +1154,8 @@ document.querySelectorAll(".modal-overlay").forEach(o=>{o.addEventListener("clic
 
 // Set max dates on inputs
 const maxDate=todayStr();
+S.profileDate=maxDate;
+S.logDate=maxDate;
 ["profile-date-inp","hist-start","hist-end","date-pick-inp"].forEach(id=>{
   const el=document.getElementById(id);
   if(el){el.max=maxDate;if(id==="profile-date-inp"||id==="date-pick-inp")el.value=maxDate;}
@@ -1133,4 +1164,4 @@ const maxDate=todayStr();
 // Auth flow handled by auth.onAuthStateChanged above
 </script>
 </body>
-  </html>
+          </html>
