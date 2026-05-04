@@ -435,9 +435,18 @@ firebase.auth().setPersistence(firebase.auth.Auth.Persistence.LOCAL);
 function signInWithGoogle(){
   const provider=new firebase.auth.GoogleAuthProvider();
   provider.setCustomParameters({prompt:"select_account"});
-  firebase.auth().signInWithRedirect(provider).catch(e=>{
-    console.error("Redirect error:",e);
-    auth.signInWithPopup(provider).catch(e2=>console.error("Popup error:",e2));
+  // Always use popup — more reliable across all mobile browsers
+  auth.signInWithPopup(provider).then(result=>{
+    // Popup succeeded — onAuthStateChanged handles the rest
+    console.log("Signed in:",result.user.displayName);
+  }).catch(e=>{
+    console.error("Popup error:",e.code,e.message);
+    // If popup blocked (rare), try redirect as fallback
+    if(e.code==="auth/popup-blocked"||e.code==="auth/popup-closed-by-user"){
+      firebase.auth().signInWithRedirect(provider);
+    } else {
+      alert("Sign in failed: "+e.message);
+    }
   });
 }
 
@@ -495,6 +504,9 @@ async function findCrewByGoogleUid(uid,name){
     if(sess.activeCrew&&!knownCodes.includes(sess.activeCrew))knownCodes.push(sess.activeCrew);
     if(sess.crews)sess.crews.forEach(c=>{if(!knownCodes.includes(c.code))knownCodes.push(c.code);});
   }catch(e){}
+  // Always try the known crew code as last resort
+  const hardcodedCode="JL1SE9";
+  if(!knownCodes.includes(hardcodedCode))knownCodes.push(hardcodedCode);
   for(const code of knownCodes){
     try{
       const remote=await fbLoad(code);
