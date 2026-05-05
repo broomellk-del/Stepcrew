@@ -652,13 +652,17 @@ auth.onAuthStateChanged(async user=>{
   G.name=user.displayName||user.email.split("@")[0];
   G.email=user.email;
   G.photoURL=user.photoURL;
-  const restored=await restoreSession();
-  if(restored&&S.activeCrew&&cd().members.length>0){
-    showApp();
-  } else {
+  try{
+    const restored=await restoreSession();
+    if(restored&&S.activeCrew&&cd().members.length>0){
+      showApp();return;
+    }
     const found=await findCrewByGoogleUid(G.uid,G.name);
     if(found){showApp();}
     else{showOnboard();}
+  }catch(e){
+    console.error("Auth flow error:",e);
+    showOnboard();
   }
 });
 
