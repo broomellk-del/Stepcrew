@@ -174,6 +174,47 @@ input:focus,select:focus{outline:none;}
 .crew-code{font-family:"Syne",sans-serif;font-size:15px;font-weight:800;letter-spacing:1px;}
 .crew-item.active-crew .crew-code{color:var(--accent);}
 .mod-info{font-size:12px;color:#92400e;background:#fef3c7;border-radius:var(--r-sm);padding:10px 13px;border:1px solid #fde68a;margin-bottom:14px;line-height:1.5;}
+.crew-name-bar{background:linear-gradient(135deg,var(--accent),var(--accent2));padding:9px 20px;color:#fff;display:flex;align-items:center;justify-content:space-between;}
+.cnb-name{font-family:"Syne",sans-serif;font-size:15px;font-weight:800;letter-spacing:-0.3px;}
+.cnb-code{font-size:9px;opacity:0.65;letter-spacing:2px;margin-top:1px;}
+.cnb-edit{background:rgba(255,255,255,0.2);border:none;color:#fff;border-radius:6px;padding:4px 8px;font-size:10px;font-weight:700;cursor:pointer;display:none;}
+.cnb-edit.mod{display:inline-block;}
+.badge-pill-sm{display:inline-flex;align-items:center;gap:3px;border-radius:20px;padding:2px 7px;font-size:9px;font-weight:700;border:1.5px solid transparent;margin-right:3px;margin-bottom:3px;}
+.bp-gold{background:#fef3c7;border-color:#fde68a;color:#92400e;}
+.bp-green{background:#f0fdf4;border-color:#86efac;color:#16a34a;}
+.bp-blue{background:var(--accent-bg);border-color:#c7caff;color:var(--accent);}
+.bp-red{background:#fef2f2;border-color:#fecaca;color:var(--red);}
+.bp-purple{background:#faf5ff;border-color:#e9d5ff;color:#7c3aed;}
+.bp-orange{background:#fff7ed;border-color:#fed7aa;color:#c2410c;}
+.recap-outer{background:linear-gradient(150deg,#1e1b4b 0%,#312e81 50%,#4338ca 100%);border-radius:var(--r);padding:20px;margin-bottom:12px;color:#fff;position:relative;overflow:hidden;}
+.recap-outer::before{content:"";position:absolute;top:-40px;right:-40px;width:160px;height:160px;background:rgba(255,255,255,0.05);border-radius:50%;}
+.ro-week{font-size:9px;opacity:0.55;letter-spacing:2px;text-transform:uppercase;margin-bottom:5px;}
+.ro-name{font-family:"Syne",sans-serif;font-size:19px;font-weight:800;margin-bottom:2px;}
+.ro-tag{font-size:12px;opacity:0.65;margin-bottom:14px;}
+.ro-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px;}
+.ro-stat{background:rgba(255,255,255,0.1);border-radius:10px;padding:10px 6px;text-align:center;}
+.ro-stat-val{font-family:"Syne",sans-serif;font-size:15px;font-weight:800;}
+.ro-stat-lbl{font-size:9px;opacity:0.55;margin-top:2px;text-transform:uppercase;letter-spacing:0.5px;}
+.ro-div{height:1px;background:rgba(255,255,255,0.12);margin-bottom:12px;}
+.ro-sec{font-size:9px;opacity:0.55;letter-spacing:2px;text-transform:uppercase;margin-bottom:10px;}
+.ro-award{display:flex;align-items:center;gap:10px;margin-bottom:8px;}
+.ro-award:last-child{margin-bottom:0;}
+.ro-award-icon{width:34px;height:34px;background:rgba(255,255,255,0.12);border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;}
+.ro-award-val{font-family:"Syne",sans-serif;font-size:13px;font-weight:800;margin-left:auto;opacity:0.9;}
+.ro-badge-row{display:flex;align-items:center;gap:8px;margin-bottom:8px;}
+.ro-badge-row:last-child{margin-bottom:0;}
+.ro-badge-av{width:26px;height:26px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;color:#fff;flex-shrink:0;}
+.ro-badge-name{font-size:11px;font-weight:600;width:60px;flex-shrink:0;opacity:0.9;}
+.ro-badges{display:flex;gap:4px;flex-wrap:wrap;}
+.ro-badge-pill{background:rgba(255,255,255,0.12);border-radius:20px;padding:3px 8px;font-size:10px;font-weight:600;}
+.streak-board{background:#fff;border-radius:var(--r);padding:16px;margin-bottom:12px;box-shadow:var(--shadow);}
+.sb-row{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--bg);}
+.sb-row:last-child{border-bottom:none;}
+.sb-val{font-family:"Syne",sans-serif;font-size:18px;font-weight:800;color:#c2410c;}
+.sb-bar-wrap{flex:1;}
+.sb-bar{height:4px;background:var(--bg);border-radius:2px;margin-top:4px;overflow:hidden;}
+.sb-bar-fill{height:100%;border-radius:2px;background:linear-gradient(90deg,#f97316,#ef4444);}
+.sb-risk{background:#fef2f2;color:var(--red);font-size:9px;font-weight:700;border-radius:4px;padding:2px 5px;margin-left:4px;}
 .toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:var(--text);color:#fff;padding:10px 20px;border-radius:20px;z-index:999;font-size:13px;font-weight:600;box-shadow:var(--shadow-lg);white-space:nowrap;opacity:0;transition:opacity 0.3s;pointer-events:none;}
 .toast.show{opacity:1;}
 </style>
@@ -232,6 +273,15 @@ input:focus,select:focus{outline:none;}
       <button class="banner-x" onclick="document.getElementById('crew-banner').classList.remove('show')">&#x2715;</button>
     </div>
   </div>
+  <!-- Crew name bar -->
+  <div class="crew-name-bar" id="crew-name-bar">
+    <div>
+      <div class="cnb-name" id="crew-name-display">StepCrew</div>
+      <div class="cnb-code" id="crew-code-display"></div>
+    </div>
+    <button class="cnb-edit" id="crew-name-edit-btn" onclick="openModal('modal-crew-name')">✏️ Rename</button>
+  </div>
+
   <div id="view-dashboard" class="content">
     <div id="crew-goals-box" class="crew-goals-box"></div>
     <div id="my-box"></div>
@@ -290,6 +340,10 @@ input:focus,select:focus{outline:none;}
         <span style="font-size:9px;color:var(--text3);">Less &rarr; More steps</span>
       </div>
     </div>
+    <div class="sec-lbl">📋 Weekly Recap</div>
+    <div id="hist-recap"></div>
+    <div class="sec-lbl">🔥 Current Streaks</div>
+    <div id="hist-streak-board"></div>
     <div class="sec-lbl">Member Breakdown</div>
     <div id="hist-members"></div>
   </div>
@@ -378,6 +432,11 @@ input:focus,select:focus{outline:none;}
   <div class="fld"><label class="fld-lbl">Name</label><input class="inp" id="edit-name"/></div>
   <div class="fld"><label class="fld-lbl">Daily Goal</label><input class="inp" id="edit-goal" type="number"/></div>
   <div class="btn-row"><button class="btn-danger" onclick="removeMemberModal()">Remove</button><button class="btn-cancel" onclick="closeModal('modal-edit')">Cancel</button><button class="btn-save" onclick="saveMemberEdit()">Save</button></div></div>
+</div>
+<div class="modal-overlay" id="modal-crew-name">
+  <div class="modal-sheet"><div class="modal-handle"></div><div class="modal-title">Name Your Crew</div><div class="modal-sub">Only the moderator can rename the crew</div>
+  <div class="fld"><label class="fld-lbl">Crew Name</label><input class="inp" id="inp-crew-name" placeholder="e.g. The Broomells 👟" maxlength="30"/></div>
+  <div class="btn-row"><button class="btn-cancel" onclick="closeModal('modal-crew-name')">Cancel</button><button class="btn-save" onclick="saveCrewName()">Save</button></div></div>
 </div>
 <div class="modal-overlay" id="modal-join">
   <div class="modal-sheet"><div class="modal-handle"></div><div class="modal-title">Join a Crew</div><div class="modal-sub">Enter the code shared with you</div>
@@ -579,7 +638,7 @@ function initials(name){return(name||"?").trim().split(/\s+/).map(w=>w[0]).join(
 function avEl(m,sz){sz=sz||40;const fs=Math.round(sz*0.38);return`<div style="width:${sz}px;height:${sz}px;border-radius:${Math.round(sz*0.28)}px;background:${m.color};display:flex;align-items:center;justify-content:center;font-size:${fs}px;font-weight:800;color:#fff;flex-shrink:0;">${initials(m.name)}</div>`;}
 function toast(msg){const t=document.getElementById("toast");t.textContent=msg;t.classList.add("show");setTimeout(()=>t.classList.remove("show"),2800);}
 
-function cd(){return S.crewData[S.activeCrew]||{members:[],steps:{},pushed:{},crewGoals:{dailySteps:null,weeklySteps:null,dailyMsg:"",weeklyMsg:"",modId:null,modPin:null}};}
+function cd(){return S.crewData[S.activeCrew]||{members:[],steps:{},pushed:{},crewGoals:{dailySteps:null,weeklySteps:null,dailyMsg:"",weeklyMsg:"",modId:null,modPin:null,crewName:""}};}
 function getSteps(mid,dk){
   const day=cd().steps[dk]||{};
   // Try both string and numeric key
@@ -759,6 +818,16 @@ function renderHeader(){
   } else {
     sub.innerHTML=`<span class="hdot" style="background:var(--text3);"></span> <span>Local</span>`;
   }
+  // Update crew name bar
+  const cg2=cd().crewGoals;
+  const crewName=cg2&&cg2.crewName?cg2.crewName:"The Crew";
+  const cnDisplay=document.getElementById("crew-name-display");
+  const cnCode=document.getElementById("crew-code-display");
+  const cnEditBtn=document.getElementById("crew-name-edit-btn");
+  if(cnDisplay)cnDisplay.textContent=crewName+" 👟";
+  if(cnCode)cnCode.textContent=S.activeCrew?"CODE: "+S.activeCrew:"";
+  if(cnEditBtn)cnEditBtn.className=isMod()?"cnb-edit mod":"cnb-edit";
+
   let h="";
   if(isMod())h+=`<button class="hbtn gold" onclick="openModPanel()">🏅 Goals</button>`;
   if(S.activeCrew&&!cd().crewGoals?.modId&&!isMod())h+=`<button class="hbtn" onclick="openModal('modal-become-mod')" style="font-size:10px;">Become Mod</button>`;
@@ -899,7 +968,7 @@ function initHistory(){
 }
 
 function buildHistPeriodChips(){
-  const periods=[["today","Today"],["7d","7 Days"],["30d","30 Days"],["month","This Month"],["custom","Custom"]];
+  const periods=[["today","Today"],["yesterday","Yesterday"],["7d","7 Days"],["30d","30 Days"],["month","This Month"],["custom","Custom"]];
   document.getElementById("hist-period-chips").innerHTML=periods.map(([k,l])=>`<button class="chip${S.histPeriod===k?" active":""}" onclick="setHistPeriod('${k}',this)">${l}</button>`).join("");
 }
 
@@ -917,6 +986,7 @@ function applyCustomRange(){
 
 function getHistDays(){
   if(S.histPeriod==="today")return[todayStr()];
+  if(S.histPeriod==="yesterday")return[yesterdayStr()];
   if(S.histPeriod==="7d")return daysAgo(7);
   if(S.histPeriod==="30d")return daysAgo(30);
   if(S.histPeriod==="month")return currMonthDays();
@@ -940,6 +1010,145 @@ function toggleHistMember(id){
     else S.histMembers=[...S.histMembers,sid];
   }
   renderHistory();
+}
+
+// ── Badge calculations (Mon-Sun week) ────────────────────────────────────────
+function getWeekDays(offsetWeeks){
+  // Get Mon-Sun week. offsetWeeks=0 = current week, -1 = last week
+  const now=new Date();
+  const day=now.getDay(); // 0=Sun,1=Mon...6=Sat
+  const monday=new Date(now);
+  monday.setDate(now.getDate()-(day===0?6:day-1)+(offsetWeeks*7));
+  const days=[];
+  for(let i=0;i<7;i++){
+    const d=new Date(monday);d.setDate(monday.getDate()+i);
+    days.push(d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"));
+  }
+  return days;
+}
+
+function calcWeekBadges(members,weekDays){
+  const badges={}; // {memberId: [badge,...]}
+  members.forEach(m=>badges[m.id]=[]);
+
+  const totals=members.map(m=>({m,total:getTotal(m.id,weekDays)}));
+  const prevWeek=getWeekDays(-1);
+  const prevTotals=members.map(m=>({m,total:getTotal(m.id,prevWeek)}));
+
+  // Top Walker
+  const topWalker=[...totals].sort((a,b)=>b.total-a.total)[0];
+  if(topWalker&&topWalker.total>0)badges[topWalker.m.id].push({id:"top",icon:"👑",label:"Top Walker",cls:"bp-gold"});
+
+  // Most Improved
+  const improved=members.map(m=>{
+    const cur=getTotal(m.id,weekDays),prev=getTotal(m.id,prevWeek);
+    return{m,pct:prev>0?((cur-prev)/prev)*100:0};
+  }).filter(x=>x.pct>5).sort((a,b)=>b.pct-a.pct)[0];
+  if(improved)badges[improved.m.id].push({id:"improved",icon:"📈",label:"Most Improved",cls:"bp-green"});
+
+  // Streak Leader
+  const streaks=members.map(m=>({m,streak:calcStreak(m.id)})).sort((a,b)=>b.streak-a.streak);
+  if(streaks[0]&&streaks[0].streak>=3)badges[streaks[0].m.id].push({id:"streak",icon:"🔥",label:"Streak Leader",cls:"bp-red"});
+
+  // Goal Crusher — most days hitting goal
+  const goalDays=members.map(m=>({m,days:weekDays.filter(d=>getSteps(m.id,d)>=m.goal).length})).sort((a,b)=>b.days-a.days);
+  if(goalDays[0]&&goalDays[0].days>=4)badges[goalDays[0].m.id].push({id:"goal",icon:"🎯",label:"Goal Crusher",cls:"bp-gold"});
+
+  // 10K every day
+  members.forEach(m=>{
+    if(weekDays.every(d=>getSteps(m.id,d)>=10000))
+      badges[m.id].push({id:"10k",icon:"⚡",label:"10K Every Day",cls:"bp-purple"});
+  });
+
+  // No Zero Week — logged every day
+  members.forEach(m=>{
+    if(weekDays.every(d=>getSteps(m.id,d)>0))
+      badges[m.id].push({id:"nozero",icon:"🌙",label:"No Zero Week",cls:"bp-blue"});
+  });
+
+  // Personal Best — best week ever
+  members.forEach(m=>{
+    const curTotal=getTotal(m.id,weekDays);
+    // Check last 8 weeks
+    let pb=true;
+    for(let w=-1;w>=-8;w--){
+      if(getTotal(m.id,getWeekDays(w))>=curTotal){pb=false;break;}
+    }
+    if(pb&&curTotal>0)badges[m.id].push({id:"pb",icon:"💎",label:"Personal Best",cls:"bp-green"});
+  });
+
+  return badges;
+}
+
+function renderWeeklyRecap(members){
+  const lastWeek=getWeekDays(-1);
+  const weekLabel=lastWeek[0]&&lastWeek[6]?`${shortDate(lastWeek[0])} – ${shortDate(lastWeek[6])}`:"";;
+  const total=members.reduce((s,m)=>s+getTotal(m.id,lastWeek),0);
+  const activeDays=lastWeek.filter(d=>members.some(m=>getSteps(m.id,d)>0)).length||1;
+  const avg=Math.round(total/(activeDays*Math.max(members.length,1)));
+  const miles=Math.round(total*0.0004);
+  const badges=calcWeekBadges(members,lastWeek);
+  const cg=cd().crewGoals;
+  const crewName=cg.crewName||"The Crew";
+  const totalBadges=Object.values(badges).flat().length;
+
+  // Awards
+  const sortedTotals=[...members].sort((a,b)=>getTotal(b.id,lastWeek)-getTotal(a.id,lastWeek));
+  const topWalker=sortedTotals[0];
+  const prevWeek=getWeekDays(-2);
+  const mostImproved=[...members].map(m=>{const c=getTotal(m.id,lastWeek),p=getTotal(m.id,prevWeek);return{m,pct:p>0?((c-p)/p)*100:0};}).filter(x=>x.pct>0).sort((a,b)=>b.pct-a.pct)[0];
+  const topStreak=[...members].map(m=>({m,s:calcStreak(m.id)})).sort((a,b)=>b.s-a.s)[0];
+  const goalCrusher=[...members].map(m=>({m,d:lastWeek.filter(d=>getSteps(m.id,d)>=m.goal).length})).sort((a,b)=>b.d-a.d)[0];
+
+  let awardsHtml="";
+  if(topWalker&&getTotal(topWalker.id,lastWeek)>0)awardsHtml+=`<div class="ro-award"><div class="ro-award-icon">👑</div><div><div style="font-size:12px;font-weight:700;">Top Walker — ${topWalker.name}</div><div style="font-size:10px;opacity:0.6;margin-top:1px;">${getTotal(topWalker.id,lastWeek).toLocaleString()} steps</div></div><div class="ro-award-val">${(getTotal(topWalker.id,lastWeek)/1000).toFixed(1)}K</div></div>`;
+  if(mostImproved)awardsHtml+=`<div class="ro-award"><div class="ro-award-icon">📈</div><div><div style="font-size:12px;font-weight:700;">Most Improved — ${mostImproved.m.name}</div><div style="font-size:10px;opacity:0.6;margin-top:1px;">Up ${mostImproved.pct.toFixed(0)}% vs last week</div></div><div class="ro-award-val">+${mostImproved.pct.toFixed(0)}%</div></div>`;
+  if(topStreak&&topStreak.s>=2)awardsHtml+=`<div class="ro-award"><div class="ro-award-icon">🔥</div><div><div style="font-size:12px;font-weight:700;">Streak Leader — ${topStreak.m.name}</div><div style="font-size:10px;opacity:0.6;margin-top:1px;">${topStreak.s} days and counting</div></div><div class="ro-award-val">${topStreak.s}d</div></div>`;
+  if(goalCrusher&&goalCrusher.d>=3)awardsHtml+=`<div class="ro-award"><div class="ro-award-icon">🎯</div><div><div style="font-size:12px;font-weight:700;">Goal Crusher — ${goalCrusher.m.name}</div><div style="font-size:10px;opacity:0.6;margin-top:1px;">Hit goal ${goalCrusher.d}/7 days</div></div><div class="ro-award-val">${goalCrusher.d}/7</div></div>`;
+
+  // Badge shelf
+  let badgeShelfHtml=members.map(m=>{
+    const mb=badges[m.id]||[];
+    const pillsHtml=mb.length?mb.map(b=>`<span class="ro-badge-pill">${b.icon} ${b.label}</span>`).join(""):`<span style="opacity:0.35;font-size:10px;">No badges</span>`;
+    return`<div class="ro-badge-row"><div class="ro-badge-av" style="background:${m.color};">${initials(m.name)}</div><div class="ro-badge-name">${m.name.split(" ")[0]}</div><div class="ro-badges">${pillsHtml}</div></div>`;
+  }).join("");
+
+  return`<div class="recap-outer">
+    <div class="ro-week">Week of ${weekLabel}</div>
+    <div class="ro-name">${crewName} 👟</div>
+    <div class="ro-tag">${totalBadges} badge${totalBadges!==1?"s":""} earned this week!</div>
+    <div class="ro-stats">
+      <div class="ro-stat"><div class="ro-stat-val">${total>=1000?(total/1000).toFixed(0)+"K":total}</div><div class="ro-stat-lbl">Total</div></div>
+      <div class="ro-stat"><div class="ro-stat-val">${avg.toLocaleString()}</div><div class="ro-stat-lbl">Avg/Day</div></div>
+      <div class="ro-stat"><div class="ro-stat-val">${miles}mi</div><div class="ro-stat-lbl">Est. Miles</div></div>
+    </div>
+    <div class="ro-div"></div>
+    <div class="ro-sec">🏆 Weekly Awards</div>
+    ${awardsHtml||"<div style=\"opacity:0.5;font-size:12px;\">Keep walking — awards appear after a full week!</div>"}
+    <div class="ro-div" style="margin-top:12px;"></div>
+    <div class="ro-sec">🏅 Badges</div>
+    ${badgeShelfHtml}
+  </div>`;
+}
+
+function renderStreakBoard(members){
+  const sorted=[...members].map(m=>({m,s:calcStreak(m.id)})).sort((a,b)=>b.s-a.s);
+  const maxS=Math.max(...sorted.map(x=>x.s),1);
+  const td=todayStr();
+  return`<div class="streak-board">${sorted.map((x,i)=>{
+    const loggedToday=getSteps(x.m.id,td)>0;
+    const atRisk=x.s>0&&!loggedToday;
+    const medals=["🥇","🥈","🥉"];
+    return`<div class="sb-row">
+      <div style="font-size:${i<3?16:13}px;width:22px;text-align:center;${i>=3?"color:var(--text3)":""}">${medals[i]||i+1}</div>
+      ${avEl(x.m,34)}
+      <div class="sb-bar-wrap">
+        <div style="font-weight:700;font-size:13px;">${x.m.name.split(" ")[0]}${atRisk?`<span class="sb-risk">Log today!</span>`:""}</div>
+        <div class="sb-bar"><div class="sb-bar-fill" style="width:${(x.s/maxS)*100}%;"></div></div>
+      </div>
+      <div style="text-align:right;"><div class="sb-val">${x.s}</div><div style="font-size:9px;color:var(--text3);">days</div></div>
+    </div>`;
+  }).join("")}</div>`;
 }
 
 function renderHistory(){
@@ -1002,14 +1211,36 @@ function renderHistory(){
     document.getElementById("hist-legend").innerHTML=members.length>1?members.map(m=>`<div class="legend-item"><div style="width:10px;height:10px;border-radius:50%;background:${m.color};"></div>${m.name}</div>`).join(""):"";
   }
   renderCalendar(members);
+
+  // Weekly recap — show when viewing 7d or this week
+  const recapEl=document.getElementById("hist-recap");
+  const streakEl=document.getElementById("hist-streak-board");
+  if(recapEl)recapEl.innerHTML=renderWeeklyRecap(cd().members);
+  if(streakEl)streakEl.innerHTML=renderStreakBoard(cd().members);
+
   const sorted=[...members].sort((a,b)=>getTotal(b.id,days)-getTotal(a.id,days));
   const maxTotal=Math.max(...sorted.map(m=>getTotal(m.id,days)),1);
+  const weekBadges=calcWeekBadges(cd().members,getWeekDays(-1));
   document.getElementById("hist-members").innerHTML=sorted.map((m,i)=>{
     const total=getTotal(m.id,days),avg2=getAvg(m.id,days);
     const active=days.filter(d=>getSteps(m.id,d)>0).length;
     const pct=(total/maxTotal)*100,goalPct=Math.min((total/(m.goal*days.length))*100,100);
     const streak=calcStreak(m.id),isMe=idMatch(m.id,S.myId)||idMatch(m.googleUid,G.uid);
-    return`<div class="member-card${isMe?" leader":""}"><div class="mc-row"><div style="font-size:14px;width:22px;text-align:center;">${["🥇","🥈","🥉"][i]||"#"+(i+1)}</div>${avEl(m,36)}<div style="flex:1;"><div style="font-weight:700;font-size:14px;">${m.name}${isMe?`<span class="tag tag-you">YOU</span>`:""}</div><div style="font-size:10px;color:var(--text3);">${active}/${days.length} active &middot; avg ${avg2.toLocaleString()}/day${streak>0?` &middot; 🔥 ${streak}d`:""}</div></div><div style="text-align:right;"><div class="mc-num" style="color:${m.color};font-size:17px;">${total.toLocaleString()}</div><div style="font-size:10px;color:var(--text3);">${goalPct.toFixed(0)}% of goal</div></div></div><div class="pbar"><div class="pbar-fill" style="width:${pct}%;background:${m.color};"></div></div></div>`;
+    const mb=weekBadges[m.id]||[];
+    const badgePills=mb.map(b=>`<span class="badge-pill-sm ${b.cls}">${b.icon} ${b.label}</span>`).join("");
+    return`<div class="member-card${isMe?" leader":""}">
+      <div class="mc-row">
+        <div style="font-size:14px;width:22px;text-align:center;">${["🥇","🥈","🥉"][i]||"#"+(i+1)}</div>
+        ${avEl(m,36)}
+        <div style="flex:1;">
+          <div style="font-weight:700;font-size:14px;">${m.name}${isMe?`<span class="tag tag-you">YOU</span>`:""}</div>
+          <div style="font-size:10px;color:var(--text3);">${active}/${days.length} active · avg ${avg2.toLocaleString()}/day${streak>0?` · 🔥 ${streak}d`:""}</div>
+        </div>
+        <div style="text-align:right;"><div class="mc-num" style="color:${m.color};font-size:17px;">${total.toLocaleString()}</div><div style="font-size:10px;color:var(--text3);">${goalPct.toFixed(0)}% of goal</div></div>
+      </div>
+      ${badgePills?`<div style="margin-bottom:6px;">${badgePills}</div>`:""}
+      <div class="pbar"><div class="pbar-fill" style="width:${pct}%;background:${m.color};"></div></div>
+    </div>`;
   }).join("");
 }
 
@@ -1123,6 +1354,15 @@ function unlockMod(){
   else document.getElementById("mod-pin-err").textContent="Incorrect PIN.";
 }
 
+async function saveCrewName(){
+  if(!isMod()){toast("Only the mod can rename the crew");return;}
+  const name=document.getElementById("inp-crew-name").value.trim();
+  if(!name)return;
+  S.crewData[S.activeCrew].crewGoals.crewName=name;
+  closeModal("modal-crew-name");
+  await persist();toast("Crew renamed! 👟");render();
+}
+
 async function saveCrewGoals(){
   const cg=S.crewData[S.activeCrew].crewGoals;
   cg.dailySteps=document.getElementById("mod-daily").value?parseInt(document.getElementById("mod-daily").value):null;
@@ -1175,6 +1415,7 @@ function openModal(id){
   if(id==="modal-goal"&&m){document.getElementById("goal-slider").value=m.goal;updateGoalDisp(m.goal);}
   if(id==="modal-color"&&m){S.selectedColor=m.color;buildColorGrid();document.getElementById("color-preview").textContent=initials(m.name);document.getElementById("color-preview").style.background=m.color;}
   if(id==="modal-sync"&&m){S.selectedSync=m.isManual?"manual":"auto";selSync(S.selectedSync,false);}
+  if(id==="modal-crew-name"){const inp=document.getElementById("inp-crew-name");if(inp)inp.value=cd().crewGoals.crewName||"";}
   if(id==="modal-crews"){openCrewSwitcher();document.getElementById("modal-crews").classList.add("show");return;}
   document.getElementById(id).classList.add("show");
 }
