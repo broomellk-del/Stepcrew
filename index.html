@@ -4,244 +4,317 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>StepCrew 👟</title>
-<meta name="theme-color" content="#f4f4f8"/>
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700;9..40,800&family=Syne:wght@700;800&display=swap" rel="stylesheet"/>
+<meta name="theme-color" content="#f0f0f7"/>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Syne:wght@700;800&display=swap" rel="stylesheet"/>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
-<script src="https://accounts.google.com/gsi/client" async defer></script>
 <style>
-:root{--bg:#f4f4f8;--surface:#fff;--border:#e4e4ec;--text:#18181f;--text2:#6b7280;--text3:#9ca3af;--accent:#6366f1;--accent2:#818cf8;--accent-bg:#eef0ff;--green:#10b981;--gold:#f59e0b;--red:#ef4444;--shadow:0 2px 16px rgba(99,102,241,0.07);--shadow-lg:0 8px 40px rgba(99,102,241,0.13);--r:14px;--r-sm:9px;}
+:root{
+  --bg:#f0f0f7;--surface:#fff;--border:#e2e2ef;
+  --text:#13131f;--text2:#5a5a7a;--text3:#9898b8;
+  --accent:#5b5fc7;--accent2:#7b7fef;--accent-bg:#eeeeff;
+  --green:#00b37e;--gold:#e8a020;--red:#e03e3e;--fire:#e05c20;
+  --shadow:0 1px 12px rgba(91,95,199,0.07);
+  --shadow-md:0 4px 20px rgba(91,95,199,0.11);
+  --r:12px;--r-sm:8px;--r-xs:5px;
+}
 *{box-sizing:border-box;margin:0;padding:0;}
-body{background:var(--bg);color:var(--text);font-family:"DM Sans",sans-serif;min-height:100vh;}
-button,input,select{font-family:"DM Sans",sans-serif;}
+body{background:var(--bg);color:var(--text);font-family:"Outfit",sans-serif;min-height:100vh;max-width:640px;margin:0 auto;}
+button,input,select{font-family:"Outfit",sans-serif;}
 input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;}
 input:focus,select:focus{outline:none;}
 @keyframes spin{to{transform:rotate(360deg);}}
-@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
 @keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
-#splash{position:fixed;inset:0;background:linear-gradient(160deg,#eef0ff,#f4f4f8);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:9999;transition:opacity 0.3s;}
-.sp-spin{width:28px;height:28px;border:3px solid #dde0ff;border-top-color:var(--accent);border-radius:50%;animation:spin 0.8s linear infinite;margin-top:24px;}
+
+/* SPLASH */
+#splash{position:fixed;inset:0;background:linear-gradient(160deg,#eeeeff,#f0f0f7);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:9999;transition:opacity 0.3s;}
+.sp-spin{width:26px;height:26px;border:3px solid #d0d0ff;border-top-color:var(--accent);border-radius:50%;animation:spin 0.8s linear infinite;margin-top:20px;}
+.sp-google{display:none;margin-top:20px;text-align:center;}
+.sp-google-sub{font-size:12px;color:var(--text3);margin-bottom:14px;}
+.sp-google-btn{display:flex;align-items:center;gap:10px;background:#fff;border:1.5px solid var(--border);border-radius:10px;padding:11px 20px;font-size:14px;font-weight:600;color:var(--text);cursor:pointer;box-shadow:var(--shadow);margin:0 auto;transition:all 0.15s;}
+.sp-google-btn:hover{box-shadow:var(--shadow-md);}
+
+/* SCREENS */
 .screen{display:none;min-height:100vh;}
-.screen.active{display:block;animation:fadeIn 0.25s ease;}
-#onboard{background:linear-gradient(160deg,#eef0ff 0%,#f4f4f8 60%);display:flex;align-items:center;justify-content:center;padding:24px;min-height:100vh;}
-.ob-wrap{background:#fff;border-radius:24px;padding:28px;width:100%;max-width:420px;box-shadow:var(--shadow-lg);}
-.ob-logo{text-align:center;margin-bottom:24px;}
-.ob-title{font-family:"Syne",sans-serif;font-size:27px;font-weight:800;color:var(--text);letter-spacing:-1px;margin-top:6px;}
-.ob-sub{font-size:11px;color:var(--text3);margin-top:3px;letter-spacing:3px;text-transform:uppercase;}
-.fld{margin-bottom:13px;}
+.screen.active{display:block !important;animation:fadeIn 0.2s ease;}
+
+/* ONBOARD */
+#onboard{background:linear-gradient(160deg,#eeeeff 0%,#f0f0f7 60%);display:flex;align-items:center;justify-content:center;padding:24px;min-height:100vh;}
+.ob-wrap{background:#fff;border-radius:20px;padding:26px;width:100%;max-width:400px;box-shadow:var(--shadow-md);}
+.ob-logo{text-align:center;margin-bottom:22px;}
+.ob-icon{font-size:48px;display:block;margin-bottom:8px;}
+.ob-title{font-family:"Syne",sans-serif;font-size:26px;font-weight:800;color:var(--text);letter-spacing:-1px;}
+.ob-sub{font-size:11px;color:var(--text3);margin-top:3px;letter-spacing:2.5px;text-transform:uppercase;}
+.ob-google-name{font-size:13px;color:var(--accent);font-weight:600;margin-top:5px;}
+.fld{margin-bottom:12px;}
 .fld-lbl{font-size:10px;font-weight:700;color:var(--text3);letter-spacing:1.5px;text-transform:uppercase;display:block;margin-bottom:5px;}
-.inp{width:100%;background:var(--bg);border:1.5px solid var(--border);color:var(--text);border-radius:var(--r-sm);padding:11px 14px;font-size:14px;transition:border-color 0.2s;}
+.inp{width:100%;background:var(--bg);border:1.5px solid var(--border);color:var(--text);border-radius:var(--r-sm);padding:10px 13px;font-size:14px;transition:border-color 0.2s;font-family:"Outfit",sans-serif;}
 .inp:focus{border-color:var(--accent);background:#fff;}
-.sync-row{display:flex;gap:6px;}
-.sync-btn{flex:1;padding:9px 4px;border-radius:var(--r-sm);border:1.5px solid var(--border);cursor:pointer;font-size:11px;font-weight:500;background:#fff;color:var(--text2);transition:all 0.15s;}
+.sync-row{display:flex;gap:5px;}
+.sync-btn{flex:1;padding:8px 4px;border-radius:var(--r-sm);border:1.5px solid var(--border);cursor:pointer;font-size:11px;font-weight:500;background:#fff;color:var(--text2);transition:all 0.15s;}
 .sync-btn.sel{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:700;}
-.info-box{border-radius:var(--r-sm);padding:10px 13px;font-size:12px;margin-top:8px;line-height:1.6;}
-.btn-primary{width:100%;margin-top:6px;padding:14px;border-radius:var(--r-sm);border:none;cursor:pointer;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;font-weight:700;font-size:15px;display:flex;align-items:center;justify-content:center;gap:8px;transition:opacity 0.15s;}
+.info-box{border-radius:var(--r-sm);padding:9px 12px;font-size:12px;margin-top:7px;line-height:1.6;}
+.btn-primary{width:100%;margin-top:6px;padding:13px;border-radius:var(--r-sm);border:none;cursor:pointer;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;font-weight:700;font-size:15px;display:flex;align-items:center;justify-content:center;gap:8px;transition:opacity 0.15s;font-family:"Outfit",sans-serif;}
 .btn-primary:disabled{opacity:0.6;cursor:not-allowed;}
-.spinner{width:16px;height:16px;border:2px solid rgba(255,255,255,0.4);border-top-color:#fff;border-radius:50%;animation:spin 0.7s linear infinite;flex-shrink:0;}
-.err-msg{color:var(--red);font-size:12px;margin-top:6px;}
-#app{background:var(--bg);padding-bottom:80px;}
-.header{background:#fff;padding:13px 20px 11px;border-bottom:1px solid var(--border);position:sticky;top:0;z-index:100;box-shadow:var(--shadow);}
-.header-inner{max-width:640px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;}
-.hlogo{font-family:"Syne",sans-serif;font-size:18px;font-weight:800;letter-spacing:-0.5px;}
+.spinner{width:15px;height:15px;border:2px solid rgba(255,255,255,0.4);border-top-color:#fff;border-radius:50%;animation:spin 0.7s linear infinite;flex-shrink:0;}
+.err-msg{color:var(--red);font-size:12px;margin-top:5px;}
+
+/* APP */
+#app{background:var(--bg);padding-bottom:72px;}
+
+/* HEADER */
+.header{background:var(--surface);padding:11px 14px 9px;border-bottom:1px solid var(--border);position:sticky;top:0;z-index:100;box-shadow:var(--shadow);}
+.header-inner{display:flex;align-items:center;justify-content:space-between;}
+.hlogo{font-family:"Syne",sans-serif;font-size:17px;font-weight:800;letter-spacing:-0.5px;display:flex;align-items:center;gap:6px;}
 .hsub{font-size:10px;color:var(--text3);margin-top:1px;display:flex;align-items:center;gap:4px;}
-.hdot{width:6px;height:6px;border-radius:50%;display:inline-block;}
-.hbtns{display:flex;gap:6px;align-items:center;}
-.hbtn{background:var(--bg);border:1.5px solid var(--border);color:var(--text2);border-radius:20px;padding:5px 11px;font-size:11px;font-weight:600;cursor:pointer;transition:all 0.15s;}
+.hdot{width:5px;height:5px;border-radius:50%;display:inline-block;}
+.hbtns{display:flex;gap:5px;align-items:center;}
+.hbtn{background:var(--bg);border:1px solid var(--border);color:var(--text2);border-radius:20px;padding:4px 10px;font-size:10px;font-weight:600;cursor:pointer;transition:all 0.15s;font-family:"Outfit",sans-serif;}
 .hbtn:hover{background:var(--accent-bg);border-color:var(--accent);color:var(--accent);}
 .hbtn.gold{background:#fef3c7;border-color:#f59e0b;color:#92400e;}
 .hbtn.blue{background:var(--accent-bg);border-color:var(--accent);color:var(--accent);}
-.banner{display:none;padding:9px 20px;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;}
-.banner.show{display:block;}
-.banner-inner{max-width:640px;margin:0 auto;display:flex;justify-content:space-between;align-items:center;font-size:12px;font-weight:500;}
-.banner-x{background:rgba(255,255,255,0.25);border:none;color:#fff;width:22px;height:22px;border-radius:50%;cursor:pointer;font-size:12px;}
-.bnav{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid var(--border);padding:6px 0 20px;z-index:100;box-shadow:0 -2px 16px rgba(0,0,0,0.05);}
-.bnav-inner{max-width:640px;margin:0 auto;display:flex;}
-.bnav-btn{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;background:none;border:none;cursor:pointer;padding:6px 0;}
-.bnav-lbl{font-size:10px;font-weight:600;color:var(--text3);}
+
+/* CREW NAME BAR */
+.crew-name-bar{background:linear-gradient(135deg,var(--accent),var(--accent2));padding:8px 14px;color:#fff;display:flex;align-items:center;justify-content:space-between;}
+.cnb-name{font-family:"Syne",sans-serif;font-size:14px;font-weight:800;letter-spacing:-0.3px;}
+.cnb-code{font-size:9px;opacity:0.6;letter-spacing:2px;margin-top:1px;}
+.cnb-edit{background:rgba(255,255,255,0.18);border:none;color:#fff;border-radius:6px;padding:4px 8px;font-size:10px;font-weight:700;cursor:pointer;display:none;font-family:"Outfit",sans-serif;}
+.cnb-edit.mod{display:inline-block;}
+
+/* BOTTOM NAV */
+.bnav{position:fixed;bottom:0;left:0;right:0;max-width:640px;margin:0 auto;background:var(--surface);border-top:1px solid var(--border);padding:5px 0 16px;z-index:100;display:flex;}
+.bnav-btn{flex:1;display:flex;flex-direction:column;align-items:center;gap:1px;background:none;border:none;cursor:pointer;padding:5px 0;font-family:"Outfit",sans-serif;}
+.bnav-icon{font-size:18px;line-height:1.2;}
+.bnav-lbl{font-size:9px;font-weight:600;color:var(--text3);}
 .bnav-btn.active .bnav-lbl{color:var(--accent);}
-.bnav-av{width:26px;height:26px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;color:#fff;margin:0 auto;}
-.content{max-width:640px;margin:0 auto;padding:14px 16px 0;}
-.card{background:#fff;border-radius:var(--r);padding:16px;margin-bottom:12px;box-shadow:var(--shadow);}
-.pbar{background:var(--bg);border-radius:6px;height:6px;overflow:hidden;}
-.pbar-fill{height:100%;border-radius:6px;transition:width 0.5s;}
-.tag{font-size:9px;border-radius:4px;padding:2px 6px;font-weight:700;letter-spacing:0.5px;margin-left:4px;}
+.bnav-av{width:22px;height:22px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:800;color:#fff;margin:0 auto;}
+.bnav-dot{width:3px;height:3px;border-radius:50%;background:var(--accent);margin:1px auto 0;opacity:0;}
+.bnav-btn.active .bnav-dot{opacity:1;}
+
+/* CONTENT */
+.content{padding:10px 12px 0;}
+
+/* SHARED */
+.card{background:var(--surface);border-radius:var(--r);padding:13px;margin-bottom:9px;box-shadow:var(--shadow);}
+.pbar{background:var(--bg);border-radius:3px;height:4px;overflow:hidden;}
+.pbar-fill{height:100%;border-radius:3px;transition:width 0.5s;}
+.tag{font-size:8px;border-radius:3px;padding:1px 5px;font-weight:700;letter-spacing:0.5px;margin-left:3px;}
 .tag-you{background:var(--accent-bg);color:var(--accent);}
 .tag-mod{background:#fef3c7;color:#92400e;}
-.tag-manual{background:#f0fdf4;color:#16a34a;}
-.sec-lbl{font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:10px;}
-.chip{padding:7px 14px;border-radius:20px;border:1.5px solid var(--border);background:#fff;font-size:12px;font-weight:600;color:var(--text2);cursor:pointer;transition:all 0.15s;}
+.sec-lbl{font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:8px;}
+.chip{padding:6px 12px;border-radius:20px;border:1.5px solid var(--border);background:var(--surface);font-size:11px;font-weight:600;color:var(--text2);cursor:pointer;transition:all 0.15s;font-family:"Outfit",sans-serif;}
 .chip.active{background:var(--accent);border-color:var(--accent);color:#fff;}
-.my-box{background:#fff;border-radius:var(--r);padding:16px;margin-bottom:12px;box-shadow:var(--shadow);border-top:3px solid var(--accent);}
-.mb-row{display:flex;align-items:center;gap:12px;margin-bottom:12px;}
-.av{border-radius:12px;display:flex;align-items:center;justify-content:center;font-weight:800;color:#fff;flex-shrink:0;}
-.mb-num{font-family:"Syne",sans-serif;font-size:26px;font-weight:800;}
-.act-row{display:flex;gap:7px;}
-.log-btn{flex:1;background:var(--accent-bg);border:1.5px solid #c7caff;color:var(--accent);border-radius:var(--r-sm);padding:10px;font-size:13px;font-weight:600;cursor:pointer;}
-.share-btn{background:linear-gradient(135deg,var(--accent),var(--accent2));border:none;color:#fff;border-radius:var(--r-sm);padding:10px 16px;font-size:13px;font-weight:700;cursor:pointer;}
-.edit-row{display:flex;gap:6px;}
-.steps-inp{flex:1;background:var(--bg);border:1.5px solid var(--accent);color:var(--text);border-radius:var(--r-sm);padding:10px 12px;font-size:15px;}
-.sv-btn{background:linear-gradient(135deg,var(--accent),var(--accent2));border:none;color:#fff;border-radius:var(--r-sm);padding:10px 14px;font-size:13px;font-weight:700;cursor:pointer;}
-.loc-btn{background:var(--bg);border:1.5px solid var(--border);color:var(--text2);border-radius:var(--r-sm);padding:10px;font-size:12px;cursor:pointer;}
-.cx-btn{background:none;border:none;color:var(--text3);cursor:pointer;font-size:16px;padding:0 4px;}
-.push-hint{font-size:10px;color:var(--text3);text-align:center;margin-top:6px;}
-.date-bar{background:#fff;border-radius:var(--r);padding:12px 14px;margin-bottom:12px;box-shadow:var(--shadow);}
-.date-chips{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;}
-.date-inp{background:var(--bg);border:1.5px solid var(--border);color:var(--text2);border-radius:var(--r-sm);padding:6px 10px;font-size:11px;cursor:pointer;width:100%;}
-.crew-goals-box{background:linear-gradient(135deg,var(--accent),var(--accent2));border-radius:var(--r);padding:16px;margin-bottom:12px;color:#fff;display:none;}
+
+/* STICKY FILTER BAR */
+.filter-bar{position:sticky;top:53px;z-index:90;background:var(--bg);padding:7px 0 5px;margin:0 -12px;padding-left:12px;padding-right:12px;}
+.filter-scroll{display:flex;gap:5px;overflow-x:auto;scrollbar-width:none;padding-bottom:2px;}
+.filter-scroll::-webkit-scrollbar{display:none;}
+.f-chip{display:flex;align-items:center;gap:4px;padding:5px 10px;border-radius:20px;border:1.5px solid var(--border);background:var(--surface);font-size:11px;font-weight:600;color:var(--text2);white-space:nowrap;flex-shrink:0;cursor:pointer;transition:all 0.15s;}
+.f-chip.active{background:var(--accent);border-color:var(--accent);color:#fff;}
+.f-chip.m-active{border-color:var(--mc,var(--accent));background:color-mix(in srgb,var(--mc,var(--accent)) 10%,#fff);color:var(--mc,var(--accent));}
+.f-av{width:15px;height:15px;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:7px;font-weight:800;color:#fff;flex-shrink:0;}
+.f-divider{width:1px;height:20px;background:var(--border);flex-shrink:0;align-self:center;margin:0 2px;}
+.t-chip{padding:5px 10px;border-radius:20px;border:1.5px solid var(--border);background:var(--surface);font-size:11px;font-weight:600;color:var(--text2);white-space:nowrap;flex-shrink:0;cursor:pointer;transition:all 0.15s;}
+.t-chip.active{background:var(--accent);border-color:var(--accent);color:#fff;}
+
+/* KPI ROW */
+.kpi-row{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-bottom:9px;}
+.kpi{background:var(--surface);border-radius:var(--r);padding:10px 9px;box-shadow:var(--shadow);text-align:center;}
+.kpi-val{font-family:"Syne",sans-serif;font-size:17px;font-weight:800;line-height:1.1;}
+.kpi-lbl{font-size:9px;color:var(--text3);font-weight:600;margin-top:2px;text-transform:uppercase;letter-spacing:0.5px;}
+
+/* MY CARD */
+.my-card{background:var(--surface);border-radius:var(--r);padding:12px 13px;margin-bottom:9px;box-shadow:var(--shadow);border-left:3px solid var(--accent);cursor:pointer;}
+.mc-steps{font-family:"Syne",sans-serif;font-size:22px;font-weight:800;}
+.spill{display:inline-flex;align-items:center;gap:3px;border-radius:20px;padding:2px 7px;font-size:9px;font-weight:700;margin-right:4px;}
+.spill.fire{background:#fff4ee;color:var(--fire);border:1px solid #fed7aa;}
+.spill.star{background:#fffbeb;color:#92400e;border:1px solid #fde68a;}
+
+/* DATE BAR */
+.date-bar{background:var(--surface);border-radius:var(--r);padding:10px 12px;margin-bottom:9px;box-shadow:var(--shadow);}
+.date-chips-row{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:8px;}
+.dchip{padding:5px 12px;border-radius:20px;border:1.5px solid var(--border);background:var(--surface);font-size:11px;font-weight:600;color:var(--text2);cursor:pointer;transition:all 0.15s;}
+.dchip.active{background:var(--accent);border-color:var(--accent);color:#fff;}
+.date-inp-full{background:var(--bg);border:1.5px solid var(--border);color:var(--text2);border-radius:var(--r-sm);padding:6px 10px;font-size:11px;cursor:pointer;width:100%;font-family:"Outfit",sans-serif;}
+
+/* CREW GOALS */
+.crew-goals-box{background:linear-gradient(135deg,var(--accent),var(--accent2));border-radius:var(--r);padding:13px;margin-bottom:9px;color:#fff;display:none;}
 .crew-goals-box.show{display:block;}
-.cg-title{font-size:9px;color:rgba(255,255,255,0.7);letter-spacing:2px;text-transform:uppercase;margin-bottom:10px;font-weight:700;}
-.cg-pbar{background:rgba(255,255,255,0.25);border-radius:5px;height:6px;overflow:hidden;margin:5px 0 3px;}
-.cg-pbar-fill{height:100%;border-radius:5px;background:#fff;transition:width 0.5s;}
-.challenge{background:#fff;border-radius:var(--r);padding:14px 16px;margin-bottom:12px;box-shadow:var(--shadow);display:flex;align-items:center;gap:12px;}
-.challenge.done{background:linear-gradient(135deg,#f0fdf4,#dcfce7);border:1.5px solid #86efac;}
-.member-card{background:#fff;border-radius:var(--r);padding:14px 16px;margin-bottom:10px;box-shadow:var(--shadow);transition:transform 0.15s;}
-.member-card.leader{border-left:3px solid var(--gold);}
-.mc-row{display:flex;align-items:center;gap:10px;margin-bottom:8px;}
-.mc-num{font-family:"Syne",sans-serif;font-size:19px;font-weight:800;}
-.member-filter{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px;}
-.mf-pill{display:flex;align-items:center;gap:6px;padding:6px 12px;border-radius:20px;border:1.5px solid var(--border);background:#fff;font-size:12px;font-weight:600;color:var(--text2);cursor:pointer;transition:all 0.15s;}
-.mf-pill.active{border-color:var(--mc,var(--accent));background:rgba(99,102,241,0.08);color:var(--mc,var(--accent));}
-.mf-av-sm{width:18px;height:18px;border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:800;color:#fff;flex-shrink:0;}
-.stat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px;}
-.stat-card{background:#fff;border-radius:var(--r);padding:12px;box-shadow:var(--shadow);text-align:center;}
-.stat-val{font-family:"Syne",sans-serif;font-size:19px;font-weight:800;}
-.stat-lbl{font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:1px;margin-top:3px;}
-.chart-card{background:#fff;border-radius:var(--r);padding:16px;margin-bottom:12px;box-shadow:var(--shadow);}
-.chart-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;}
-.chart-ttl{font-size:11px;font-weight:700;color:var(--text);text-transform:uppercase;letter-spacing:1px;}
-.chart-svg{width:100%;height:110px;}
-.chart-x{display:flex;justify-content:space-between;font-size:9px;color:var(--text3);margin-bottom:8px;}
-.chart-legend{display:flex;gap:10px;flex-wrap:wrap;}
-.legend-item{display:flex;align-items:center;gap:5px;font-size:11px;font-weight:600;color:var(--text2);}
-.cal-card{background:#fff;border-radius:var(--r);padding:16px;margin-bottom:12px;box-shadow:var(--shadow);}
-.cal-nav{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;}
-.cal-nav-btn{background:var(--bg);border:1.5px solid var(--border);color:var(--text2);width:30px;height:30px;border-radius:9px;cursor:pointer;font-size:15px;display:flex;align-items:center;justify-content:center;}
-.cal-month{font-size:14px;font-weight:700;color:var(--text);}
-.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;}
-.cal-dow{font-size:9px;color:var(--text3);text-align:center;padding-bottom:4px;font-weight:700;}
-.cal-cell{border-radius:6px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:3px 1px;min-height:36px;cursor:pointer;transition:transform 0.1s;}
-.cal-cell:hover{transform:scale(1.05);}
+.cg-title{font-size:9px;color:rgba(255,255,255,0.65);letter-spacing:2px;text-transform:uppercase;margin-bottom:8px;font-weight:700;}
+.cg-pbar{background:rgba(255,255,255,0.22);border-radius:3px;height:5px;overflow:hidden;margin:4px 0 3px;}
+.cg-pbar-fill{height:100%;border-radius:3px;background:#fff;transition:width 0.5s;}
+
+/* CHALLENGE */
+.challenge{background:var(--surface);border-radius:var(--r);padding:10px 12px;margin-bottom:9px;box-shadow:var(--shadow);display:flex;align-items:center;gap:10px;}
+.challenge.done{background:linear-gradient(135deg,#f0fdf4,#dcfce7);border:1px solid #86efac;}
+
+/* TOP 3 */
+.top3-card{background:var(--surface);border-radius:var(--r);overflow:hidden;box-shadow:var(--shadow);margin-bottom:9px;}
+.top3-header{display:flex;align-items:center;justify-content:space-between;padding:9px 12px 7px;}
+.top3-title{font-size:10px;font-weight:700;color:var(--text);text-transform:uppercase;letter-spacing:0.8px;}
+.view-all-btn{font-size:11px;font-weight:700;color:var(--accent);background:none;border:none;cursor:pointer;font-family:"Outfit",sans-serif;}
+.t3-row{display:flex;align-items:center;gap:8px;padding:8px 12px;border-top:1px solid var(--bg);}
+
+/* CREW TAB */
+.crew-header-card{background:linear-gradient(135deg,var(--accent),var(--accent2));border-radius:var(--r);padding:12px 13px;margin-bottom:9px;color:#fff;display:flex;align-items:center;justify-content:space-between;}
+.ch-name{font-family:"Syne",sans-serif;font-size:15px;font-weight:800;}
+.ch-code{font-size:9px;opacity:0.6;letter-spacing:1.5px;margin-top:1px;}
+.crew-list-card{background:var(--surface);border-radius:var(--r);overflow:hidden;box-shadow:var(--shadow);margin-bottom:9px;}
+
+/* STREAK BOARD */
+.streak-card{background:var(--surface);border-radius:var(--r);overflow:hidden;box-shadow:var(--shadow);margin-bottom:9px;}
+.streak-tabs{display:flex;border-bottom:1px solid var(--border);}
+.stab{flex:1;padding:8px 0;border:none;background:none;font-size:11px;font-weight:700;color:var(--text3);border-bottom:2px solid transparent;cursor:pointer;font-family:"Outfit",sans-serif;}
+.stab.fire{color:var(--fire);border-bottom-color:var(--fire);}
+.stab.star{color:#92400e;border-bottom-color:var(--gold);}
+
+/* TRENDS / HISTORY */
+.chart-card{background:var(--surface);border-radius:var(--r);padding:13px;margin-bottom:9px;box-shadow:var(--shadow);}
+.chart-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;}
+.chart-ttl{font-size:10px;font-weight:700;color:var(--text);text-transform:uppercase;letter-spacing:0.8px;}
+.stat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-bottom:9px;}
+.stat-card{background:var(--surface);border-radius:var(--r);padding:10px 9px;box-shadow:var(--shadow);text-align:center;}
+.stat-val{font-family:"Syne",sans-serif;font-size:17px;font-weight:800;}
+.stat-lbl{font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;margin-top:2px;}
+.chart-x{display:flex;justify-content:space-between;font-size:9px;color:var(--text3);margin-bottom:2px;}
+.chart-legend{display:flex;gap:8px;flex-wrap:wrap;margin-top:7px;}
+.legend-item{display:flex;align-items:center;gap:4px;font-size:10px;font-weight:600;color:var(--text2);}
+.cal-card{background:var(--surface);border-radius:var(--r);padding:13px;margin-bottom:9px;box-shadow:var(--shadow);}
+.cal-nav{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;}
+.cal-nav-btn{background:var(--bg);border:1px solid var(--border);color:var(--text2);width:28px;height:28px;border-radius:7px;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;}
+.cal-month{font-size:13px;font-weight:700;color:var(--text);}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;}
+.cal-dow{font-size:8px;color:var(--text3);text-align:center;padding-bottom:3px;font-weight:700;}
+.cal-cell{border-radius:5px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:2px 1px;min-height:30px;cursor:pointer;transition:transform 0.1s;}
+.cal-cell:hover{transform:scale(1.08);}
 .cal-cell.today{box-shadow:0 0 0 2px var(--accent);}
-.cal-date{font-size:10px;font-weight:700;line-height:1.2;}
-.cal-steps-lbl{font-size:7px;font-weight:700;line-height:1;margin-top:1px;opacity:0.9;}
-.profile-hero{background:linear-gradient(135deg,var(--accent),var(--accent2));border-radius:var(--r);padding:22px 20px;margin-bottom:14px;color:#fff;position:relative;overflow:hidden;}
-.profile-hero::before{content:"";position:absolute;top:-30px;right:-30px;width:120px;height:120px;background:rgba(255,255,255,0.07);border-radius:50%;}
-.ph-av{width:60px;height:60px;border-radius:17px;display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:800;color:var(--accent);background:#fff;margin-bottom:12px;box-shadow:0 4px 16px rgba(0,0,0,0.15);}
-.ph-name{font-family:"Syne",sans-serif;font-size:22px;font-weight:800;margin-bottom:2px;}
-.ph-sub{font-size:12px;opacity:0.8;margin-bottom:14px;}
-.ph-stats{display:flex;gap:20px;}
-.ph-stat-val{font-family:"Syne",sans-serif;font-size:18px;font-weight:800;}
-.ph-stat-lbl{font-size:10px;opacity:0.7;margin-top:1px;}
-.settings-section{background:#fff;border-radius:var(--r);overflow:hidden;margin-bottom:12px;box-shadow:var(--shadow);}
-.settings-hdr{padding:11px 16px;border-bottom:1px solid var(--border);font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:1.5px;}
-.settings-row{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid var(--bg);cursor:pointer;transition:background 0.15s;}
-.settings-row:last-child{border-bottom:none;}
-.settings-row:hover{background:var(--bg);}
-.sr-icon{width:34px;height:34px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0;}
-.sr-lbl{font-size:14px;font-weight:600;color:var(--text);}
-.sr-sub{font-size:11px;color:var(--text3);margin-top:1px;}
-.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:300;display:none;align-items:flex-end;justify-content:center;}
-.modal-overlay.show{display:flex;}
-.modal-sheet{background:#fff;border-radius:24px 24px 0 0;padding:22px 20px 32px;width:100%;max-width:480px;box-shadow:var(--shadow-lg);animation:slideUp 0.3s cubic-bezier(0.34,1.56,0.64,1);max-height:90vh;overflow-y:auto;}
-.modal-handle{width:36px;height:4px;background:var(--border);border-radius:2px;margin:0 auto 18px;}
-.modal-title{font-family:"Syne",sans-serif;font-size:18px;font-weight:800;margin-bottom:3px;}
-.modal-sub{font-size:12px;color:var(--text3);margin-bottom:18px;}
-.btn-row{display:flex;gap:8px;margin-top:14px;}
-.btn-cancel{flex:1;padding:11px;border-radius:var(--r-sm);border:1.5px solid var(--border);background:#fff;color:var(--text2);cursor:pointer;font-weight:600;font-size:13px;}
-.btn-save{flex:1;padding:11px;border-radius:var(--r-sm);border:none;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;cursor:pointer;font-weight:700;font-size:13px;}
-.btn-gold{flex:1;padding:11px;border-radius:var(--r-sm);border:none;background:linear-gradient(135deg,var(--gold),#fbbf24);color:#fff;cursor:pointer;font-weight:700;font-size:13px;}
-.btn-danger{padding:11px 14px;border-radius:var(--r-sm);border:1.5px solid #fecaca;background:#fff;color:var(--red);cursor:pointer;font-weight:600;font-size:13px;}
-.goal-display{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;}
-.goal-val{font-family:"Syne",sans-serif;font-size:24px;font-weight:800;color:var(--accent);}
-.goal-slider{width:100%;accent-color:var(--accent);margin-bottom:12px;}
-.goal-presets{display:flex;gap:6px;margin-bottom:14px;}
-.goal-preset{flex:1;padding:7px 0;border-radius:var(--r-sm);border:1.5px solid var(--border);background:#fff;font-size:11px;font-weight:700;color:var(--text2);cursor:pointer;transition:all 0.15s;}
-.goal-preset.sel{background:var(--accent-bg);border-color:var(--accent);color:var(--accent);}
-.color-grid{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px;justify-content:center;}
-.color-swatch{width:36px;height:36px;border-radius:50%;cursor:pointer;transition:all 0.15s;border:3px solid transparent;}
-.color-swatch.sel{transform:scale(1.15);border-color:var(--text);}
-.sync-opts{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px;}
-.sync-opt{padding:14px 12px;border-radius:var(--r-sm);border:1.5px solid var(--border);background:#fff;cursor:pointer;transition:all 0.15s;text-align:center;}
-.sync-opt.sel{background:var(--accent-bg);border-color:var(--accent);}
-.sync-opt-lbl{font-size:13px;font-weight:700;color:var(--text);}
-.sync-opt.sel .sync-opt-lbl{color:var(--accent);}
-.sync-opt-desc{font-size:10px;color:var(--text3);margin-top:3px;line-height:1.4;}
-.crew-list{display:flex;flex-direction:column;gap:8px;margin-bottom:14px;}
-.crew-item{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;background:var(--bg);border-radius:var(--r-sm);border:1.5px solid var(--border);cursor:pointer;transition:all 0.15s;}
-.crew-item.active-crew{background:var(--accent-bg);border-color:var(--accent);}
-.crew-code{font-family:"Syne",sans-serif;font-size:15px;font-weight:800;letter-spacing:1px;}
-.crew-item.active-crew .crew-code{color:var(--accent);}
-.mod-info{font-size:12px;color:#92400e;background:#fef3c7;border-radius:var(--r-sm);padding:10px 13px;border:1px solid #fde68a;margin-bottom:14px;line-height:1.5;}
-.crew-name-bar{background:linear-gradient(135deg,var(--accent),var(--accent2));padding:9px 20px;color:#fff;display:flex;align-items:center;justify-content:space-between;}
-.cnb-name{font-family:"Syne",sans-serif;font-size:15px;font-weight:800;letter-spacing:-0.3px;}
-.cnb-code{font-size:9px;opacity:0.65;letter-spacing:2px;margin-top:1px;}
-.cnb-edit{background:rgba(255,255,255,0.2);border:none;color:#fff;border-radius:6px;padding:4px 8px;font-size:10px;font-weight:700;cursor:pointer;display:none;}
-.cnb-edit.mod{display:inline-block;}
-.badge-pill-sm{display:inline-flex;align-items:center;gap:3px;border-radius:20px;padding:2px 7px;font-size:9px;font-weight:700;border:1.5px solid transparent;margin-right:3px;margin-bottom:3px;}
+.cal-date{font-size:9px;font-weight:700;line-height:1.2;}
+.cal-steps-lbl{font-size:7px;font-weight:700;line-height:1;margin-top:1px;}
+
+/* RECAP */
+.recap-card{background:linear-gradient(150deg,#1a1740,#2d2a8e,#3d3dbf);border-radius:var(--r);padding:16px;margin-bottom:9px;color:#fff;position:relative;overflow:hidden;}
+.recap-card::before{content:"";position:absolute;top:-30px;right:-30px;width:130px;height:130px;background:rgba(255,255,255,0.05);border-radius:50%;}
+.ro-week{font-size:9px;opacity:0.5;letter-spacing:2px;text-transform:uppercase;margin-bottom:4px;}
+.ro-name{font-family:"Syne",sans-serif;font-size:17px;font-weight:800;margin-bottom:1px;}
+.ro-tag{font-size:11px;opacity:0.6;margin-bottom:12px;}
+.ro-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:12px;}
+.ro-stat{background:rgba(255,255,255,0.1);border-radius:8px;padding:8px 5px;text-align:center;}
+.ro-stat-val{font-family:"Syne",sans-serif;font-size:14px;font-weight:800;}
+.ro-stat-lbl{font-size:8px;opacity:0.5;margin-top:1px;text-transform:uppercase;letter-spacing:0.5px;}
+.ro-div{height:1px;background:rgba(255,255,255,0.1);margin-bottom:10px;}
+.ro-sec{font-size:9px;opacity:0.5;letter-spacing:2px;text-transform:uppercase;margin-bottom:8px;}
+.ro-award{display:flex;align-items:center;gap:8px;margin-bottom:7px;}
+.ro-award:last-child{margin-bottom:0;}
+.ro-award-icon{width:30px;height:30px;background:rgba(255,255,255,0.1);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;}
+.ro-award-val{font-family:"Syne",sans-serif;font-size:12px;font-weight:800;margin-left:auto;opacity:0.85;}
+.ro-badge-row{display:flex;align-items:center;gap:6px;margin-bottom:6px;}
+.ro-badge-row:last-child{margin-bottom:0;}
+.ro-badge-av{width:22px;height:22px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:800;color:#fff;flex-shrink:0;}
+.ro-badge-name{font-size:10px;font-weight:600;width:52px;flex-shrink:0;opacity:0.85;}
+.ro-badges{display:flex;gap:4px;flex-wrap:wrap;}
+.ro-badge-pill{background:rgba(255,255,255,0.12);border-radius:20px;padding:2px 7px;font-size:9px;font-weight:600;}
+.badge-pill-sm{display:inline-flex;align-items:center;gap:3px;border-radius:20px;padding:2px 6px;font-size:9px;font-weight:700;border:1.5px solid transparent;margin-right:2px;margin-bottom:2px;}
 .bp-gold{background:#fef3c7;border-color:#fde68a;color:#92400e;}
 .bp-green{background:#f0fdf4;border-color:#86efac;color:#16a34a;}
 .bp-blue{background:var(--accent-bg);border-color:#c7caff;color:var(--accent);}
 .bp-red{background:#fef2f2;border-color:#fecaca;color:var(--red);}
 .bp-purple{background:#faf5ff;border-color:#e9d5ff;color:#7c3aed;}
-.bp-orange{background:#fff7ed;border-color:#fed7aa;color:#c2410c;}
-.recap-outer{background:linear-gradient(150deg,#1e1b4b 0%,#312e81 50%,#4338ca 100%);border-radius:var(--r);padding:20px;margin-bottom:12px;color:#fff;position:relative;overflow:hidden;}
-.recap-outer::before{content:"";position:absolute;top:-40px;right:-40px;width:160px;height:160px;background:rgba(255,255,255,0.05);border-radius:50%;}
-.ro-week{font-size:9px;opacity:0.55;letter-spacing:2px;text-transform:uppercase;margin-bottom:5px;}
-.ro-name{font-family:"Syne",sans-serif;font-size:19px;font-weight:800;margin-bottom:2px;}
-.ro-tag{font-size:12px;opacity:0.65;margin-bottom:14px;}
-.ro-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px;}
-.ro-stat{background:rgba(255,255,255,0.1);border-radius:10px;padding:10px 6px;text-align:center;}
-.ro-stat-val{font-family:"Syne",sans-serif;font-size:15px;font-weight:800;}
-.ro-stat-lbl{font-size:9px;opacity:0.55;margin-top:2px;text-transform:uppercase;letter-spacing:0.5px;}
-.ro-div{height:1px;background:rgba(255,255,255,0.12);margin-bottom:12px;}
-.ro-sec{font-size:9px;opacity:0.55;letter-spacing:2px;text-transform:uppercase;margin-bottom:10px;}
-.ro-award{display:flex;align-items:center;gap:10px;margin-bottom:8px;}
-.ro-award:last-child{margin-bottom:0;}
-.ro-award-icon{width:34px;height:34px;background:rgba(255,255,255,0.12);border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;}
-.ro-award-val{font-family:"Syne",sans-serif;font-size:13px;font-weight:800;margin-left:auto;opacity:0.9;}
-.ro-badge-row{display:flex;align-items:center;gap:8px;margin-bottom:8px;}
-.ro-badge-row:last-child{margin-bottom:0;}
-.ro-badge-av{width:26px;height:26px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;color:#fff;flex-shrink:0;}
-.ro-badge-name{font-size:11px;font-weight:600;width:60px;flex-shrink:0;opacity:0.9;}
-.ro-badges{display:flex;gap:4px;flex-wrap:wrap;}
-.ro-badge-pill{background:rgba(255,255,255,0.12);border-radius:20px;padding:3px 8px;font-size:10px;font-weight:600;}
-.streak-board{background:#fff;border-radius:var(--r);padding:16px;margin-bottom:12px;box-shadow:var(--shadow);}
-.sb-row{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--bg);}
-.sb-row:last-child{border-bottom:none;}
-.sb-val{font-family:"Syne",sans-serif;font-size:18px;font-weight:800;color:#c2410c;}
-.sb-bar-wrap{flex:1;}
-.sb-bar{height:4px;background:var(--bg);border-radius:2px;margin-top:4px;overflow:hidden;}
-.sb-bar-fill{height:100%;border-radius:2px;background:linear-gradient(90deg,#f97316,#ef4444);}
-.sb-risk{background:#fef2f2;color:var(--red);font-size:9px;font-weight:700;border-radius:4px;padding:2px 5px;margin-left:4px;}
-.toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:var(--text);color:#fff;padding:10px 20px;border-radius:20px;z-index:999;font-size:13px;font-weight:600;box-shadow:var(--shadow-lg);white-space:nowrap;opacity:0;transition:opacity 0.3s;pointer-events:none;}
+
+/* ME TAB */
+.me-hero{background:linear-gradient(135deg,var(--accent),var(--accent2));border-radius:var(--r);padding:16px;margin-bottom:9px;color:#fff;position:relative;overflow:hidden;}
+.me-hero::before{content:"";position:absolute;top:-25px;right:-25px;width:100px;height:100px;background:rgba(255,255,255,0.07);border-radius:50%;}
+.mh-av{width:48px;height:48px;border-radius:13px;background:#fff;display:flex;align-items:center;justify-content:center;font-size:17px;font-weight:800;margin-bottom:9px;box-shadow:0 3px 12px rgba(0,0,0,0.15);}
+.mh-name{font-family:"Syne",sans-serif;font-size:18px;font-weight:800;margin-bottom:1px;}
+.mh-sub{font-size:11px;opacity:0.7;margin-bottom:11px;}
+.mh-stats{display:flex;gap:14px;flex-wrap:wrap;}
+.mh-stat-val{font-family:"Syne",sans-serif;font-size:15px;font-weight:800;}
+.mh-stat-lbl{font-size:9px;opacity:0.6;margin-top:1px;}
+.settings-section{background:var(--surface);border-radius:var(--r);overflow:hidden;margin-bottom:9px;box-shadow:var(--shadow);}
+.ss-hdr{padding:9px 13px;border-bottom:1px solid var(--border);font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:1px;}
+.ss-row{display:flex;align-items:center;justify-content:space-between;padding:11px 13px;border-bottom:1px solid var(--bg);cursor:pointer;transition:background 0.15s;}
+.ss-row:last-child{border-bottom:none;}
+.ss-row:hover{background:var(--bg);}
+.ss-icon{width:30px;height:30px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0;margin-right:9px;}
+.ss-lbl{font-size:13px;font-weight:600;color:var(--text);}
+.ss-val{font-size:11px;color:var(--text3);margin-top:1px;}
+.badge-grid-me{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;padding:12px 13px;}
+.badge-item-me{text-align:center;}
+.badge-item-me.locked{opacity:0.3;filter:grayscale(0.8);}
+.bi-icon{font-size:22px;display:block;margin-bottom:3px;}
+.bi-name{font-size:8px;font-weight:700;color:var(--text2);line-height:1.2;}
+.bi-new{display:inline-block;background:var(--red);color:#fff;font-size:7px;font-weight:800;border-radius:8px;padding:1px 4px;margin-bottom:2px;}
+
+/* MODALS */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:300;display:none;align-items:flex-end;justify-content:center;}
+.modal-overlay.show{display:flex;}
+.modal-sheet{background:var(--surface);border-radius:18px 18px 0 0;padding:20px 18px 30px;width:100%;max-width:480px;box-shadow:var(--shadow-md);animation:slideUp 0.3s cubic-bezier(0.34,1.56,0.64,1);max-height:90vh;overflow-y:auto;}
+.modal-handle{width:32px;height:4px;background:var(--border);border-radius:2px;margin:0 auto 16px;}
+.modal-title{font-family:"Syne",sans-serif;font-size:17px;font-weight:800;margin-bottom:3px;}
+.modal-sub{font-size:12px;color:var(--text3);margin-bottom:16px;}
+.btn-row{display:flex;gap:7px;margin-top:12px;}
+.btn-cancel{flex:1;padding:10px;border-radius:var(--r-sm);border:1.5px solid var(--border);background:var(--surface);color:var(--text2);cursor:pointer;font-weight:600;font-size:13px;font-family:"Outfit",sans-serif;}
+.btn-save{flex:1;padding:10px;border-radius:var(--r-sm);border:none;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;cursor:pointer;font-weight:700;font-size:13px;font-family:"Outfit",sans-serif;}
+.btn-gold{flex:1;padding:10px;border-radius:var(--r-sm);border:none;background:linear-gradient(135deg,var(--gold),#fbbf24);color:#fff;cursor:pointer;font-weight:700;font-size:13px;font-family:"Outfit",sans-serif;}
+.btn-danger{padding:10px 13px;border-radius:var(--r-sm);border:1.5px solid #fecaca;background:var(--surface);color:var(--red);cursor:pointer;font-weight:600;font-size:13px;font-family:"Outfit",sans-serif;}
+.goal-display{display:flex;justify-content:space-between;align-items:center;margin-bottom:7px;}
+.goal-val{font-family:"Syne",sans-serif;font-size:22px;font-weight:800;color:var(--accent);}
+.goal-slider{width:100%;accent-color:var(--accent);margin-bottom:10px;}
+.goal-presets{display:flex;gap:5px;margin-bottom:12px;}
+.goal-preset{flex:1;padding:6px 0;border-radius:var(--r-sm);border:1.5px solid var(--border);background:var(--surface);font-size:11px;font-weight:700;color:var(--text2);cursor:pointer;font-family:"Outfit",sans-serif;}
+.goal-preset.sel{background:var(--accent-bg);border-color:var(--accent);color:var(--accent);}
+.color-grid{display:flex;gap:9px;flex-wrap:wrap;margin-bottom:14px;justify-content:center;}
+.color-swatch{width:34px;height:34px;border-radius:50%;cursor:pointer;transition:all 0.15s;border:3px solid transparent;}
+.color-swatch.sel{transform:scale(1.15);border-color:var(--text);}
+.sync-opts{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:12px;}
+.sync-opt{padding:12px 10px;border-radius:var(--r-sm);border:1.5px solid var(--border);background:var(--surface);cursor:pointer;transition:all 0.15s;text-align:center;}
+.sync-opt.sel{background:var(--accent-bg);border-color:var(--accent);}
+.sync-opt-lbl{font-size:12px;font-weight:700;color:var(--text);}
+.sync-opt.sel .sync-opt-lbl{color:var(--accent);}
+.sync-opt-desc{font-size:10px;color:var(--text3);margin-top:2px;line-height:1.4;}
+.crew-list-items{display:flex;flex-direction:column;gap:7px;margin-bottom:12px;}
+.crew-item{display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:var(--bg);border-radius:var(--r-sm);border:1.5px solid var(--border);cursor:pointer;}
+.crew-item.active-crew{background:var(--accent-bg);border-color:var(--accent);}
+.crew-code-lbl{font-family:"Syne",sans-serif;font-size:14px;font-weight:800;letter-spacing:1px;}
+.crew-item.active-crew .crew-code-lbl{color:var(--accent);}
+.mod-info{font-size:12px;color:#92400e;background:#fef3c7;border-radius:var(--r-sm);padding:9px 12px;border:1px solid #fde68a;margin-bottom:12px;line-height:1.5;}
+.banner{display:none;padding:8px 14px;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;}
+.banner.show{display:block;}
+.banner-inner{display:flex;justify-content:space-between;align-items:center;font-size:11px;font-weight:500;}
+.banner-x{background:rgba(255,255,255,0.22);border:none;color:#fff;width:20px;height:20px;border-radius:50%;cursor:pointer;font-size:11px;}
+.toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:var(--text);color:#fff;padding:9px 18px;border-radius:20px;z-index:999;font-size:12px;font-weight:600;box-shadow:var(--shadow-md);white-space:nowrap;opacity:0;transition:opacity 0.3s;pointer-events:none;}
 .toast.show{opacity:1;}
 </style>
 </head>
 <body>
+
+<!-- SPLASH -->
 <div id="splash">
-  <div style="font-size:56px;margin-bottom:10px;">👟</div>
-  <div style="font-family:Syne,sans-serif;font-size:26px;font-weight:800;color:var(--text);letter-spacing:-1px;">StepCrew</div>
+  <div style="font-size:52px;margin-bottom:8px;">👟</div>
+  <div style="font-family:Syne,sans-serif;font-size:24px;font-weight:800;color:var(--text);letter-spacing:-1px;">StepCrew</div>
   <div class="sp-spin" id="splash-spin"></div>
-  <div id="splash-google" style="display:none;margin-top:24px;text-align:center;">
-    <div style="font-size:13px;color:var(--text3);margin-bottom:16px;">Sign in to access your crew</div>
-    <button onclick="signInWithGoogle()" style="display:flex;align-items:center;gap:10px;background:#fff;border:1.5px solid var(--border);border-radius:12px;padding:12px 20px;font-size:14px;font-weight:600;color:var(--text);cursor:pointer;box-shadow:var(--shadow);margin:0 auto;">
-      <svg width="18" height="18" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/><path fill="none" d="M0 0h48v48H0z"/></svg>
+  <div class="sp-google" id="splash-google">
+    <div class="sp-google-sub">Sign in to access your crew</div>
+    <button class="sp-google-btn" onclick="signInWithGoogle()">
+      <svg width="18" height="18" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
       Sign in with Google
     </button>
   </div>
 </div>
+
 <div class="toast" id="toast"></div>
-<div id="onboard" class="screen">
+
+<!-- ONBOARD -->
+<div id="onboard" class="screen" style="display:none;">
   <div class="ob-wrap">
     <div class="ob-logo">
-      <div style="font-size:52px;">👟</div>
-      <div class="ob-title">Welcome!</div>
-      <div class="ob-sub" id="ob-google-name" style="color:var(--accent);font-size:13px;font-weight:600;letter-spacing:0;text-transform:none;margin-top:6px;"></div>
+      <span class="ob-icon">👟</span>
+      <div class="ob-title">StepCrew</div>
+      <div class="ob-sub">Walk Together &middot; Go Further</div>
+      <div class="ob-google-name" id="ob-google-name"></div>
     </div>
-    <!-- Name comes from Google -->
-    <div id="ob-name-display" style="background:var(--accent-bg);border-radius:var(--r-sm);padding:10px 14px;font-size:14px;font-weight:600;color:var(--accent);margin-bottom:13px;"></div>
+    <div id="ob-name-display" style="background:var(--accent-bg);border-radius:var(--r-sm);padding:9px 13px;font-size:14px;font-weight:600;color:var(--accent);margin-bottom:12px;display:none;"></div>
     <div class="fld"><label class="fld-lbl">Daily Step Goal</label><input class="inp" id="ob-goal" type="number" value="8000"/></div>
     <div class="fld">
       <label class="fld-lbl">Crew Sync</label>
@@ -252,16 +325,18 @@ input:focus,select:focus{outline:none;}
       </div>
     </div>
     <div id="ob-info" class="info-box" style="background:#fffbeb;border:1px solid #fde68a;color:#92400e;">📵 Log steps freely. Tap Share whenever ready.</div>
-    <input class="inp" id="ob-code" placeholder="Crew code (e.g. 4PT5QG)" style="display:none;letter-spacing:3px;margin-top:8px;" type="text" oninput="this.value=this.value.toUpperCase()"/>
+    <input class="inp" id="ob-code" placeholder="Crew code (e.g. JL1SE9)" style="display:none;letter-spacing:3px;margin-top:8px;" type="text" oninput="this.value=this.value.toUpperCase()"/>
     <div class="err-msg" id="ob-err"></div>
     <button class="btn-primary" id="ob-btn" onclick="handleStart()">Let's Walk 🚀</button>
   </div>
 </div>
-<div id="app" class="screen">
+
+<!-- APP -->
+<div id="app" class="screen" style="display:none;">
   <div class="header">
     <div class="header-inner">
       <div>
-        <div class="hlogo">👟 StepCrew</div>
+        <div class="hlogo">👟 <span id="hsub-name" style="font-size:14px;">StepCrew</span></div>
         <div class="hsub" id="hsub"><span class="hdot" style="background:var(--text3);"></span> Loading&hellip;</div>
       </div>
       <div class="hbtns" id="hbtns"></div>
@@ -269,56 +344,79 @@ input:focus,select:focus{outline:none;}
   </div>
   <div class="banner" id="crew-banner">
     <div class="banner-inner">
-      <span>☁️ Crew code: <b id="banner-code" style="letter-spacing:2px;"></b> &mdash; share with family &amp; friends</span>
-      <button class="banner-x" onclick="document.getElementById('crew-banner').classList.remove('show')">&#x2715;</button>
+      <span>☁️ Crew <b id="banner-code" style="letter-spacing:2px;"></b> &mdash; share with family &amp; friends</span>
+      <button class="banner-x" onclick="dismissBanner()">&#x2715;</button>
     </div>
   </div>
-  <!-- Crew name bar -->
   <div class="crew-name-bar" id="crew-name-bar">
     <div>
-      <div class="cnb-name" id="crew-name-display">StepCrew</div>
+      <div class="cnb-name" id="crew-name-display">StepCrew 👟</div>
       <div class="cnb-code" id="crew-code-display"></div>
     </div>
-    <button class="cnb-edit" id="crew-name-edit-btn" onclick="openModal('modal-crew-name')">✏️ Rename</button>
+    <button class="cnb-edit" id="crew-name-edit-btn" onclick="openModal('modal-crew-name')">&#x270f;&#xfe0f; Rename</button>
   </div>
 
-  <div id="view-dashboard" class="content">
+  <!-- TODAY TAB -->
+  <div id="view-today" class="content">
+    <div style="height:6px;"></div>
     <div id="crew-goals-box" class="crew-goals-box"></div>
+    <div class="kpi-row" id="today-kpi"></div>
     <div id="my-box"></div>
-    <div id="challenge-box"></div>
     <div class="date-bar">
-      <div class="date-chips" id="date-chips">
-        <button class="chip active" onclick="setLogDate('today',this)">Today</button>
-        <button class="chip" onclick="setLogDate('yesterday',this)">Yesterday</button>
-        <button class="chip" onclick="setLogDate('pick',this)">Pick Date</button>
+      <div class="date-chips-row">
+        <button class="dchip active" id="dchip-today" onclick="setLogDate('today',this)">Today</button>
+        <button class="dchip" id="dchip-yesterday" onclick="setLogDate('yesterday',this)">Yesterday</button>
+        <button class="dchip" id="dchip-pick" onclick="setLogDate('pick',this)">Pick Date</button>
       </div>
-      <input type="date" id="date-pick-inp" style="display:none;" class="date-inp" onchange="setLogDate('custom',this)"/>
-      <div id="date-display" style="font-size:11px;color:var(--text3);"></div>
+      <input type="date" id="date-pick-inp" style="display:none;" class="date-inp-full" onchange="setLogDate('custom',this)"/>
+      <div id="date-display" style="font-size:10px;color:var(--text3);"></div>
     </div>
-    <div class="sec-lbl">Leaderboard</div>
-    <div id="today-list"></div>
-  </div>
-  <div id="view-history" class="content" style="display:none;">
-    <div class="member-filter" id="hist-filter"></div>
-    <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px;" id="hist-period-chips"></div>
-    <div id="hist-custom-range" style="display:none;" class="card">
-      <div style="display:flex;gap:8px;align-items:center;">
-        <input type="date" id="hist-start" class="date-inp" style="flex:1;width:auto;"/>
-        <span style="font-size:12px;color:var(--text3);font-weight:600;">&rarr;</span>
-        <input type="date" id="hist-end" class="date-inp" style="flex:1;width:auto;"/>
-        <button onclick="applyCustomRange()" style="background:var(--accent);border:none;color:#fff;border-radius:var(--r-sm);padding:8px 12px;font-size:12px;font-weight:700;cursor:pointer;">Go</button>
+    <div id="challenge-box"></div>
+    <div class="top3-card">
+      <div class="top3-header">
+        <div class="top3-title">Today's Leaderboard</div>
+        <button class="view-all-btn" onclick="switchView('crew',document.getElementById('bnav-crew'))">View all &rarr;</button>
       </div>
+      <div id="today-list"></div>
+    </div>
+  </div>
+
+  <!-- CREW TAB -->
+  <div id="view-crew" class="content" style="display:none;">
+    <div class="filter-bar">
+      <div class="filter-scroll" id="crew-filter-bar"></div>
+    </div>
+    <div class="crew-header-card">
+      <div>
+        <div class="ch-name" id="crew-tab-name">The Crew 👟</div>
+        <div class="ch-code" id="crew-tab-code">CODE: &mdash;</div>
+      </div>
+      <div style="text-align:right;">
+        <div style="font-family:Syne,sans-serif;font-size:16px;font-weight:800;" id="crew-total-val">&mdash;</div>
+        <div style="font-size:9px;opacity:0.7;" id="crew-period-val">Today</div>
+      </div>
+    </div>
+    <div class="crew-list-card"><div id="crew-list-box"></div></div>
+    <div style="display:flex;gap:7px;margin-bottom:9px;">
+      <button onclick="openModal('modal-add')" style="flex:1;padding:10px;border-radius:var(--r-sm);border:1.5px dashed var(--border);background:var(--surface);color:var(--text2);font-size:12px;font-weight:600;cursor:pointer;font-family:Outfit,sans-serif;">+ Add Member</button>
+    </div>
+    <div class="streak-card" id="streak-board-box"></div>
+  </div>
+
+  <!-- TRENDS TAB -->
+  <div id="view-trends" class="content" style="display:none;">
+    <div class="filter-bar">
+      <div class="filter-scroll" id="trends-filter-bar"></div>
     </div>
     <div class="stat-grid" id="hist-stats"></div>
     <div class="chart-card">
       <div class="chart-head"><div class="chart-ttl" id="hist-chart-ttl">Steps</div></div>
       <div style="display:flex;gap:0;">
-        <div id="hist-y-axis" style="display:flex;flex-direction:column;justify-content:space-between;align-items:flex-end;padding-right:5px;padding-bottom:20px;min-width:32px;">
-        </div>
+        <div id="hist-y-axis" style="display:flex;flex-direction:column;justify-content:space-between;align-items:flex-end;padding-right:4px;padding-bottom:20px;min-width:28px;"></div>
         <div style="flex:1;">
-          <svg class="chart-svg" id="hist-svg" viewBox="0 0 300 100" preserveAspectRatio="none"></svg>
-          <div class="chart-x" id="hist-x" style="display:flex;justify-content:space-between;font-size:9px;color:var(--text3);margin-bottom:2px;"></div>
-          <div style="text-align:center;font-size:9px;color:var(--text3);font-weight:600;text-transform:uppercase;letter-spacing:0.5px;" id="hist-x-title"></div>
+          <svg style="width:100%;height:100px;" id="hist-svg" viewBox="0 0 300 100" preserveAspectRatio="none"></svg>
+          <div class="chart-x" id="hist-x"></div>
+          <div style="text-align:center;font-size:8px;color:var(--text3);font-weight:600;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;" id="hist-x-title"></div>
         </div>
       </div>
       <div class="chart-legend" id="hist-legend"></div>
@@ -330,155 +428,100 @@ input:focus,select:focus{outline:none;}
         <button class="cal-nav-btn" onclick="nextMonth()">&rsaquo;</button>
       </div>
       <div class="cal-grid" id="cal-grid"></div>
-      <div style="display:flex;align-items:center;gap:6px;margin-top:10px;">
-        <div style="display:flex;gap:3px;">
-          <div style="width:10px;height:10px;border-radius:3px;background:var(--bg);"></div>
-          <div style="width:10px;height:10px;border-radius:3px;background:rgba(99,102,241,0.2);"></div>
-          <div style="width:10px;height:10px;border-radius:3px;background:rgba(99,102,241,0.55);"></div>
-          <div style="width:10px;height:10px;border-radius:3px;background:#6366f1;"></div>
-        </div>
+      <div style="display:flex;align-items:center;gap:5px;margin-top:8px;">
+        <div style="display:flex;gap:2px;"><div style="width:9px;height:9px;border-radius:2px;background:var(--bg);"></div><div style="width:9px;height:9px;border-radius:2px;background:rgba(91,95,199,0.2);"></div><div style="width:9px;height:9px;border-radius:2px;background:rgba(91,95,199,0.55);"></div><div style="width:9px;height:9px;border-radius:2px;background:var(--accent);"></div></div>
         <span style="font-size:9px;color:var(--text3);">Less &rarr; More steps</span>
       </div>
     </div>
     <div class="sec-lbl">📋 Weekly Recap</div>
     <div id="hist-recap"></div>
-    <div class="sec-lbl">🔥 Current Streaks</div>
-    <div id="hist-streak-board"></div>
     <div class="sec-lbl">Member Breakdown</div>
     <div id="hist-members"></div>
   </div>
-  <div id="view-profile" class="content" style="display:none;">
-    <div class="profile-hero" id="profile-hero"></div>
+
+  <!-- ME TAB -->
+  <div id="view-me" class="content" style="display:none;">
+    <div style="height:6px;"></div>
+    <div class="me-hero" id="profile-hero"></div>
     <div class="settings-section">
-      <div class="settings-hdr">📝 Log / Edit Steps</div>
-      <div style="padding:14px 16px;">
-        <div style="display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap;">
-          <button class="chip active" id="pchip-today" onclick="setProfileDate('today',this)">Today</button>
-          <button class="chip" id="pchip-yesterday" onclick="setProfileDate('yesterday',this)">Yesterday</button>
-          <button class="chip" id="pchip-pick" onclick="setProfileDate('pick',this)">Pick a date</button>
+      <div class="ss-hdr">📝 Log / Edit Steps</div>
+      <div style="padding:12px 13px;">
+        <div class="date-chips-row">
+          <button class="dchip active" id="pchip-today" onclick="setProfileDate('today',this)">Today</button>
+          <button class="dchip" id="pchip-yesterday" onclick="setProfileDate('yesterday',this)">Yesterday</button>
+          <button class="dchip" id="pchip-pick" onclick="setProfileDate('pick',this)">Pick a date</button>
         </div>
-        <input type="date" id="profile-date-inp" style="display:none;margin-bottom:10px;" class="date-inp" onchange="setProfileDate('custom',this)"/>
-        <div id="profile-log-info" style="font-size:11px;color:var(--text3);margin-bottom:8px;"></div>
-        <div style="display:flex;gap:8px;">
-          <input class="steps-inp" id="profile-steps-inp" type="number" placeholder="Enter step count&hellip;" style="flex:1;background:var(--bg);border:1.5px solid var(--border);"/>
-          <button onclick="saveProfileSteps()" style="background:linear-gradient(135deg,var(--accent),var(--accent2));border:none;color:#fff;border-radius:var(--r-sm);padding:10px 16px;font-size:13px;font-weight:700;cursor:pointer;">Save 🚀</button>
+        <input type="date" id="profile-date-inp" style="display:none;margin-bottom:9px;" class="date-inp-full" onchange="setProfileDate('custom',this)"/>
+        <div id="profile-log-info" style="font-size:11px;color:var(--text3);margin-bottom:7px;"></div>
+        <div style="display:flex;gap:7px;">
+          <input class="inp" id="profile-steps-inp" type="number" placeholder="Enter step count&hellip;" style="flex:1;"/>
+          <button onclick="saveProfileSteps()" style="background:linear-gradient(135deg,var(--accent),var(--accent2));border:none;color:#fff;border-radius:var(--r-sm);padding:10px 14px;font-size:12px;font-weight:700;cursor:pointer;font-family:Outfit,sans-serif;">Save 🚀</button>
         </div>
       </div>
     </div>
     <div class="settings-section">
-      <div class="settings-hdr">⚙️ My Settings</div>
-      <div class="settings-row" onclick="openModal('modal-name')">
-        <div style="display:flex;align-items:center;gap:12px;"><div class="sr-icon" style="background:#eef0ff;">✏️</div><div><div class="sr-lbl">Display Name</div><div class="sr-sub" id="sr-name"></div></div></div>
-        <span style="color:var(--text3);">&rsaquo;</span>
-      </div>
-      <div class="settings-row" onclick="openModal('modal-goal')">
-        <div style="display:flex;align-items:center;gap:12px;"><div class="sr-icon" style="background:#f0fdf4;">🎯</div><div><div class="sr-lbl">Daily Step Goal</div><div class="sr-sub" id="sr-goal"></div></div></div>
-        <span style="color:var(--text3);">&rsaquo;</span>
-      </div>
-      <div class="settings-row" onclick="openModal('modal-color')">
-        <div style="display:flex;align-items:center;gap:12px;"><div class="sr-icon" style="background:#fef3c7;">🎨</div><div><div class="sr-lbl">My Colour</div><div class="sr-sub">Tap to change</div></div></div>
-        <div style="display:flex;align-items:center;gap:8px;"><div id="sr-color" style="width:20px;height:20px;border-radius:50%;"></div><span style="color:var(--text3);">&rsaquo;</span></div>
-      </div>
-      <div class="settings-row" onclick="openModal('modal-sync')">
-        <div style="display:flex;align-items:center;gap:12px;"><div class="sr-icon" style="background:#f0f9ff;">🔄</div><div><div class="sr-lbl">Sync Type</div><div class="sr-sub" id="sr-sync"></div></div></div>
-        <span style="color:var(--text3);">&rsaquo;</span>
+      <div class="ss-hdr">⚙️ My Settings</div>
+      <div class="ss-row" onclick="openModal('modal-name')"><div style="display:flex;align-items:center;"><div class="ss-icon" style="background:#eeeeff;">✏️</div><div><div class="ss-lbl">Display Name</div><div class="ss-val" id="sr-name"></div></div></div><span style="color:var(--text3);">&rsaquo;</span></div>
+      <div class="ss-row" onclick="openModal('modal-goal')"><div style="display:flex;align-items:center;"><div class="ss-icon" style="background:#f0fdf4;">🎯</div><div><div class="ss-lbl">Daily Step Goal</div><div class="ss-val" id="sr-goal"></div></div></div><span style="color:var(--text3);">&rsaquo;</span></div>
+      <div class="ss-row" onclick="openModal('modal-color')"><div style="display:flex;align-items:center;"><div class="ss-icon" style="background:#fef3c7;">🎨</div><div><div class="ss-lbl">My Colour</div><div class="ss-val">Tap to change</div></div></div><div style="display:flex;align-items:center;gap:7px;"><div id="sr-color" style="width:18px;height:18px;border-radius:50%;"></div><span style="color:var(--text3);">&rsaquo;</span></div></div>
+      <div class="ss-row" onclick="openModal('modal-sync')"><div style="display:flex;align-items:center;"><div class="ss-icon" style="background:#f0f9ff;">🔄</div><div><div class="ss-lbl">Sync Type</div><div class="ss-val" id="sr-sync"></div></div></div><span style="color:var(--text3);">&rsaquo;</span></div>
+    </div>
+    <div class="settings-section">
+      <div class="ss-hdr">🏅 My Badges</div>
+      <div class="badge-grid-me" id="badge-grid-me">
+        <div class="badge-item-me"><span class="bi-icon">🏃</span><div class="bi-name">First Steps</div></div>
+        <div class="badge-item-me"><span class="bi-icon">🔥</span><div class="bi-name">7-Day Streak</div></div>
+        <div class="badge-item-me"><span class="bi-icon">👑</span><div class="bi-name">Top Walker</div></div>
+        <div class="badge-item-me"><span class="bi-icon">💤</span><div class="bi-name">No Zero Week</div></div>
+        <div class="badge-item-me locked"><span class="bi-icon">💎</span><div class="bi-name">Personal Best</div></div>
+        <div class="badge-item-me locked"><span class="bi-icon">⚡</span><div class="bi-name">10K Every Day</div></div>
+        <div class="badge-item-me locked"><span class="bi-icon">🏅</span><div class="bi-name">Goal Crusher</div></div>
+        <div class="badge-item-me locked"><span class="bi-icon">🌍</span><div class="bi-name">1M Steps</div></div>
       </div>
     </div>
     <div class="settings-section">
-      <div class="settings-hdr">👥 My Crew</div>
-      <div class="settings-row" onclick="openModal('modal-crews')">
-        <div style="display:flex;align-items:center;gap:12px;"><div class="sr-icon" style="background:#eef0ff;">🔗</div><div><div class="sr-lbl">Crew Code</div><div class="sr-sub">Share with family &amp; friends</div></div></div>
-        <div style="display:flex;align-items:center;gap:8px;"><span id="sr-crew-code" style="font-family:Syne,sans-serif;font-size:13px;font-weight:800;color:var(--accent);letter-spacing:1.5px;"></span><span style="color:var(--text3);">&rsaquo;</span></div>
-      </div>
-      <div class="settings-row" id="sr-mod-row" style="display:none;" onclick="openModPanel()">
-        <div style="display:flex;align-items:center;gap:12px;"><div class="sr-icon" style="background:#fef3c7;">🏅</div><div><div class="sr-lbl">Moderator Settings</div><div class="sr-sub">Set crew goals for everyone</div></div></div>
-        <span style="color:var(--text3);">&rsaquo;</span>
-      </div>
+      <div class="ss-hdr">👥 My Crew</div>
+      <div class="ss-row" onclick="openModal('modal-crews')"><div style="display:flex;align-items:center;"><div class="ss-icon" style="background:#eeeeff;">🔗</div><div><div class="ss-lbl">Crew Code</div><div class="ss-val">Share with family &amp; friends</div></div></div><div style="display:flex;align-items:center;gap:7px;"><span id="sr-crew-code" style="font-family:Syne,sans-serif;font-size:12px;font-weight:800;color:var(--accent);letter-spacing:1px;"></span><span style="color:var(--text3);">&rsaquo;</span></div></div>
+      <div class="ss-row" id="sr-mod-row" style="display:none;" onclick="openModPanel()"><div style="display:flex;align-items:center;"><div class="ss-icon" style="background:#fef3c7;">🏅</div><div><div class="ss-lbl">Moderator Settings</div><div class="ss-val">Set crew goals for everyone</div></div></div><span style="color:var(--text3);">&rsaquo;</span></div>
+    </div>
+    <div class="settings-section">
+      <div class="ss-hdr">🔒 Account</div>
+      <div class="ss-row" onclick="confirmSignOut()"><div style="display:flex;align-items:center;"><div class="ss-icon" style="background:#fef2f2;">🚪</div><div><div class="ss-lbl" style="color:var(--red);">Sign Out</div><div class="ss-val" id="sr-google-email"></div></div></div><span style="color:var(--text3);">&rsaquo;</span></div>
     </div>
   </div>
-    <div class="settings-section">
-      <div class="settings-hdr">🔒 Account</div>
-      <div class="settings-row" onclick="confirmSignOut()">
-        <div style="display:flex;align-items:center;gap:12px;">
-          <div class="sr-icon" style="background:#fef2f2;">🚪</div>
-          <div><div class="sr-lbl" style="color:var(--red);">Sign Out</div><div class="sr-sub" id="sr-google-email"></div></div>
-        </div>
-        <span style="color:var(--text3);">&rsaquo;</span>
-      </div>
-    </div>
+
+  <!-- BOTTOM NAV -->
   <div class="bnav">
-    <div class="bnav-inner">
-      <button class="bnav-btn active" id="bnav-dashboard" onclick="switchView('dashboard',this)">
-        <span style="font-size:20px;">📊</span><span class="bnav-lbl">Today</span>
-      </button>
-      <button class="bnav-btn" id="bnav-history" onclick="switchView('history',this)">
-        <span style="font-size:20px;">📈</span><span class="bnav-lbl">History</span>
-      </button>
-      <button class="bnav-btn" id="bnav-profile" onclick="switchView('profile',this)">
-        <div class="bnav-av" id="bnav-av"></div>
-        <span class="bnav-lbl">Me</span>
-      </button>
-    </div>
+    <button class="bnav-btn active" id="bnav-today" onclick="switchView('today',this)">
+      <span class="bnav-icon">📊</span><span class="bnav-lbl">Today</span><div class="bnav-dot"></div>
+    </button>
+    <button class="bnav-btn" id="bnav-crew" onclick="switchView('crew',this)">
+      <span class="bnav-icon">👥</span><span class="bnav-lbl">Crew</span><div class="bnav-dot"></div>
+    </button>
+    <button class="bnav-btn" id="bnav-trends" onclick="switchView('trends',this)">
+      <span class="bnav-icon">📈</span><span class="bnav-lbl">Trends</span><div class="bnav-dot"></div>
+    </button>
+    <button class="bnav-btn" id="bnav-me" onclick="switchView('me',this)">
+      <div class="bnav-av" id="bnav-av"></div><span class="bnav-lbl">Me</span><div class="bnav-dot"></div>
+    </button>
   </div>
 </div>
-<div class="modal-overlay" id="modal-add">
-  <div class="modal-sheet"><div class="modal-handle"></div><div class="modal-title">Add Member</div><div class="modal-sub">Add a family member or friend</div>
-  <div class="fld"><label class="fld-lbl">Name</label><input class="inp" id="add-name" placeholder="Name"/></div>
-  <div class="fld"><label class="fld-lbl">Daily Goal</label><input class="inp" id="add-goal" type="number" value="8000"/></div>
-  <div class="btn-row"><button class="btn-cancel" onclick="closeModal('modal-add')">Cancel</button><button class="btn-save" onclick="addMember()">Add Member</button></div></div>
-</div>
-<div class="modal-overlay" id="modal-edit">
-  <div class="modal-sheet"><div class="modal-handle"></div><div class="modal-title">Edit Member</div>
-  <div class="fld"><label class="fld-lbl">Name</label><input class="inp" id="edit-name"/></div>
-  <div class="fld"><label class="fld-lbl">Daily Goal</label><input class="inp" id="edit-goal" type="number"/></div>
-  <div class="btn-row"><button class="btn-danger" onclick="removeMemberModal()">Remove</button><button class="btn-cancel" onclick="closeModal('modal-edit')">Cancel</button><button class="btn-save" onclick="saveMemberEdit()">Save</button></div></div>
-</div>
-<div class="modal-overlay" id="modal-crew-name">
-  <div class="modal-sheet"><div class="modal-handle"></div><div class="modal-title">Name Your Crew</div><div class="modal-sub">Only the moderator can rename the crew</div>
-  <div class="fld"><label class="fld-lbl">Crew Name</label><input class="inp" id="inp-crew-name" placeholder="e.g. The Broomells 👟" maxlength="30"/></div>
-  <div class="btn-row"><button class="btn-cancel" onclick="closeModal('modal-crew-name')">Cancel</button><button class="btn-save" onclick="saveCrewName()">Save</button></div></div>
-</div>
-<div class="modal-overlay" id="modal-join">
-  <div class="modal-sheet"><div class="modal-handle"></div><div class="modal-title">Join a Crew</div><div class="modal-sub">Enter the code shared with you</div>
-  <input class="inp" id="join-code-inp" placeholder="Crew code (e.g. 4PT5QG)" style="letter-spacing:3px;" oninput="this.value=this.value.toUpperCase()"/>
-  <div class="btn-row"><button class="btn-cancel" onclick="closeModal('modal-join')">Cancel</button><button class="btn-save" onclick="joinCrew()">Join</button></div></div>
-</div>
+
+<!-- MODALS -->
+<div class="modal-overlay" id="modal-add"><div class="modal-sheet"><div class="modal-handle"></div><div class="modal-title">Add Member</div><div class="modal-sub">Add a family member or friend</div><div class="fld"><label class="fld-lbl">Name</label><input class="inp" id="add-name" placeholder="Name"/></div><div class="fld"><label class="fld-lbl">Daily Goal</label><input class="inp" id="add-goal" type="number" value="8000"/></div><div class="btn-row"><button class="btn-cancel" onclick="closeModal('modal-add')">Cancel</button><button class="btn-save" onclick="addMember()">Add</button></div></div></div>
+<div class="modal-overlay" id="modal-edit"><div class="modal-sheet"><div class="modal-handle"></div><div class="modal-title">Edit Member</div><div class="fld"><label class="fld-lbl">Name</label><input class="inp" id="edit-name"/></div><div class="fld"><label class="fld-lbl">Daily Goal</label><input class="inp" id="edit-goal" type="number"/></div><div class="btn-row"><button class="btn-danger" onclick="removeMemberModal()">Remove</button><button class="btn-cancel" onclick="closeModal('modal-edit')">Cancel</button><button class="btn-save" onclick="saveMemberEdit()">Save</button></div></div></div>
+<div class="modal-overlay" id="modal-join"><div class="modal-sheet"><div class="modal-handle"></div><div class="modal-title">Join a Crew</div><div class="modal-sub">Enter the code shared with you</div><input class="inp" id="join-code-inp" placeholder="Crew code" style="letter-spacing:3px;" oninput="this.value=this.value.toUpperCase()"/><div class="btn-row"><button class="btn-cancel" onclick="closeModal('modal-join')">Cancel</button><button class="btn-save" onclick="joinCrew()">Join</button></div></div></div>
 <div class="modal-overlay" id="modal-mod"><div class="modal-sheet"><div class="modal-handle"></div><div class="modal-title">🏅 Mod Panel</div><div id="modal-mod-body"></div></div></div>
-<div class="modal-overlay" id="modal-become-mod">
-  <div class="modal-sheet"><div class="modal-handle"></div><div class="modal-title">Become Moderator</div><div class="modal-sub">Set a PIN to claim the mod role and set crew goals</div>
-  <input class="inp" id="become-pin" type="password" placeholder="Choose a PIN" style="letter-spacing:4px;"/>
-  <div class="btn-row"><button class="btn-cancel" onclick="closeModal('modal-become-mod')">Cancel</button><button class="btn-gold" onclick="becomeMod()">Claim 🏅</button></div></div>
-</div>
-<div class="modal-overlay" id="modal-name">
-  <div class="modal-sheet"><div class="modal-handle"></div><div class="modal-title">Display Name</div><div class="modal-sub">How you appear to your crew</div>
-  <input class="inp" id="inp-name" placeholder="Your name"/>
-  <div class="btn-row"><button class="btn-cancel" onclick="closeModal('modal-name')">Cancel</button><button class="btn-save" onclick="saveName()">Save</button></div></div>
-</div>
-<div class="modal-overlay" id="modal-goal">
-  <div class="modal-sheet"><div class="modal-handle"></div><div class="modal-title">Daily Step Goal</div><div class="modal-sub">Set your personal daily target</div>
-  <div class="goal-display"><div><div class="goal-val" id="goal-disp">8,000</div><div style="font-size:11px;color:var(--text3);">steps per day</div></div><span style="font-size:28px;">🎯</span></div>
-  <input type="range" class="goal-slider" id="goal-slider" min="1000" max="25000" step="500" value="8000" oninput="updateGoalDisp(this.value)"/>
-  <div class="goal-presets"><button class="goal-preset" onclick="setGoalPreset(5000)">5K</button><button class="goal-preset sel" onclick="setGoalPreset(8000)">8K</button><button class="goal-preset" onclick="setGoalPreset(10000)">10K</button><button class="goal-preset" onclick="setGoalPreset(12000)">12K</button><button class="goal-preset" onclick="setGoalPreset(15000)">15K</button></div>
-  <div class="btn-row"><button class="btn-cancel" onclick="closeModal('modal-goal')">Cancel</button><button class="btn-save" onclick="saveGoal()">Save</button></div></div>
-</div>
-<div class="modal-overlay" id="modal-color">
-  <div class="modal-sheet"><div class="modal-handle"></div><div class="modal-title">My Colour</div><div class="modal-sub">Pick a colour that represents you</div>
-  <div style="display:flex;justify-content:center;margin-bottom:16px;"><div id="color-preview" style="width:60px;height:60px;border-radius:17px;display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:800;color:#fff;transition:background 0.2s;"></div></div>
-  <div class="color-grid" id="color-grid"></div>
-  <div class="btn-row"><button class="btn-cancel" onclick="closeModal('modal-color')">Cancel</button><button class="btn-save" onclick="saveColor()">Save</button></div></div>
-</div>
-<div class="modal-overlay" id="modal-sync">
-  <div class="modal-sheet"><div class="modal-handle"></div><div class="modal-title">Sync Type</div><div class="modal-sub">How your steps reach the crew</div>
-  <div class="sync-opts"><div class="sync-opt" id="so-manual" onclick="selSync('manual')"><div style="font-size:22px;margin-bottom:6px;">📵</div><div class="sync-opt-lbl">Manual</div><div class="sync-opt-desc">You choose when to share</div></div><div class="sync-opt" id="so-auto" onclick="selSync('auto')"><div style="font-size:22px;margin-bottom:6px;">⚡</div><div class="sync-opt-lbl">Auto</div><div class="sync-opt-desc">Pushes every update</div></div></div>
-  <div class="btn-row"><button class="btn-cancel" onclick="closeModal('modal-sync')">Cancel</button><button class="btn-save" onclick="saveSync()">Save</button></div></div>
-</div>
-<div class="modal-overlay" id="modal-crews">
-  <div class="modal-sheet"><div class="modal-handle"></div><div class="modal-title">My Crews</div><div class="modal-sub">Switch between crews or join a new one</div>
-  <div class="crew-list" id="crew-list"></div>
-  <button onclick="closeModal('modal-crews');openModal('modal-join')" style="width:100%;padding:11px;border-radius:var(--r-sm);border:1.5px dashed var(--border);background:#fff;color:var(--text2);font-size:13px;font-weight:600;cursor:pointer;margin-bottom:8px;">+ Join Another Crew</button>
-  <div class="btn-row"><button class="btn-cancel" onclick="closeModal('modal-crews')">Close</button></div></div>
-</div>
+<div class="modal-overlay" id="modal-become-mod"><div class="modal-sheet"><div class="modal-handle"></div><div class="modal-title">Become Moderator</div><div class="modal-sub">Set a PIN to claim the mod role</div><input class="inp" id="become-pin" type="password" placeholder="Choose a PIN" style="letter-spacing:4px;"/><div class="btn-row"><button class="btn-cancel" onclick="closeModal('modal-become-mod')">Cancel</button><button class="btn-gold" onclick="becomeMod()">Claim 🏅</button></div></div></div>
+<div class="modal-overlay" id="modal-name"><div class="modal-sheet"><div class="modal-handle"></div><div class="modal-title">Display Name</div><input class="inp" id="inp-name" placeholder="Your name"/><div class="btn-row"><button class="btn-cancel" onclick="closeModal('modal-name')">Cancel</button><button class="btn-save" onclick="saveName()">Save</button></div></div></div>
+<div class="modal-overlay" id="modal-goal"><div class="modal-sheet"><div class="modal-handle"></div><div class="modal-title">Daily Step Goal</div><div class="goal-display"><div><div class="goal-val" id="goal-disp">8,000</div><div style="font-size:11px;color:var(--text3);">steps per day</div></div><span style="font-size:26px;">🎯</span></div><input type="range" class="goal-slider" id="goal-slider" min="1000" max="25000" step="500" value="8000" oninput="updateGoalDisp(this.value)"/><div class="goal-presets"><button class="goal-preset" onclick="setGoalPreset(5000)">5K</button><button class="goal-preset sel" onclick="setGoalPreset(8000)">8K</button><button class="goal-preset" onclick="setGoalPreset(10000)">10K</button><button class="goal-preset" onclick="setGoalPreset(12000)">12K</button><button class="goal-preset" onclick="setGoalPreset(15000)">15K</button></div><div class="btn-row"><button class="btn-cancel" onclick="closeModal('modal-goal')">Cancel</button><button class="btn-save" onclick="saveGoal()">Save</button></div></div></div>
+<div class="modal-overlay" id="modal-color"><div class="modal-sheet"><div class="modal-handle"></div><div class="modal-title">My Colour</div><div style="display:flex;justify-content:center;margin-bottom:14px;"><div id="color-preview" style="width:56px;height:56px;border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:800;color:#fff;transition:background 0.2s;"></div></div><div class="color-grid" id="color-grid"></div><div class="btn-row"><button class="btn-cancel" onclick="closeModal('modal-color')">Cancel</button><button class="btn-save" onclick="saveColor()">Save</button></div></div></div>
+<div class="modal-overlay" id="modal-sync"><div class="modal-sheet"><div class="modal-handle"></div><div class="modal-title">Sync Type</div><div class="sync-opts"><div class="sync-opt" id="so-manual" onclick="selSync('manual')"><div style="font-size:20px;margin-bottom:5px;">📵</div><div class="sync-opt-lbl">Manual</div><div class="sync-opt-desc">You choose when to share</div></div><div class="sync-opt" id="so-auto" onclick="selSync('auto')"><div style="font-size:20px;margin-bottom:5px;">⚡</div><div class="sync-opt-lbl">Auto</div><div class="sync-opt-desc">Pushes every update</div></div></div><div class="btn-row"><button class="btn-cancel" onclick="closeModal('modal-sync')">Cancel</button><button class="btn-save" onclick="saveSync()">Save</button></div></div></div>
+<div class="modal-overlay" id="modal-crews"><div class="modal-sheet"><div class="modal-handle"></div><div class="modal-title">My Crews</div><div class="crew-list-items" id="crew-list"></div><button onclick="closeModal('modal-crews');openModal('modal-join')" style="width:100%;padding:10px;border-radius:var(--r-sm);border:1.5px dashed var(--border);background:var(--surface);color:var(--text2);font-size:12px;font-weight:600;cursor:pointer;margin-bottom:7px;font-family:Outfit,sans-serif;">+ Join Another Crew</button><div class="btn-row"><button class="btn-cancel" onclick="closeModal('modal-crews')">Close</button></div></div></div>
+<div class="modal-overlay" id="modal-crew-name"><div class="modal-sheet"><div class="modal-handle"></div><div class="modal-title">Name Your Crew</div><div class="modal-sub">Only the moderator can rename</div><div class="fld"><label class="fld-lbl">Crew Name</label><input class="inp" id="inp-crew-name" placeholder="e.g. The Broomells 👟" maxlength="30"/></div><div class="btn-row"><button class="btn-cancel" onclick="closeModal('modal-crew-name')">Cancel</button><button class="btn-save" onclick="saveCrewName()">Save</button></div></div></div>
+
 <script>
+
 // Google Auth state
 let G = { uid: null, name: null, email: null, photoURL: null };
 
@@ -535,7 +578,13 @@ function showApp(){
   const splash=document.getElementById("splash");
   splash.style.opacity="0";
   setTimeout(()=>splash.style.display="none",300);
-  document.getElementById("app").classList.add("active");
+  // Fully hide onboard before showing app
+  const ob=document.getElementById("onboard");
+  ob.classList.remove("active");
+  ob.style.display="none";
+  const app=document.getElementById("app");
+  app.style.display="block";
+  app.classList.add("active");
   document.getElementById("banner-code").textContent=S.activeCrew||"";
   if(!S.syncInterval)S.syncInterval=setInterval(()=>pullLatest(true),30000);
   render();
@@ -549,7 +598,13 @@ function showOnboard(){
   const googleName=document.getElementById("ob-google-name");
   if(nameDisp)nameDisp.textContent=G.name||"";
   if(googleName)googleName.textContent=G.email?"Signed in as "+G.email:"";
-  document.getElementById("onboard").classList.add("active");
+  // Make sure app is fully hidden
+  const app=document.getElementById("app");
+  app.classList.remove("active");
+  app.style.display="none";
+  const ob=document.getElementById("onboard");
+  ob.style.display="block";
+  ob.classList.add("active");
 }
 
 async function findCrewByGoogleUid(uid,name){
@@ -636,6 +691,15 @@ function genCode(){return Math.random().toString(36).slice(2,8).toUpperCase();}
 function timeAgo(ts){if(!ts)return"never";const s=Math.floor((Date.now()-ts)/1000);if(s<60)return"just now";if(s<3600)return Math.floor(s/60)+"m ago";return Math.floor(s/3600)+"h ago";}
 function initials(name){return(name||"?").trim().split(/\s+/).map(w=>w[0]).join("").toUpperCase().slice(0,2);}
 function avEl(m,sz){sz=sz||40;const fs=Math.round(sz*0.38);return`<div style="width:${sz}px;height:${sz}px;border-radius:${Math.round(sz*0.28)}px;background:${m.color};display:flex;align-items:center;justify-content:center;font-size:${fs}px;font-weight:800;color:#fff;flex-shrink:0;">${initials(m.name)}</div>`;}
+function dismissBanner(){
+  document.getElementById("crew-banner").classList.remove("show");
+  try{localStorage.setItem("sc_banner_dismissed","1");}catch(e){}
+}
+
+function shouldShowBanner(){
+  try{return!localStorage.getItem("sc_banner_dismissed");}catch(e){return false;}
+}
+
 function toast(msg){const t=document.getElementById("toast");t.textContent=msg;t.classList.add("show");setTimeout(()=>t.classList.remove("show"),2800);}
 
 function cd(){return S.crewData[S.activeCrew]||{members:[],steps:{},pushed:{},crewGoals:{dailySteps:null,weeklySteps:null,dailyMsg:"",weeklyMsg:"",modId:null,modPin:null,crewName:""}};}
@@ -646,7 +710,39 @@ function getSteps(mid,dk){
 }
 function getTotal(mid,days){return days.reduce((s,d)=>s+getSteps(mid,d),0);}
 function getAvg(mid,days){const a=days.filter(d=>getSteps(mid,d)>0);return a.length?Math.round(getTotal(mid,days)/a.length):0;}
-function calcStreak(mid){let st=0,d=new Date();for(let i=0;i<365;i++){const k=d.toISOString().split("T")[0];if(getSteps(mid,k)>0)st++;else break;d.setDate(d.getDate()-1);}return st;}
+function calcStreak(mid){
+  // If today has steps, count from today backwards
+  // If today has no steps yet, start from yesterday — don't penalise for not logging yet
+  const td=todayStr();
+  const startFromYesterday=getSteps(mid,td)===0;
+  let st=0,d=new Date();
+  if(startFromYesterday)d.setDate(d.getDate()-1);
+  for(let i=0;i<365;i++){
+    const k=d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
+    if(getSteps(mid,k)>0)st++;
+    else break;
+    d.setDate(d.getDate()-1);
+  }
+  return st;
+}
+
+function calcGoalStreak(mid){
+  // Same logic but only counts days where steps >= personal goal
+  const m=cd().members.find(m=>idMatch(m.id,mid));
+  if(!m)return 0;
+  const td=todayStr();
+  const hitToday=getSteps(mid,td)>=m.goal;
+  const startFromYesterday=!hitToday;
+  let st=0,d=new Date();
+  if(startFromYesterday)d.setDate(d.getDate()-1);
+  for(let i=0;i<365;i++){
+    const k=d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
+    if(getSteps(mid,k)>=m.goal)st++;
+    else break;
+    d.setDate(d.getDate()-1);
+  }
+  return st;
+}
 function isMod(){return cd().crewGoals&&idMatch(cd().crewGoals.modId,S.myId);}
 function idMatch(a,b){return String(a)===String(b);}
 function myMember(){return cd().members.find(m=>idMatch(m.id,S.myId)||idMatch(m.googleUid,G.uid));}
@@ -787,7 +883,7 @@ async function handleStart(){
     saveSession();
     document.getElementById("onboard").classList.remove("active");
     document.getElementById("app").classList.add("active");
-    if(S.syncMode!=="manual"){document.getElementById("banner-code").textContent=code;document.getElementById("crew-banner").classList.add("show");S.syncInterval=setInterval(()=>pullLatest(true),30000);}
+    if(S.syncMode!=="manual"){document.getElementById("banner-code").textContent=code;if(shouldShowBanner())document.getElementById("crew-banner").classList.add("show");S.syncInterval=setInterval(()=>pullLatest(true),30000);}
     if(isModerator){S.modUnlocked=true;openModPanel();}
     render();
     if(S.syncMode!=="manual")toast("Crew "+code+" created! 🎉");
@@ -807,17 +903,16 @@ async function saveStepsForDate(mid,dk,val,share){
   return true;
 }
 
-function render(){renderHeader();renderCrewGoals();renderMyBox();renderChallenge();renderDateBar();renderTodayList();if(S.view==="history")renderHistory();if(S.view==="profile")renderProfileView();}
+function render(){
+  renderHeader();
+  if(S.view==="today"){renderCrewGoals();renderMyBox();renderChallenge();renderDateBar();renderTodayList();}
+  else if(S.view==="crew"){renderCrewTab();}
+  else if(S.view==="trends"){renderHistory();}
+  else if(S.view==="me"){renderProfileView();}
+}
 
 function renderHeader(){
   const me=myMember();
-  const sub=document.getElementById("hsub"),btns=document.getElementById("hbtns"),bnAv=document.getElementById("bnav-av");
-  if(me){
-    sub.innerHTML=`<span class="hdot" style="background:var(--green);"></span> Crew <b style="color:var(--accent);letter-spacing:1px;">${S.activeCrew}</b>`;
-    bnAv.textContent=initials(me.name);bnAv.style.background=me.color;
-  } else {
-    sub.innerHTML=`<span class="hdot" style="background:var(--text3);"></span> <span>Local</span>`;
-  }
   // Update crew name bar
   const cg2=cd().crewGoals;
   const crewName=cg2&&cg2.crewName?cg2.crewName:"The Crew";
@@ -827,13 +922,23 @@ function renderHeader(){
   if(cnDisplay)cnDisplay.textContent=crewName+" 👟";
   if(cnCode)cnCode.textContent=S.activeCrew?"CODE: "+S.activeCrew:"";
   if(cnEditBtn)cnEditBtn.className=isMod()?"cnb-edit mod":"cnb-edit";
-
-  let h="";
-  if(isMod())h+=`<button class="hbtn gold" onclick="openModPanel()">🏅 Goals</button>`;
-  if(S.activeCrew&&!cd().crewGoals?.modId&&!isMod())h+=`<button class="hbtn" onclick="openModal('modal-become-mod')" style="font-size:10px;">Become Mod</button>`;
-  h+=`<button class="hbtn blue" onclick="pullLatest()">&circlearrowright;</button>`;
-  h+=`<button class="hbtn" onclick="openModal('modal-add')">+ Member</button>`;
-  btns.innerHTML=h;
+  // Update bnav avatar
+  const bnAv=document.getElementById("bnav-av");
+  if(me&&bnAv){bnAv.textContent=initials(me.name);bnAv.style.background=me.color;}
+  // Header sub
+  const sub=document.getElementById("hsub");
+  if(sub){
+    if(S.activeCrew)sub.innerHTML=`<span class="hdot" style="background:var(--green);"></span> ${crewName}`;
+    else sub.innerHTML=`<span class="hdot" style="background:var(--text3);"></span> Local`;
+  }
+  // Header buttons
+  const btns=document.getElementById("hbtns");
+  if(btns){
+    let h="";
+    if(isMod())h+=`<button class="hbtn gold" onclick="openModPanel()">🎖️ Goals</button>`;
+    h+=`<button class="hbtn blue" onclick="pullLatest()">&circlearrowright;</button>`;
+    btns.innerHTML=h;
+  }
 }
 
 function renderCrewGoals(){
@@ -922,6 +1027,75 @@ function setLogDate(type,el){
   S.editingId=null;renderDateBar();renderMyBox();renderTodayList();
 }
 
+function renderCrewTab(){
+  const box=document.getElementById("crew-list-box");if(!box)return;
+  const dk=S.crewLogDate||todayStr();
+  const wD=daysAgo(7);
+  // Get days based on crew period
+  let crewDays=[dk];
+  const cp=S.crewPeriod||"today";
+  if(cp==="yesterday")crewDays=[yesterdayStr()];
+  else if(cp==="7d")crewDays=daysAgo(7);
+  else if(cp==="30d")crewDays=daysAgo(30);
+  else if(cp==="month")crewDays=currMonthDays();
+  const isMulti=crewDays.length>1;
+  const gTotal=cd().members.reduce((s,m)=>s+getTotal(m.id,crewDays),0);
+  const sorted=[...cd().members].sort((a,b)=>getTotal(b.id,crewDays)-getTotal(a.id,crewDays));
+  const periodLbls={today:"Today",yesterday:"Yesterday","7d":"7 Days","30d":"30 Days",month:"This Month"};
+  const pLbl=periodLbls[cp]||"Today";
+  // Update crew stats
+  const ctEl=document.getElementById("crew-total-val");
+  const cpEl=document.getElementById("crew-period-val");
+  if(ctEl)ctEl.textContent=(gTotal>=1000?(gTotal/1000).toFixed(1)+"K":gTotal.toLocaleString());
+  if(cpEl)cpEl.textContent=pLbl;
+  let h="";
+  sorted.forEach((m,i)=>{
+    if(S.crewMemberFilter&&S.crewMemberFilter!=="all"&&!idMatch(m.id,S.crewMemberFilter)&&!idMatch(m.googleUid,S.crewMemberFilter))return;
+    const total=getTotal(m.id,crewDays);
+    const pct=isMulti?Math.min((total/(m.goal*crewDays.length))*100,100):Math.min((total/m.goal)*100,100);
+    const maxT=getTotal(sorted[0].id,crewDays)||1;
+    const relPct=(total/maxT)*100;
+    const lp=cd().pushed[m.id];
+    const logStreak=calcStreak(m.id),goalStreak=calcGoalStreak(m.id);
+    const loggedToday=getSteps(m.id,todayStr())>0;
+    const atRisk=logStreak>0&&!loggedToday&&cp==="today";
+    const isMe=idMatch(m.id,S.myId)||idMatch(m.googleUid,G.uid);
+    const medals=["🥇","🥈","🥉"];
+    const isEditing=S.editingId===m.id+"_c";
+    let action=isEditing
+      ?`<div style="display:flex;gap:5px;margin-top:6px;"><input style="flex:1;background:var(--bg);border:1.5px solid var(--accent);color:var(--text);border-radius:6px;padding:8px 10px;font-size:14px;font-family:Outfit,sans-serif;" id="cinp_${m.id}" type="number" value="${total||""}" placeholder="Steps…"/><button style="background:linear-gradient(135deg,var(--accent),var(--accent2));border:none;color:#fff;border-radius:6px;padding:8px 12px;font-size:12px;font-weight:700;cursor:pointer;" onclick="saveCrew(${m.id},'${crewDays[crewDays.length-1]}',true)">Share</button><button style="background:var(--bg);border:1px solid var(--border);color:var(--text2);border-radius:6px;padding:8px;font-size:11px;cursor:pointer;" onclick="S.editingId=null;renderCrewTab()">✕</button></div>`
+      :`<div style="display:flex;gap:5px;margin-top:6px;"><button style="flex:1;background:var(--bg);border:1px solid var(--border);color:var(--text2);border-radius:6px;padding:7px;font-size:11px;font-weight:600;cursor:pointer;" onclick="S.editingId='${m.id}_c';renderCrewTab()">${total>0?"✏️ Update":"➕ Log steps"}</button><button style="background:var(--bg);border:1px solid var(--border);color:var(--text3);border-radius:6px;padding:7px 9px;font-size:11px;cursor:pointer;" onclick="openEditModal(${m.id})">⚙️</button></div>`;
+    h+=`<div style="padding:10px 12px;border-bottom:1px solid var(--bg);${isMe?"border-left:3px solid var(--accent)":""}">
+      <div style="display:flex;align-items:center;gap:8px;">
+        <div style="font-size:${i<3?14:12}px;width:20px;text-align:center;${i>=3?"color:var(--text3)":""}">${medals[i]||i+1}</div>
+        ${avEl(m,34)}
+        <div style="flex:1;">
+          <div style="font-weight:700;font-size:13px;">${m.name}${isMe?`<span style="background:var(--accent-bg);color:var(--accent);font-size:8px;font-weight:700;border-radius:3px;padding:1px 5px;margin-left:4px;">YOU</span>`:""}${atRisk?`<span style="background:#fef2f2;color:var(--red);font-size:8px;font-weight:700;border-radius:3px;padding:1px 4px;margin-left:4px;">Log today!</span>`:""}</div>
+          <div style="display:flex;gap:4px;margin-top:2px;">
+            ${logStreak>0?`<span style="background:#fff4ee;color:var(--fire);border:1px solid #fed7aa;border-radius:20px;padding:1px 6px;font-size:9px;font-weight:700;">🔥 ${logStreak}d</span>`:""}
+            ${goalStreak>0?`<span style="background:#fffbeb;color:#92400e;border:1px solid #fde68a;border-radius:20px;padding:1px 6px;font-size:9px;font-weight:700;">⭐ ${goalStreak}d</span>`:""}
+          </div>
+        </div>
+        <div style="text-align:right;">
+          <div style="font-family:'Syne',sans-serif;font-size:16px;font-weight:800;color:${pct>=100?"var(--gold)":m.color};">${total.toLocaleString()}</div>
+          <div style="font-size:9px;color:var(--text3);">${pct.toFixed(0)}%</div>
+        </div>
+      </div>
+      <div style="background:var(--bg);border-radius:3px;height:4px;overflow:hidden;margin-top:6px;"><div style="width:${relPct}%;height:100%;border-radius:3px;background:${m.color};"></div></div>
+      ${action}
+    </div>`;
+  });
+  box.innerHTML=h||`<div style="padding:20px;text-align:center;color:var(--text3);font-size:13px;">No members match filter</div>`;
+}
+
+async function saveCrew(mid,dk,share){
+  const el=document.getElementById("cinp_"+mid);if(!el)return;
+  S.editingId=null;
+  const ok=await saveStepsForDate(mid,dk,el.value,share);
+  if(ok)toast(share?"Shared! 🚀":"Saved ✓");
+  render();
+}
+
 function renderTodayList(){
   const box=document.getElementById("today-list");
   const dk=S.logDate,td=todayStr(),wD=daysAgo(7);
@@ -952,11 +1126,12 @@ function switchView(v,btn){
   S.view=v;
   document.querySelectorAll(".bnav-btn").forEach(b=>b.classList.remove("active"));
   if(btn)btn.classList.add("active");
-  document.getElementById("view-dashboard").style.display=v==="dashboard"?"block":"none";
-  document.getElementById("view-history").style.display=v==="history"?"block":"none";
-  document.getElementById("view-profile").style.display=v==="profile"?"block":"none";
-  if(v==="history"){initHistory();renderHistory();}
-  if(v==="profile")renderProfileView();
+  ["today","crew","trends","me"].forEach(t=>{
+    const el=document.getElementById("view-"+t);
+    if(el)el.style.display=t===v?"block":"none";
+  });
+  if(v==="trends"){initHistory();renderHistory();}
+  render();
 }
 
 function initHistory(){
@@ -1048,6 +1223,7 @@ function calcWeekBadges(members,weekDays){
 
   // Streak Leader
   const streaks=members.map(m=>({m,streak:calcStreak(m.id)})).sort((a,b)=>b.streak-a.streak);
+  const goalStreaks=members.map(m=>({m,streak:calcGoalStreak(m.id)})).sort((a,b)=>b.streak-a.streak);
   if(streaks[0]&&streaks[0].streak>=3)badges[streaks[0].m.id].push({id:"streak",icon:"🔥",label:"Streak Leader",cls:"bp-red"});
 
   // Goal Crusher — most days hitting goal
@@ -1132,23 +1308,48 @@ function renderWeeklyRecap(members){
 }
 
 function renderStreakBoard(members){
-  const sorted=[...members].map(m=>({m,s:calcStreak(m.id)})).sort((a,b)=>b.s-a.s);
-  const maxS=Math.max(...sorted.map(x=>x.s),1);
   const td=todayStr();
-  return`<div class="streak-board">${sorted.map((x,i)=>{
-    const loggedToday=getSteps(x.m.id,td)>0;
-    const atRisk=x.s>0&&!loggedToday;
-    const medals=["🥇","🥈","🥉"];
-    return`<div class="sb-row">
-      <div style="font-size:${i<3?16:13}px;width:22px;text-align:center;${i>=3?"color:var(--text3)":""}">${medals[i]||i+1}</div>
-      ${avEl(x.m,34)}
-      <div class="sb-bar-wrap">
-        <div style="font-weight:700;font-size:13px;">${x.m.name.split(" ")[0]}${atRisk?`<span class="sb-risk">Log today!</span>`:""}</div>
-        <div class="sb-bar"><div class="sb-bar-fill" style="width:${(x.s/maxS)*100}%;"></div></div>
-      </div>
-      <div style="text-align:right;"><div class="sb-val">${x.s}</div><div style="font-size:9px;color:var(--text3);">days</div></div>
-    </div>`;
-  }).join("")}</div>`;
+  const fireData=[...members].map(m=>({m,s:calcStreak(m.id)})).sort((a,b)=>b.s-a.s);
+  const starData=[...members].map(m=>({m,s:calcGoalStreak(m.id)})).sort((a,b)=>b.s-a.s);
+  const maxFire=Math.max(...fireData.map(x=>x.s),1);
+  const maxStar=Math.max(...starData.map(x=>x.s),1);
+  const medals=["🥇","🥈","🥉"];
+
+  function makeRows(data,maxS,type){
+    return data.map((x,i)=>{
+      const loggedToday=getSteps(x.m.id,td)>0;
+      const atRisk=x.s>0&&!loggedToday;
+      const color=type==="fire"?"#c2410c":"#92400e";
+      const barBg=type==="fire"?"linear-gradient(90deg,#f97316,#ef4444)":"linear-gradient(90deg,#f59e0b,#fbbf24)";
+      return`<div class="sb-row">
+        <div style="font-size:${i<3?16:13}px;width:22px;text-align:center;${i>=3?"color:var(--text3)":""}">${medals[i]||i+1}</div>
+        ${avEl(x.m,34)}
+        <div class="sb-bar-wrap">
+          <div style="font-weight:700;font-size:13px;">${x.m.name.split(" ")[0]}${atRisk&&type==="fire"?`<span class="sb-risk">Log today!</span>`:""}</div>
+          <div class="sb-bar"><div style="height:100%;border-radius:2px;background:${barBg};width:${(x.s/maxS)*100}%;"></div></div>
+        </div>
+        <div style="text-align:right;"><div style="font-family:'DM Sans',sans-serif;font-size:18px;font-weight:800;color:${color};">${x.s}</div><div style="font-size:9px;color:var(--text3);">days</div></div>
+      </div>`;
+    }).join("");
+  }
+
+  return`<div class="streak-board">
+    <div style="display:flex;gap:4px;margin-bottom:14px;">
+      <button onclick="toggleStreakTab('fire',this)" id="streak-tab-fire" style="flex:1;padding:7px;border-radius:var(--r-sm);border:1.5px solid #fed7aa;background:linear-gradient(135deg,#fff7ed,#ffedd5);color:#c2410c;font-size:12px;font-weight:700;cursor:pointer;">🔥 Logging</button>
+      <button onclick="toggleStreakTab('star',this)" id="streak-tab-star" style="flex:1;padding:7px;border-radius:var(--r-sm);border:1.5px solid var(--border);background:var(--bg);color:var(--text3);font-size:12px;font-weight:700;cursor:pointer;">⭐ Goal</button>
+    </div>
+    <div id="streak-rows-fire">${makeRows(fireData,maxFire,"fire")}</div>
+    <div id="streak-rows-star" style="display:none;">${makeRows(starData,maxStar,"star")}</div>
+  </div>`;
+}
+
+function toggleStreakTab(type,btn){
+  document.getElementById("streak-rows-fire").style.display=type==="fire"?"block":"none";
+  document.getElementById("streak-rows-star").style.display=type==="star"?"block":"none";
+  const fireBtn=document.getElementById("streak-tab-fire");
+  const starBtn=document.getElementById("streak-tab-star");
+  if(fireBtn)fireBtn.style.cssText="flex:1;padding:7px;border-radius:var(--r-sm);cursor:pointer;font-size:12px;font-weight:700;"+(type==="fire"?"border:1.5px solid #fed7aa;background:linear-gradient(135deg,#fff7ed,#ffedd5);color:#c2410c;":"border:1.5px solid var(--border);background:var(--bg);color:var(--text3);");
+  if(starBtn)starBtn.style.cssText="flex:1;padding:7px;border-radius:var(--r-sm);cursor:pointer;font-size:12px;font-weight:700;"+(type==="star"?"border:1.5px solid #fde68a;background:linear-gradient(135deg,#fffbeb,#fef9c3);color:#92400e;":"border:1.5px solid var(--border);background:var(--bg);color:var(--text3);");
 }
 
 function renderHistory(){
@@ -1234,7 +1435,7 @@ function renderHistory(){
         ${avEl(m,36)}
         <div style="flex:1;">
           <div style="font-weight:700;font-size:14px;">${m.name}${isMe?`<span class="tag tag-you">YOU</span>`:""}</div>
-          <div style="font-size:10px;color:var(--text3);">${active}/${days.length} active · avg ${avg2.toLocaleString()}/day${streak>0?` · 🔥 ${streak}d`:""}</div>
+          <div style="font-size:10px;color:var(--text3);">${active}/${days.length} active · avg ${avg2.toLocaleString()}/day${streak>0?` · 🔥 ${streak}d`:""}${calcGoalStreak(m.id)>0?` · ⭐ ${calcGoalStreak(m.id)}d`:""}</div>
         </div>
         <div style="text-align:right;"><div class="mc-num" style="color:${m.color};font-size:17px;">${total.toLocaleString()}</div><div style="font-size:10px;color:var(--text3);">${goalPct.toFixed(0)}% of goal</div></div>
       </div>
@@ -1394,7 +1595,7 @@ async function joinCrew(){
   S.crewData[code]={members:merged,steps:remote.steps||{},pushed:remote.pushed||{},crewGoals:remote.crewGoals||{dailySteps:null,weeklySteps:null,dailyMsg:"",weeklyMsg:"",modId:null,modPin:null},updatedAt:Date.now()};
   S.activeCrew=code;if(!S.crews.find(c=>c.code===code))S.crews.push({code,joinedAt:Date.now()});
   lsSet("sc_data_"+code,S.crewData[code]);await fbSave(code,S.crewData[code]);saveSession();
-  document.getElementById("banner-code").textContent=code;document.getElementById("crew-banner").classList.add("show");
+  document.getElementById("banner-code").textContent=code;if(shouldShowBanner())document.getElementById("crew-banner").classList.add("show");
   if(!S.syncInterval)S.syncInterval=setInterval(()=>pullLatest(true),30000);
   closeModal("modal-join");closeModal("modal-crews");toast("Joined "+code+"! 🎉");render();
 }
@@ -1443,6 +1644,172 @@ S.logDate=maxDate;
 });
 // Add sign out button to header after render
 // Auth flow handled by auth.onAuthStateChanged above
+
+
+// ── NEW: Render Today KPI row ─────────────────────────────────────────────────
+function renderTodayKPI(){
+  const box=document.getElementById("today-kpi");if(!box)return;
+  const me=myMember();const td=S.logDate||todayStr();
+  const mySteps=me?getSteps(me.id,td):0;
+  const crewAvg=cd().members.length?Math.round(cd().members.reduce((s,m)=>s+getSteps(m.id,td),0)/cd().members.length):0;
+  const topWalker=[...cd().members].sort((a,b)=>getSteps(b.id,td)-getSteps(a.id,td))[0];
+  box.innerHTML=`
+    <div class="kpi"><div class="kpi-val" style="color:var(--accent);">${mySteps.toLocaleString()}</div><div class="kpi-lbl">My Steps</div></div>
+    <div class="kpi"><div class="kpi-val" style="color:var(--green);">${crewAvg.toLocaleString()}</div><div class="kpi-lbl">Crew Avg</div></div>
+    <div class="kpi"><div class="kpi-val" style="color:${topWalker?.color||"var(--gold)"};font-size:${topWalker&&topWalker.name.length>6?"13px":"17px"}">${topWalker?.name.split(" ")[0]||"—"}</div><div class="kpi-lbl">Leading</div></div>`;
+}
+
+// ── NEW: Crew tab filter bar ──────────────────────────────────────────────────
+function renderCrewFilterBar(){
+  const bar=document.getElementById("crew-filter-bar");if(!bar)return;
+  const allActive=!S.crewMemberFilter||S.crewMemberFilter==="all";
+  const cp=S.crewPeriod||"today";
+  let h=`<div class="f-chip${allActive?" active":""}" onclick="setCrewMemberFilter('all')">ALL</div>`;
+  cd().members.forEach(m=>{
+    const active=!allActive&&(idMatch(m.id,S.crewMemberFilter)||idMatch(m.googleUid,S.crewMemberFilter));
+    h+=`<div class="f-chip${active?" m-active":""}" style="--mc:${m.color}" onclick="setCrewMemberFilter('${m.id}')"><div class="f-av" style="background:${m.color};">${initials(m.name)}</div>${m.name.split(" ")[0]}</div>`;
+  });
+  h+=`<div class="f-divider"></div>`;
+  [["today","Today"],["yesterday","Yesterday"],["7d","7D"],["30d","30D"],["month","Month"]].forEach(([k,l])=>{
+    h+=`<div class="t-chip${cp===k?" active":""}" onclick="setCrewPeriod('${k}')">${l}</div>`;
+  });
+  bar.innerHTML=h;
+  // Update crew tab header
+  const cg=cd().crewGoals;
+  const crewName=cg&&cg.crewName?cg.crewName:"The Crew";
+  const cn=document.getElementById("crew-tab-name");if(cn)cn.textContent=crewName+" 👟";
+  const cc=document.getElementById("crew-tab-code");if(cc)cc.textContent=S.activeCrew?"CODE: "+S.activeCrew:"";
+}
+
+function setCrewMemberFilter(id){
+  S.crewMemberFilter=id;
+  renderCrewFilterBar();
+  renderCrewTab();
+}
+
+function setCrewPeriod(p){
+  S.crewPeriod=p;
+  renderCrewFilterBar();
+  renderCrewTab();
+}
+
+// ── NEW: Trends filter bar ────────────────────────────────────────────────────
+function renderTrendsFilterBar(){
+  const bar=document.getElementById("trends-filter-bar");if(!bar)return;
+  const allActive=S.histMembers.includes("all");
+  const cp=S.histPeriod||"7d";
+  let h=`<div class="f-chip${allActive?" active":""}" onclick="toggleHistMember('all')">ALL</div>`;
+  cd().members.forEach(m=>{
+    const active=!allActive&&S.histMembers.some(x=>idMatch(x,m.id)||idMatch(x,m.googleUid));
+    h+=`<div class="f-chip${active?" m-active":""}" style="--mc:${m.color}" onclick="toggleHistMember('${m.id}')"><div class="f-av" style="background:${m.color};">${initials(m.name)}</div>${m.name.split(" ")[0]}</div>`;
+  });
+  h+=`<div class="f-divider"></div>`;
+  [["today","Today"],["yesterday","Yesterday"],["7d","7D"],["30d","30D"],["month","Month"],["custom","Custom"]].forEach(([k,l])=>{
+    h+=`<div class="t-chip${cp===k?" active":""}" onclick="setTrendsPeriod('${k}')">${l}</div>`;
+  });
+  bar.innerHTML=h;
+}
+
+function setTrendsPeriod(p){
+  S.histPeriod=p;
+  const cr=document.getElementById("hist-custom-range");
+  // custom range handled inline for trends
+  renderTrendsFilterBar();
+  if(p!=="custom")renderHistory();
+}
+
+// ── Wrap original render functions ────────────────────────────────────────────
+const _origRenderHistory=renderHistory;
+renderHistory=function(){
+  renderTrendsFilterBar();
+  _origRenderHistory();
+};
+
+// ── Override switchView for 4 tabs ────────────────────────────────────────────
+switchView=function(v,btn){
+  S.view=v;
+  document.querySelectorAll(".bnav-btn").forEach(b=>b.classList.remove("active"));
+  if(btn)btn.classList.add("active");
+  ["today","crew","trends","me"].forEach(t=>{
+    const el=document.getElementById("view-"+t);
+    if(el)el.style.display=t===v?"block":"none";
+  });
+  if(v==="crew"){renderCrewFilterBar();renderCrewTab();renderStreakBoardEl();}
+  if(v==="trends"){initHistory();renderHistory();}
+  if(v==="me")renderProfileView();
+  if(v==="today")render();
+};
+
+// ── Render streak board into element ─────────────────────────────────────────
+function renderStreakBoardEl(){
+  const box=document.getElementById("streak-board-box");if(!box)return;
+  box.innerHTML=`<div class="streak-tabs">
+    <button class="stab fire" id="stab-fire" onclick="toggleStreakTabEl('fire',this)">🔥 Logging</button>
+    <button class="stab" id="stab-star" onclick="toggleStreakTabEl('star',this)">⭐ Goal</button>
+  </div>
+  <div id="sboard-fire">${makeStreakRows(false)}</div>
+  <div id="sboard-star" style="display:none;">${makeStreakRows(true)}</div>`;
+}
+
+function makeStreakRows(goalMode){
+  const td=todayStr();
+  const data=[...cd().members].map(m=>({m,s:goalMode?calcGoalStreak(m.id):calcStreak(m.id)})).sort((a,b)=>b.s-a.s);
+  const maxS=Math.max(...data.map(x=>x.s),1);
+  const medals=["🥇","🥈","🥉"];
+  const color=goalMode?"#92400e":"var(--fire)";
+  const barBg=goalMode?"linear-gradient(90deg,#f59e0b,#fbbf24)":"linear-gradient(90deg,#f97316,#ef4444)";
+  return data.map((x,i)=>{
+    const atRisk=!goalMode&&x.s>0&&!getSteps(x.m.id,td);
+    return`<div style="display:flex;align-items:center;gap:8px;padding:9px 12px;border-bottom:1px solid var(--bg);">
+      <div style="font-size:${i<3?13:11}px;width:20px;text-align:center;${i>=3?"color:var(--text3)":""}">${medals[i]||i+1}</div>
+      ${avEl(x.m,30)}
+      <div style="flex:1;">
+        <div style="font-weight:700;font-size:12px;">${x.m.name.split(" ")[0]}${atRisk?`<span style="background:#fef2f2;color:var(--red);font-size:8px;font-weight:700;border-radius:3px;padding:1px 4px;margin-left:3px;">Log today!</span>`:""}</div>
+        <div style="background:var(--bg);border-radius:2px;height:3px;overflow:hidden;margin-top:3px;"><div style="width:${(x.s/maxS)*100}%;height:100%;border-radius:2px;background:${barBg};"></div></div>
+      </div>
+      <div style="text-align:right;"><div style="font-family:Syne,sans-serif;font-size:15px;font-weight:800;color:${color};">${x.s}</div><div style="font-size:8px;color:var(--text3);">days</div></div>
+    </div>`;
+  }).join("");
+}
+
+function toggleStreakTabEl(type,btn){
+  document.getElementById("sboard-fire").style.display=type==="fire"?"block":"none";
+  document.getElementById("sboard-star").style.display=type==="star"?"block":"none";
+  document.querySelectorAll(".stab").forEach(t=>t.className="stab");
+  btn.className="stab "+type;
+}
+
+// ── Override render for 4 tabs ────────────────────────────────────────────────
+const _origRender=render;
+render=function(){
+  renderHeader();
+  renderTodayKPI();
+  if(S.view==="today"||!S.view){
+    renderCrewGoals();renderMyBox();renderChallenge();renderDateBar();renderTodayList();
+  } else if(S.view==="crew"){
+    renderCrewFilterBar();renderCrewTab();renderStreakBoardEl();
+  } else if(S.view==="trends"){
+    renderHistory();
+  } else if(S.view==="me"){
+    renderProfileView();
+  }
+};
+
+// ── Add crewPeriod and crewMemberFilter to state ──────────────────────────────
+S.crewPeriod="today";
+S.crewMemberFilter="all";
+
+// ── Set max dates ─────────────────────────────────────────────────────────────
+const maxDate=todayStr();
+S.profileDate=maxDate;S.logDate=maxDate;
+["profile-date-inp","date-pick-inp"].forEach(id=>{
+  const el=document.getElementById(id);if(el){el.max=maxDate;el.value=maxDate;}
+});
+
+// Close modals on overlay tap
+document.querySelectorAll(".modal-overlay").forEach(o=>{
+  o.addEventListener("click",e=>{if(e.target===o)o.classList.remove("show");});
+});
 </script>
 </body>
 </html>
