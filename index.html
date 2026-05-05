@@ -522,149 +522,6 @@ input:focus,select:focus{outline:none;}
 
 <script>
 
-// Google Auth state
-let G = { uid: null, name: null, email: null, photoURL: null };
-
-// Firebase
-const firebaseConfig={apiKey:"AIzaSyB94tl_ApfMV0SKz47aV-nWun9XBKtj7Vo",authDomain:"stepcrew-50997.firebaseapp.com",projectId:"stepcrew-50997",storageBucket:"stepcrew-50997.firebasestorage.app",messagingSenderId:"455354914193",appId:"1:455354914193:web:eba08b801cf75dc98cb630"};
-firebase.initializeApp(firebaseConfig);
-const db=firebase.firestore();
-const auth=firebase.auth();
-
-// Google Sign-In — persist across refreshes
-firebase.auth().setPersistence(firebase.auth.Auth.Persistence.LOCAL);
-
-function signInWithGoogle(){
-  const provider=new firebase.auth.GoogleAuthProvider();
-  provider.setCustomParameters({prompt:"select_account"});
-  // Always use popup — more reliable across all mobile browsers
-  auth.signInWithPopup(provider).then(result=>{
-    // Popup succeeded — onAuthStateChanged handles the rest
-    console.log("Signed in:",result.user.displayName);
-  }).catch(e=>{
-    console.error("Popup error:",e.code,e.message);
-    // If popup blocked (rare), try redirect as fallback
-    if(e.code==="auth/popup-blocked"||e.code==="auth/popup-closed-by-user"){
-      firebase.auth().signInWithRedirect(provider);
-    } else {
-      alert("Sign in failed: "+e.message);
-    }
-  });
-}
-
-function signOut(){
-  auth.signOut().then(()=>{
-    try{localStorage.removeItem("sc_session_v2");}catch(e){}
-    location.reload();
-  });
-}
-
-function confirmSignOut(){
-  if(confirm("Sign out of StepCrew? You'll need to sign in with Google again.")){signOut();}
-}
-
-function showSignIn(){
-  const splash=document.getElementById("splash");
-  const splashSpin=document.getElementById("splash-spin");
-  const splashGoogle=document.getElementById("splash-google");
-  splash.style.display="flex";splash.style.opacity="1";
-  if(splashSpin)splashSpin.style.display="none";
-  if(splashGoogle)splashGoogle.style.display="block";
-  document.getElementById("app").classList.remove("active");
-  document.getElementById("onboard").classList.remove("active");
-}
-
-function showApp(){
-  const splash=document.getElementById("splash");
-  splash.style.opacity="0";
-  setTimeout(()=>splash.style.display="none",300);
-  // Fully hide onboard before showing app
-  const ob=document.getElementById("onboard");
-  ob.classList.remove("active");
-  ob.style.display="none";
-  const app=document.getElementById("app");
-  app.style.display="block";
-  app.classList.add("active");
-  document.getElementById("banner-code").textContent=S.activeCrew||"";
-  if(!S.syncInterval)S.syncInterval=setInterval(()=>pullLatest(true),30000);
-  render();
-}
-
-function showOnboard(){
-  const splash=document.getElementById("splash");
-  splash.style.opacity="0";
-  setTimeout(()=>splash.style.display="none",300);
-  const nameDisp=document.getElementById("ob-name-display");
-  const googleName=document.getElementById("ob-google-name");
-  if(nameDisp)nameDisp.textContent=G.name||"";
-  if(googleName)googleName.textContent=G.email?"Signed in as "+G.email:"";
-  // Make sure app is fully hidden
-  const app=document.getElementById("app");
-  app.classList.remove("active");
-  app.style.display="none";
-  const ob=document.getElementById("onboard");
-  ob.style.display="block";
-  ob.classList.add("active");
-}
-
-async function findCrewByGoogleUid(uid,name){
-  const knownCodes=[];
-  try{
-    for(let i=0;i<localStorage.length;i++){
-      const k=localStorage.key(i);
-      if(k&&k.startsWith("sc_data_"))knownCodes.push(k.replace("sc_data_",""));
-    }
-    const sess=JSON.parse(localStorage.getItem("sc_session_v2")||"{}");
-    if(sess.activeCrew&&!knownCodes.includes(sess.activeCrew))knownCodes.push(sess.activeCrew);
-    if(sess.crews)sess.crews.forEach(c=>{if(!knownCodes.includes(c.code))knownCodes.push(c.code);});
-  }catch(e){}
-  // Always try the known crew code as last resort
-  const hardcodedCode="JL1SE9";
-  if(!knownCodes.includes(hardcodedCode))knownCodes.push(hardcodedCode);
-  for(const code of knownCodes){
-    try{
-      const remote=await fbLoad(code);
-      if(!remote)continue;
-      const firstName=name?name.toLowerCase().split(" ")[0]:"";
-      const match=(remote.members||[]).find(m=>
-        idMatch(m.googleUid,uid)||(firstName&&m.name.toLowerCase()===firstName)
-      );
-      if(match){
-        S.myId=match.id;S.activeCrew=code;S.crews=[{code,joinedAt:Date.now()}];
-        S.crewData[code]={members:remote.members||[],steps:remote.steps||{},pushed:remote.pushed||{},crewGoals:remote.crewGoals||{},updatedAt:remote.updatedAt};
-        lsSet("sc_data_"+code,S.crewData[code]);
-        if(uid&&!match.googleUid){
-          const idx=S.crewData[code].members.findIndex(m=>idMatch(m.id,match.id));
-          if(idx>=0)S.crewData[code].members[idx].googleUid=uid;
-          fbSave(code,S.crewData[code]);
-        }
-        saveSession();
-        return true;
-      }
-    }catch(e){console.error("findCrew error:",e);}
-  }
-  return false;
-}
-
-auth.onAuthStateChanged(async user=>{
-  if(!user){showSignIn();return;}
-  G.uid=user.uid;
-  G.name=user.displayName||user.email.split("@")[0];
-  G.email=user.email;
-  G.photoURL=user.photoURL;
-  try{
-    const restored=await restoreSession();
-    if(restored&&S.activeCrew&&cd().members.length>0){
-      showApp();return;
-    }
-    const found=await findCrewByGoogleUid(G.uid,G.name);
-    if(found){showApp();}
-    else{showOnboard();}
-  }catch(e){
-    console.error("Auth flow error:",e);
-    showOnboard();
-  }
-});
 
 async function fbSave(code,data){try{await db.collection("crews").doc(code).set({...data,updatedAt:Date.now()});return true;}catch(e){console.error("Save:",e);return false;}}
 async function fbLoad(code){try{const s=await db.collection("crews").doc(code).get();return s.exists?s.data():null;}catch(e){console.error("Load:",e);return null;}}
@@ -1648,6 +1505,151 @@ S.logDate=maxDate;
 });
 // Add sign out button to header after render
 // Auth flow handled by auth.onAuthStateChanged above
+
+
+// Google Auth state
+let G = { uid: null, name: null, email: null, photoURL: null };
+
+// Firebase
+const firebaseConfig={apiKey:"AIzaSyB94tl_ApfMV0SKz47aV-nWun9XBKtj7Vo",authDomain:"stepcrew-50997.firebaseapp.com",projectId:"stepcrew-50997",storageBucket:"stepcrew-50997.firebasestorage.app",messagingSenderId:"455354914193",appId:"1:455354914193:web:eba08b801cf75dc98cb630"};
+firebase.initializeApp(firebaseConfig);
+const db=firebase.firestore();
+const auth=firebase.auth();
+
+// Google Sign-In — persist across refreshes
+firebase.auth().setPersistence(firebase.auth.Auth.Persistence.LOCAL);
+
+function signInWithGoogle(){
+  const provider=new firebase.auth.GoogleAuthProvider();
+  provider.setCustomParameters({prompt:"select_account"});
+  // Always use popup — more reliable across all mobile browsers
+  auth.signInWithPopup(provider).then(result=>{
+    // Popup succeeded — onAuthStateChanged handles the rest
+    console.log("Signed in:",result.user.displayName);
+  }).catch(e=>{
+    console.error("Popup error:",e.code,e.message);
+    // If popup blocked (rare), try redirect as fallback
+    if(e.code==="auth/popup-blocked"||e.code==="auth/popup-closed-by-user"){
+      firebase.auth().signInWithRedirect(provider);
+    } else {
+      alert("Sign in failed: "+e.message);
+    }
+  });
+}
+
+function signOut(){
+  auth.signOut().then(()=>{
+    try{localStorage.removeItem("sc_session_v2");}catch(e){}
+    location.reload();
+  });
+}
+
+function confirmSignOut(){
+  if(confirm("Sign out of StepCrew? You'll need to sign in with Google again.")){signOut();}
+}
+
+function showSignIn(){
+  const splash=document.getElementById("splash");
+  const splashSpin=document.getElementById("splash-spin");
+  const splashGoogle=document.getElementById("splash-google");
+  splash.style.display="flex";splash.style.opacity="1";
+  if(splashSpin)splashSpin.style.display="none";
+  if(splashGoogle)splashGoogle.style.display="block";
+  document.getElementById("app").classList.remove("active");
+  document.getElementById("onboard").classList.remove("active");
+}
+
+function showApp(){
+  const splash=document.getElementById("splash");
+  splash.style.opacity="0";
+  setTimeout(()=>splash.style.display="none",300);
+  // Fully hide onboard before showing app
+  const ob=document.getElementById("onboard");
+  ob.classList.remove("active");
+  ob.style.display="none";
+  const app=document.getElementById("app");
+  app.style.display="block";
+  app.classList.add("active");
+  document.getElementById("banner-code").textContent=S.activeCrew||"";
+  if(!S.syncInterval)S.syncInterval=setInterval(()=>pullLatest(true),30000);
+  render();
+}
+
+function showOnboard(){
+  const splash=document.getElementById("splash");
+  splash.style.opacity="0";
+  setTimeout(()=>splash.style.display="none",300);
+  const nameDisp=document.getElementById("ob-name-display");
+  const googleName=document.getElementById("ob-google-name");
+  if(nameDisp)nameDisp.textContent=G.name||"";
+  if(googleName)googleName.textContent=G.email?"Signed in as "+G.email:"";
+  // Make sure app is fully hidden
+  const app=document.getElementById("app");
+  app.classList.remove("active");
+  app.style.display="none";
+  const ob=document.getElementById("onboard");
+  ob.style.display="block";
+  ob.classList.add("active");
+}
+
+async function findCrewByGoogleUid(uid,name){
+  const knownCodes=[];
+  try{
+    for(let i=0;i<localStorage.length;i++){
+      const k=localStorage.key(i);
+      if(k&&k.startsWith("sc_data_"))knownCodes.push(k.replace("sc_data_",""));
+    }
+    const sess=JSON.parse(localStorage.getItem("sc_session_v2")||"{}");
+    if(sess.activeCrew&&!knownCodes.includes(sess.activeCrew))knownCodes.push(sess.activeCrew);
+    if(sess.crews)sess.crews.forEach(c=>{if(!knownCodes.includes(c.code))knownCodes.push(c.code);});
+  }catch(e){}
+  // Always try the known crew code as last resort
+  const hardcodedCode="JL1SE9";
+  if(!knownCodes.includes(hardcodedCode))knownCodes.push(hardcodedCode);
+  for(const code of knownCodes){
+    try{
+      const remote=await fbLoad(code);
+      if(!remote)continue;
+      const firstName=name?name.toLowerCase().split(" ")[0]:"";
+      const match=(remote.members||[]).find(m=>
+        idMatch(m.googleUid,uid)||(firstName&&m.name.toLowerCase()===firstName)
+      );
+      if(match){
+        S.myId=match.id;S.activeCrew=code;S.crews=[{code,joinedAt:Date.now()}];
+        S.crewData[code]={members:remote.members||[],steps:remote.steps||{},pushed:remote.pushed||{},crewGoals:remote.crewGoals||{},updatedAt:remote.updatedAt};
+        lsSet("sc_data_"+code,S.crewData[code]);
+        if(uid&&!match.googleUid){
+          const idx=S.crewData[code].members.findIndex(m=>idMatch(m.id,match.id));
+          if(idx>=0)S.crewData[code].members[idx].googleUid=uid;
+          fbSave(code,S.crewData[code]);
+        }
+        saveSession();
+        return true;
+      }
+    }catch(e){console.error("findCrew error:",e);}
+  }
+  return false;
+}
+
+auth.onAuthStateChanged(async user=>{
+  if(!user){showSignIn();return;}
+  G.uid=user.uid;
+  G.name=user.displayName||user.email.split("@")[0];
+  G.email=user.email;
+  G.photoURL=user.photoURL;
+  try{
+    const restored=await restoreSession();
+    if(restored&&S.activeCrew&&cd().members.length>0){
+      showApp();return;
+    }
+    const found=await findCrewByGoogleUid(G.uid,G.name);
+    if(found){showApp();}
+    else{showOnboard();}
+  }catch(e){
+    console.error("Auth flow error:",e);
+    showOnboard();
+  }
+});
 
 
 // ── NEW: Render Today KPI row ─────────────────────────────────────────────────
