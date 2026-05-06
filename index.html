@@ -5,16 +5,16 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>StepCrew 👟</title>
 <meta name="theme-color" content="#f4f4f8"/>
-<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Syne:wght@700;800&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700;9..40,800&family=Syne:wght@700;800&display=swap" rel="stylesheet"/>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 <style>
-:root{--bg:#f0f0f7;--surface:#fff;--border:#e2e2ef;--text:#18181f;--text2:#6b7280;--text3:#9ca3af;--accent:#5b5fc7;--accent2:#7b7fef;--accent-bg:#eeeeff;--green:#10b981;--gold:#f59e0b;--red:#ef4444;--shadow:0 2px 16px rgba(99,102,241,0.07);--shadow-lg:0 8px 40px rgba(99,102,241,0.13);--r:12px;--r-sm:8px;}
+:root{--bg:#f4f4f8;--surface:#fff;--border:#e4e4ec;--text:#18181f;--text2:#6b7280;--text3:#9ca3af;--accent:#6366f1;--accent2:#818cf8;--accent-bg:#eef0ff;--green:#10b981;--gold:#f59e0b;--red:#ef4444;--shadow:0 2px 16px rgba(99,102,241,0.07);--shadow-lg:0 8px 40px rgba(99,102,241,0.13);--r:14px;--r-sm:9px;}
 *{box-sizing:border-box;margin:0;padding:0;}
-body{background:var(--bg);color:var(--text);font-family:"Outfit",sans-serif;min-height:100vh;}
-button,input,select{font-family:"Outfit",sans-serif;}
+body{background:var(--bg);color:var(--text);font-family:"DM Sans",sans-serif;min-height:100vh;}
+button,input,select{font-family:"DM Sans",sans-serif;}
 input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;}
 input:focus,select:focus{outline:none;}
 @keyframes spin{to{transform:rotate(360deg);}}
@@ -59,19 +59,19 @@ input:focus,select:focus{outline:none;}
 .bnav{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid var(--border);padding:6px 0 20px;z-index:100;box-shadow:0 -2px 16px rgba(0,0,0,0.05);}
 .bnav-inner{max-width:640px;margin:0 auto;display:flex;}
 .bnav-btn{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;background:none;border:none;cursor:pointer;padding:6px 0;}
-.bnav-lbl{font-size:9px;font-weight:600;color:var(--text3);}.bnav-btn.active .bnav-lbl{color:var(--accent);}
+.bnav-lbl{font-size:10px;font-weight:600;color:var(--text3);}
 .bnav-btn.active .bnav-lbl{color:var(--accent);}
 .bnav-av{width:26px;height:26px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;color:#fff;margin:0 auto;}
-.content{max-width:640px;margin:0 auto;padding:10px 12px 0;}
-.card{background:#fff;border-radius:var(--r);padding:11px;margin-bottom:9px;box-shadow:var(--shadow);}
+.content{max-width:640px;margin:0 auto;padding:14px 16px 0;}
+.card{background:#fff;border-radius:var(--r);padding:16px;margin-bottom:12px;box-shadow:var(--shadow);}
 .pbar{background:var(--bg);border-radius:6px;height:6px;overflow:hidden;}
 .pbar-fill{height:100%;border-radius:6px;transition:width 0.5s;}
 .tag{font-size:9px;border-radius:4px;padding:2px 6px;font-weight:700;letter-spacing:0.5px;margin-left:4px;}
 .tag-you{background:var(--accent-bg);color:var(--accent);}
 .tag-mod{background:#fef3c7;color:#92400e;}
 .tag-manual{background:#f0fdf4;color:#16a34a;}
-.sec-lbl{font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:1.5px;margin-top:4px;margin-bottom:10px;}
-.chip{padding:5px 12px;border-radius:20px;border:1.5px solid var(--border);background:#fff;font-size:12px;font-weight:600;color:var(--text2);cursor:pointer;transition:all 0.15s;}
+.sec-lbl{font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:10px;}
+.chip{padding:7px 14px;border-radius:20px;border:1.5px solid var(--border);background:#fff;font-size:12px;font-weight:600;color:var(--text2);cursor:pointer;transition:all 0.15s;}
 .chip.active{background:var(--accent);border-color:var(--accent);color:#fff;}
 .my-box{background:#fff;border-radius:var(--r);padding:16px;margin-bottom:12px;box-shadow:var(--shadow);border-top:3px solid var(--accent);}
 .mb-row{display:flex;align-items:center;gap:12px;margin-bottom:12px;}
@@ -86,7 +86,7 @@ input:focus,select:focus{outline:none;}
 .loc-btn{background:var(--bg);border:1.5px solid var(--border);color:var(--text2);border-radius:var(--r-sm);padding:10px;font-size:12px;cursor:pointer;}
 .cx-btn{background:none;border:none;color:var(--text3);cursor:pointer;font-size:16px;padding:0 4px;}
 .push-hint{font-size:10px;color:var(--text3);text-align:center;margin-top:6px;}
-.date-bar{background:#fff;border-radius:var(--r);padding:10px 12px;margin-bottom:12px;box-shadow:var(--shadow);}
+.date-bar{background:#fff;border-radius:var(--r);padding:12px 14px;margin-bottom:12px;box-shadow:var(--shadow);}
 .date-chips{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;}
 .date-inp{background:var(--bg);border:1.5px solid var(--border);color:var(--text2);border-radius:var(--r-sm);padding:6px 10px;font-size:11px;cursor:pointer;width:100%;}
 .crew-goals-box{background:linear-gradient(135deg,var(--accent),var(--accent2));border-radius:var(--r);padding:16px;margin-bottom:12px;color:#fff;display:none;}
@@ -96,7 +96,7 @@ input:focus,select:focus{outline:none;}
 .cg-pbar-fill{height:100%;border-radius:5px;background:#fff;transition:width 0.5s;}
 .challenge{background:#fff;border-radius:var(--r);padding:14px 16px;margin-bottom:12px;box-shadow:var(--shadow);display:flex;align-items:center;gap:12px;}
 .challenge.done{background:linear-gradient(135deg,#f0fdf4,#dcfce7);border:1.5px solid #86efac;}
-.member-card{background:#fff;border-radius:var(--r);padding:11px 13px;margin-bottom:10px;box-shadow:var(--shadow);transition:transform 0.15s;}
+.member-card{background:#fff;border-radius:var(--r);padding:14px 16px;margin-bottom:10px;box-shadow:var(--shadow);transition:transform 0.15s;}
 .member-card.leader{border-left:3px solid var(--gold);}
 .mc-row{display:flex;align-items:center;gap:10px;margin-bottom:8px;}
 .mc-num{font-family:"Syne",sans-serif;font-size:19px;font-weight:800;}
@@ -105,17 +105,17 @@ input:focus,select:focus{outline:none;}
 .mf-pill.active{border-color:var(--mc,var(--accent));background:rgba(99,102,241,0.08);color:var(--mc,var(--accent));}
 .mf-av-sm{width:18px;height:18px;border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:800;color:#fff;flex-shrink:0;}
 .stat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px;}
-.stat-card{background:#fff;border-radius:var(--r);padding:10px 9px;box-shadow:var(--shadow);text-align:center;}
+.stat-card{background:#fff;border-radius:var(--r);padding:12px;box-shadow:var(--shadow);text-align:center;}
 .stat-val{font-family:"Syne",sans-serif;font-size:19px;font-weight:800;}
 .stat-lbl{font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:1px;margin-top:3px;}
-.chart-card{background:#fff;border-radius:var(--r);padding:13px;margin-bottom:9px;box-shadow:var(--shadow);}
+.chart-card{background:#fff;border-radius:var(--r);padding:16px;margin-bottom:12px;box-shadow:var(--shadow);}
 .chart-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;}
 .chart-ttl{font-size:11px;font-weight:700;color:var(--text);text-transform:uppercase;letter-spacing:1px;}
 .chart-svg{width:100%;height:110px;}
 .chart-x{display:flex;justify-content:space-between;font-size:9px;color:var(--text3);margin-bottom:8px;}
 .chart-legend{display:flex;gap:10px;flex-wrap:wrap;}
 .legend-item{display:flex;align-items:center;gap:5px;font-size:11px;font-weight:600;color:var(--text2);}
-.cal-card{background:#fff;border-radius:var(--r);padding:13px;margin-bottom:9px;box-shadow:var(--shadow);}
+.cal-card{background:#fff;border-radius:var(--r);padding:16px;margin-bottom:12px;box-shadow:var(--shadow);}
 .cal-nav{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;}
 .cal-nav-btn{background:var(--bg);border:1.5px solid var(--border);color:var(--text2);width:30px;height:30px;border-radius:9px;cursor:pointer;font-size:15px;display:flex;align-items:center;justify-content:center;}
 .cal-month{font-size:14px;font-weight:700;color:var(--text);}
@@ -134,8 +134,8 @@ input:focus,select:focus{outline:none;}
 .ph-stats{display:flex;gap:20px;}
 .ph-stat-val{font-family:"Syne",sans-serif;font-size:18px;font-weight:800;}
 .ph-stat-lbl{font-size:10px;opacity:0.7;margin-top:1px;}
-.settings-section{background:#fff;border-radius:var(--r);overflow:hidden;margin-bottom:9px;box-shadow:var(--shadow);}
-.settings-hdr{padding:9px 13px;border-bottom:1px solid var(--border);font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:1.5px;}
+.settings-section{background:#fff;border-radius:var(--r);overflow:hidden;margin-bottom:12px;box-shadow:var(--shadow);}
+.settings-hdr{padding:11px 16px;border-bottom:1px solid var(--border);font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:1.5px;}
 .settings-row{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid var(--bg);cursor:pointer;transition:background 0.15s;}
 .settings-row:last-child{border-bottom:none;}
 .settings-row:hover{background:var(--bg);}
@@ -215,28 +215,9 @@ input:focus,select:focus{outline:none;}
 .sb-bar{height:4px;background:var(--bg);border-radius:2px;margin-top:4px;overflow:hidden;}
 .sb-bar-fill{height:100%;border-radius:2px;background:linear-gradient(90deg,#f97316,#ef4444);}
 .sb-risk{background:#fef2f2;color:var(--red);font-size:9px;font-weight:700;border-radius:4px;padding:2px 5px;margin-left:4px;}
-.num{font-family:"Fraunces",serif;font-weight:600;font-variant-numeric:tabular-nums;letter-spacing:-0.5px;}.num-lg{font-family:"Fraunces",serif;font-weight:700;font-variant-numeric:tabular-nums;letter-spacing:-1px;}
-.kpi-row{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-bottom:9px;}
-.kpi{background:#fff;border-radius:var(--r);padding:10px 9px;box-shadow:var(--shadow);text-align:center;}
-.kpi-val{font-family:"Syne",sans-serif;font-size:17px;font-weight:800;line-height:1.1;}
-.kpi-lbl{font-size:9px;color:var(--text3);font-weight:600;margin-top:2px;text-transform:uppercase;letter-spacing:0.5px;}
-.spill{display:inline-flex;align-items:center;gap:3px;border-radius:20px;padding:2px 7px;font-size:9px;font-weight:700;margin-right:3px;}
-.spill.fire{background:#fff4ee;color:#e05c20;border:1px solid #fed7aa;}
-.spill.star{background:#fffbeb;color:#92400e;border:1px solid #fde68a;}
-.filter-bar{position:sticky;top:93px;z-index:90;background:var(--bg);padding:6px 0 4px;margin:0 -16px;padding-left:12px;}
-.f-chip{display:flex;align-items:center;gap:4px;padding:5px 10px;border-radius:20px;border:1.5px solid var(--border);background:#fff;font-size:11px;font-weight:600;color:var(--text2);white-space:nowrap;flex-shrink:0;cursor:pointer;transition:all 0.15s;}
-.f-chip.active{background:var(--accent);border-color:var(--accent);color:#fff;}
-.t-chip{padding:5px 10px;border-radius:20px;border:1.5px solid var(--border);background:#fff;font-size:11px;font-weight:600;color:var(--text2);white-space:nowrap;flex-shrink:0;cursor:pointer;}
-.t-chip.active{background:var(--accent);border-color:var(--accent);color:#fff;}
-.f-divider{width:1px;height:18px;background:var(--border);flex-shrink:0;align-self:center;margin:0 2px;}
-.top3-card{background:#fff;border-radius:var(--r);overflow:hidden;box-shadow:var(--shadow);margin-bottom:9px;}
-.top3-hdr{display:flex;align-items:center;justify-content:space-between;padding:9px 12px 7px;}
-.top3-title{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;}
-.view-all{font-size:11px;font-weight:700;color:var(--accent);background:none;border:none;cursor:pointer;font-family:"Outfit",sans-serif;}
-.t3-row{display:flex;align-items:center;gap:8px;padding:8px 12px;border-top:1px solid var(--bg);}
-.crew-header-card{background:linear-gradient(135deg,var(--accent),var(--accent2));border-radius:var(--r);padding:12px 13px;margin-bottom:9px;color:#fff;display:flex;align-items:center;justify-content:space-between;}
 .toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:var(--text);color:#fff;padding:10px 20px;border-radius:20px;z-index:999;font-size:13px;font-weight:600;box-shadow:var(--shadow-lg);white-space:nowrap;opacity:0;transition:opacity 0.3s;pointer-events:none;}
 .toast.show{opacity:1;}
+.num{font-family:"Fraunces",serif;font-weight:600;letter-spacing:-0.5px;}.num-lg{font-family:"Fraunces",serif;font-weight:700;letter-spacing:-1px;}
 </style>
 </head>
 <body>
@@ -303,45 +284,35 @@ input:focus,select:focus{outline:none;}
   </div>
 
   <div id="view-dashboard" class="content">
-    <div style="height:6px;"></div>
-    <div class="kpi-row" id="today-kpi"></div>
     <div id="crew-goals-box" class="crew-goals-box"></div>
     <div id="my-box"></div>
     <div id="challenge-box"></div>
     <div class="date-bar">
-      <div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:7px;" id="date-chips">
+      <div class="date-chips" id="date-chips">
         <button class="chip active" onclick="setLogDate('today',this)">Today</button>
         <button class="chip" onclick="setLogDate('yesterday',this)">Yesterday</button>
         <button class="chip" onclick="setLogDate('pick',this)">Pick Date</button>
       </div>
-      <input type="date" id="date-pick-inp" style="display:none;width:100%;background:var(--bg);border:1.5px solid var(--border);color:var(--text2);border-radius:var(--r-sm);padding:6px 10px;font-size:11px;font-family:Outfit,sans-serif;margin-bottom:5px;" onchange="setLogDate('custom',this)"/>
-      <div id="date-display" style="font-size:10px;color:var(--text3);"></div>
+      <input type="date" id="date-pick-inp" style="display:none;" class="date-inp" onchange="setLogDate('custom',this)"/>
+      <div id="date-display" style="font-size:11px;color:var(--text3);"></div>
     </div>
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
-      <div class="sec-lbl" style="margin-bottom:0;">Leaderboard</div>
-      <button onclick="switchView('crew',document.getElementById('bnav-crew'))" style="font-size:11px;font-weight:700;color:var(--accent);background:none;border:none;cursor:pointer;font-family:Outfit,sans-serif;">View all →</button>
-    </div>
+    <div class="sec-lbl">Leaderboard</div>
     <div id="today-list"></div>
   </div>
   <!-- CREW TAB -->
   <div id="view-crew" class="content" style="display:none;">
     <div style="height:6px;"></div>
-    <!-- Weekly recap centrepiece -->
     <div id="crew-recap-box"></div>
-    <!-- Weekly badges by member -->
     <div class="sec-lbl" id="crew-badges-lbl" style="display:none;">This Week's Badges</div>
     <div id="crew-badges-box"></div>
-    <!-- Streak board -->
     <div class="sec-lbl">🔥 Current Streaks</div>
     <div id="crew-streak-board"></div>
     <button onclick="openModal('modal-add')" style="width:100%;padding:10px;border-radius:var(--r-sm);border:1.5px dashed var(--border);background:#fff;color:var(--text2);font-size:12px;font-weight:600;cursor:pointer;margin-top:4px;font-family:Outfit,sans-serif;">+ Add Member</button>
   </div>
 
   <div id="view-history" class="content" style="display:none;">
-    <div style="position:sticky;top:93px;z-index:90;background:var(--bg);padding:7px 0 5px;margin:0 -12px;padding-left:12px;">
-      <div style="display:flex;gap:5px;overflow-x:auto;scrollbar-width:none;padding-right:12px;padding-bottom:2px;" id="hist-filter"></div>
-      <div style="display:flex;gap:5px;overflow-x:auto;scrollbar-width:none;padding-right:12px;margin-top:5px;" id="hist-period-chips"></div>
-    </div>
+    <div class="member-filter" id="hist-filter"></div>
+    <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px;" id="hist-period-chips"></div>
     <div id="hist-custom-range" style="display:none;" class="card">
       <div style="display:flex;gap:8px;align-items:center;">
         <input type="date" id="hist-start" class="date-inp" style="flex:1;width:auto;"/>
@@ -387,16 +358,14 @@ input:focus,select:focus{outline:none;}
   <div id="view-profile" class="content" style="display:none;">
     <div style="height:6px;"></div>
     <div class="profile-hero" id="profile-hero"></div>
-    <!-- Personal badges -->
-    <div class="settings-section" id="me-badges-section">
-      <div class="settings-hdr" style="display:flex;justify-content:space-between;align-items:center;">🏅 My Badges<span id="me-badge-count" style="font-size:10px;color:var(--accent);font-weight:700;"></span></div>
+    <div class="settings-section">
+      <div class="settings-hdr" style="display:flex;justify-content:space-between;align-items:center;">🎖️ My Badges<span id="me-badge-count" style="font-size:10px;color:var(--accent);font-weight:700;"></span></div>
       <div id="me-badge-grid" style="display:grid;grid-template-columns:repeat(4,1fr);gap:7px;padding:12px 13px;"></div>
     </div>
-    <!-- Personal chart -->
-    <div class="chart-card" id="me-chart-card">
+    <div class="card" id="me-chart-card">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
-        <div class="chart-ttl">My Steps · Last 7 Days</div>
-        <div class="num" style="font-size:14px;color:var(--accent);" id="me-chart-total"></div>
+        <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;">My Steps · Last 7 Days</div>
+        <div style="font-size:13px;font-weight:700;color:var(--accent);" id="me-chart-total"></div>
       </div>
       <div style="display:flex;">
         <div id="me-y-axis" style="display:flex;flex-direction:column;justify-content:space-between;align-items:flex-end;padding-right:4px;padding-bottom:18px;min-width:28px;"></div>
@@ -469,7 +438,7 @@ input:focus,select:focus{outline:none;}
         <span style="font-size:18px;">📊</span><span class="bnav-lbl">Today</span>
       </button>
       <button class="bnav-btn" id="bnav-crew" onclick="switchView('crew',this)">
-        <span style="font-size:18px;">👥</span><span class="bnav-lbl">Crew</span>
+        <span style="font-size:18px;">🏆</span><span class="bnav-lbl">Crew</span>
       </button>
       <button class="bnav-btn" id="bnav-history" onclick="switchView('history',this)">
         <span style="font-size:18px;">📈</span><span class="bnav-lbl">Trends</span>
@@ -540,9 +509,6 @@ input:focus,select:focus{outline:none;}
 </div>
 <script>
 // Google Auth state
-const COLORS=["#6366f1","#10b981","#f59e0b","#ef4444","#8b5cf6","#06b6d4","#f97316","#ec4899","#14b8a6","#84cc16"];
-let S={myId:null,crews:[],activeCrew:null,crewData:{},view:"dashboard",editingId:null,editingModal:null,syncMode:"manual",selectedColor:COLORS[0],selectedSync:"manual",chalIdx:0,modUnlocked:false,syncInterval:null,histPeriod:"7d",histMembers:["all"],histStart:null,histEnd:null,calMonth:new Date().getMonth(),calYear:new Date().getFullYear(),profileDate:"",logDate:"",crewPeriod:"today",crewMemberFilter:"all",crewStreakTab:"fire"};
-
 let G = { uid: null, name: null, email: null, photoURL: null };
 
 // Firebase
@@ -583,6 +549,124 @@ function confirmSignOut(){
   if(confirm("Sign out of StepCrew? You'll need to sign in with Google again.")){signOut();}
 }
 
+function showSignIn(){
+  const splash=document.getElementById("splash");
+  const splashSpin=document.getElementById("splash-spin");
+  const splashGoogle=document.getElementById("splash-google");
+  splash.style.display="flex";splash.style.opacity="1";
+  if(splashSpin)splashSpin.style.display="none";
+  if(splashGoogle)splashGoogle.style.display="block";
+  document.getElementById("app").classList.remove("active");
+  document.getElementById("onboard").classList.remove("active");
+}
+
+function showApp(){
+  const splash=document.getElementById("splash");
+  splash.style.opacity="0";
+  setTimeout(()=>splash.style.display="none",300);
+  document.getElementById("app").classList.add("active");
+  document.getElementById("banner-code").textContent=S.activeCrew||"";
+  if(!S.syncInterval)S.syncInterval=setInterval(()=>pullLatest(true),30000);
+  render();
+}
+
+function showOnboard(){
+  const splash=document.getElementById("splash");
+  splash.style.opacity="0";
+  setTimeout(()=>splash.style.display="none",300);
+  const nameDisp=document.getElementById("ob-name-display");
+  const googleName=document.getElementById("ob-google-name");
+  if(nameDisp)nameDisp.textContent=G.name||"";
+  if(googleName)googleName.textContent=G.email?"Signed in as "+G.email:"";
+  document.getElementById("onboard").classList.add("active");
+}
+
+async function findCrewByGoogleUid(uid,name){
+  const knownCodes=[];
+  try{
+    for(let i=0;i<localStorage.length;i++){
+      const k=localStorage.key(i);
+      if(k&&k.startsWith("sc_data_"))knownCodes.push(k.replace("sc_data_",""));
+    }
+    const sess=JSON.parse(localStorage.getItem("sc_session_v2")||"{}");
+    if(sess.activeCrew&&!knownCodes.includes(sess.activeCrew))knownCodes.push(sess.activeCrew);
+    if(sess.crews)sess.crews.forEach(c=>{if(!knownCodes.includes(c.code))knownCodes.push(c.code);});
+  }catch(e){}
+  // Always try the known crew code as last resort
+  const hardcodedCode="JL1SE9";
+  if(!knownCodes.includes(hardcodedCode))knownCodes.push(hardcodedCode);
+  for(const code of knownCodes){
+    try{
+      const remote=await fbLoad(code);
+      if(!remote)continue;
+      const firstName=name?name.toLowerCase().split(" ")[0]:"";
+      const match=(remote.members||[]).find(m=>
+        idMatch(m.googleUid,uid)||(firstName&&m.name.toLowerCase()===firstName)
+      );
+      if(match){
+        S.myId=match.id;S.activeCrew=code;S.crews=[{code,joinedAt:Date.now()}];
+        S.crewData[code]={members:remote.members||[],steps:remote.steps||{},pushed:remote.pushed||{},crewGoals:remote.crewGoals||{},updatedAt:remote.updatedAt};
+        lsSet("sc_data_"+code,S.crewData[code]);
+        if(uid&&!match.googleUid){
+          const idx=S.crewData[code].members.findIndex(m=>idMatch(m.id,match.id));
+          if(idx>=0)S.crewData[code].members[idx].googleUid=uid;
+          fbSave(code,S.crewData[code]);
+        }
+        saveSession();
+        return true;
+      }
+    }catch(e){console.error("findCrew error:",e);}
+  }
+  return false;
+}
+
+auth.onAuthStateChanged(async user=>{
+  if(!user){showSignIn();return;}
+  G.uid=user.uid;
+  G.name=user.displayName||user.email.split("@")[0];
+  G.email=user.email;
+  G.photoURL=user.photoURL;
+  const restored=await restoreSession();
+  if(restored&&S.activeCrew&&cd().members.length>0){
+    showApp();
+  } else {
+    const found=await findCrewByGoogleUid(G.uid,G.name);
+    if(found){showApp();}
+    else{showOnboard();}
+  }
+});
+
+async function fbSave(code,data){try{await db.collection("crews").doc(code).set({...data,updatedAt:Date.now()});return true;}catch(e){console.error("Save:",e);return false;}}
+async function fbLoad(code){try{const s=await db.collection("crews").doc(code).get();return s.exists?s.data():null;}catch(e){console.error("Load:",e);return null;}}
+function lsSet(k,v){try{localStorage.setItem(k,JSON.stringify(v));}catch(e){}}
+function lsGet(k){try{const r=localStorage.getItem(k);return r?JSON.parse(r):null;}catch(e){return null;}}
+
+const COLORS=["#6366f1","#10b981","#f59e0b","#ef4444","#8b5cf6","#06b6d4","#f97316","#ec4899","#14b8a6","#84cc16"];
+const CHALLENGES=[
+  {id:"5k",label:"5K Club",desc:"Everyone hits 5,000 today",t:5000,type:"all"},
+  {id:"10k",label:"10K Club",desc:"Everyone hits 10,000 today",t:10000,type:"all"},
+  {id:"g30k",label:"Group 30K",desc:"Crew total hits 30,000",t:30000,type:"group"},
+  {id:"g50k",label:"Group 50K",desc:"Crew total hits 50,000",t:50000,type:"group"},
+  {id:"nozero",label:"No Zero",desc:"Everyone logs 1,000+ steps",t:1000,type:"all"},
+];
+
+let S={myId:null,crews:[],activeCrew:null,crewData:{},view:"dashboard",editingId:null,editingModal:null,syncMode:"manual",selectedColor:COLORS[0],selectedSync:"manual",chalIdx:0,modUnlocked:false,syncInterval:null,histPeriod:"7d",histMembers:["all"],histStart:null,histEnd:null,calMonth:new Date().getMonth(),calYear:new Date().getFullYear(),profileDate:"",logDate:""};
+
+function todayStr(){const d=new Date();return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");}
+function yesterdayStr(){const d=new Date();d.setDate(d.getDate()-1);return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");}
+function daysAgo(n){const d=[];for(let i=n-1;i>=0;i--){const x=new Date();x.setDate(x.getDate()-i);d.push(x.getFullYear()+"-"+String(x.getMonth()+1).padStart(2,"0")+"-"+String(x.getDate()).padStart(2,"0"));}return d;}
+function monthDaysArr(m,y){const d=[];const n=new Date(y,m+1,0).getDate();for(let i=1;i<=n;i++){const x=new Date(y,m,i);d.push(x.getFullYear()+"-"+String(x.getMonth()+1).padStart(2,"0")+"-"+String(x.getDate()).padStart(2,"0"));}return d;}
+function currMonthDays(){return monthDaysArr(new Date().getMonth(),new Date().getFullYear());}
+function fmtDate(s){return new Date(s+"T00:00:00").toLocaleDateString("en-US",{weekday:"short",month:"short",day:"numeric"});}
+function shortDay(s){return new Date(s+"T00:00:00").toLocaleDateString("en-US",{weekday:"short"});}
+function shortDate(s){return new Date(s+"T00:00:00").toLocaleDateString("en-US",{month:"short",day:"numeric"});}
+function monthName(m,y){return new Date(y,m,1).toLocaleDateString("en-US",{month:"long",year:"numeric"});}
+function genCode(){return Math.random().toString(36).slice(2,8).toUpperCase();}
+function timeAgo(ts){if(!ts)return"never";const s=Math.floor((Date.now()-ts)/1000);if(s<60)return"just now";if(s<3600)return Math.floor(s/60)+"m ago";return Math.floor(s/3600)+"h ago";}
+function initials(name){return(name||"?").trim().split(/\s+/).map(w=>w[0]).join("").toUpperCase().slice(0,2);}
+function avEl(m,sz){sz=sz||40;const fs=Math.round(sz*0.38);return`<div style="width:${sz}px;height:${sz}px;border-radius:${Math.round(sz*0.28)}px;background:${m.color};display:flex;align-items:center;justify-content:center;font-size:${fs}px;font-weight:800;color:#fff;flex-shrink:0;">${initials(m.name)}</div>`;}
+function toast(msg){const t=document.getElementById("toast");t.textContent=msg;t.classList.add("show");setTimeout(()=>t.classList.remove("show"),2800);}
+
 function cd(){return S.crewData[S.activeCrew]||{members:[],steps:{},pushed:{},crewGoals:{dailySteps:null,weeklySteps:null,dailyMsg:"",weeklyMsg:"",modId:null,modPin:null,crewName:""}};}
 function getSteps(mid,dk){
   const day=cd().steps[dk]||{};
@@ -601,21 +685,6 @@ function calcStreak(mid){
   for(let i=0;i<365;i++){
     const k=d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
     if(getSteps(mid,k)>0)st++;
-    else break;
-    d.setDate(d.getDate()-1);
-  }
-  return st;
-}
-function calcGoalStreak(mid){
-  const m=cd().members.find(m=>idMatch(m.id,mid));
-  if(!m)return 0;
-  const td=todayStr();
-  const hitToday=getSteps(mid,td)>=m.goal;
-  let st=0,d=new Date();
-  if(!hitToday)d.setDate(d.getDate()-1);
-  for(let i=0;i<365;i++){
-    const k=d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
-    if(getSteps(mid,k)>=m.goal)st++;
     else break;
     d.setDate(d.getDate()-1);
   }
@@ -781,34 +850,7 @@ async function saveStepsForDate(mid,dk,val,share){
   return true;
 }
 
-function renderTodayKPI(){
-  const box=document.getElementById("today-kpi");if(!box)return;
-  const me=myMember();
-  const td=S.logDate||todayStr();
-  const mySteps=me?getSteps(me.id,td):0;
-  const members=cd().members;
-  const crewTotal=members.reduce((s,m)=>s+getSteps(m.id,td),0);
-  const crewAvg=members.length?Math.round(crewTotal/members.length):0;
-  const topWalker=[...members].sort((a,b)=>getSteps(b.id,td)-getSteps(a.id,td))[0];
-  box.innerHTML=`
-    <div class="kpi"><div class="num-lg" style="font-size:20px;color:var(--accent);">${mySteps.toLocaleString()}</div><div class="kpi-lbl">My Steps</div></div>
-    <div class="kpi"><div class="num-lg" style="font-size:20px;color:var(--green);">${crewAvg.toLocaleString()}</div><div class="kpi-lbl">Crew Avg</div></div>
-    <div class="kpi"><div style="font-family:'Syne',sans-serif;font-size:${topWalker&&topWalker.name.split(" ")[0].length>6?"13px":"15px"};font-weight:800;color:${topWalker?.color||"var(--gold)"};">${topWalker?.name.split(" ")[0]||"—"}</div><div class="kpi-lbl">Leading</div></div>`;
-}
-
-function render(){
-  renderHeader();
-  renderTodayKPI();
-  if(S.view==="dashboard"||!S.view){
-    renderCrewGoals();renderMyBox();renderChallenge();renderDateBar();renderTodayList();
-  } else if(S.view==="crew"){
-    renderCrewTab();renderCrewStreak();
-  } else if(S.view==="history"){
-    renderHistory();
-  } else if(S.view==="profile"){
-    renderProfileView();
-  }
-}
+function render(){renderHeader();renderCrewGoals();renderMyBox();renderChallenge();renderDateBar();renderTodayList();if(S.view==="history")renderHistory();if(S.view==="profile")renderProfileView();}
 
 function renderHeader(){
   const me=myMember();
@@ -954,10 +996,8 @@ function switchView(v,btn){
   document.querySelectorAll(".bnav-btn").forEach(b=>b.classList.remove("active"));
   if(btn)btn.classList.add("active");
   document.getElementById("view-dashboard").style.display=v==="dashboard"?"block":"none";
-  const crewEl=document.getElementById("view-crew");if(crewEl)crewEl.style.display=v==="crew"?"block":"none";
   document.getElementById("view-history").style.display=v==="history"?"block":"none";
   document.getElementById("view-profile").style.display=v==="profile"?"block":"none";
-  if(v==="crew"){renderCrewTab();renderCrewStreak();}
   if(v==="history"){initHistory();renderHistory();}
   if(v==="profile")renderProfileView();
 }
@@ -1239,7 +1279,7 @@ function renderHistory(){
           <div style="font-weight:700;font-size:14px;">${m.name}${isMe?`<span class="tag tag-you">YOU</span>`:""}</div>
           <div style="font-size:10px;color:var(--text3);">${active}/${days.length} active · avg ${avg2.toLocaleString()}/day${streak>0?` · 🔥 ${streak}d`:""}</div>
         </div>
-        <div style="text-align:right;"><div class="num" style="font-size:17px;color:${m.color};">${total.toLocaleString()}</div><div style="font-size:10px;color:var(--text3);">${goalPct.toFixed(0)}% of goal</div></div>
+        <div style="text-align:right;"><div class="mc-num" style="color:${m.color};font-size:17px;">${total.toLocaleString()}</div><div style="font-size:10px;color:var(--text3);">${goalPct.toFixed(0)}% of goal</div></div>
       </div>
       ${badgePills?`<div style="margin-bottom:6px;">${badgePills}</div>`:""}
       <div class="pbar"><div class="pbar-fill" style="width:${pct}%;background:${m.color};"></div></div>
@@ -1446,136 +1486,109 @@ S.logDate=maxDate;
 });
 // Add sign out button to header after render
 // Auth flow handled by auth.onAuthStateChanged above
-// ── Crew tab functions ────────────────────────────────────────────────────────
+
+
+// ── CREW TAB ─────────────────────────────────────────────────────────────────
 function renderCrewTab(){
-  // ── Weekly Recap ──────────────────────────────────────────────────────────
   const recapBox=document.getElementById("crew-recap-box");
   const badgesBox=document.getElementById("crew-badges-box");
   const badgesLbl=document.getElementById("crew-badges-lbl");
+  const streakBox=document.getElementById("crew-streak-board");
   if(!recapBox)return;
-
   const lastWeek=getWeekDays(-1);
   const members=cd().members;
-  const weekLabel=lastWeek[0]&&lastWeek[6]?`${shortDate(lastWeek[0])} – ${shortDate(lastWeek[6])}`:"";
   const total=members.reduce((s,m)=>s+getTotal(m.id,lastWeek),0);
-  const activeDays=Math.max(lastWeek.filter(d=>members.some(m=>getSteps(m.id,d)>0)).length,1);
-  const avg=Math.round(total/(activeDays*Math.max(members.length,1)));
+  const avg=Math.round(total/(7*Math.max(members.length,1)));
   const miles=Math.round(total*0.0004);
   const cg=cd().crewGoals;
   const crewName=cg&&cg.crewName?cg.crewName:"The Crew";
   const weekBadges=calcWeekBadges(members,lastWeek);
   const totalBadges=Object.values(weekBadges).flat().length;
-
-  // Awards
+  const weekLabel=lastWeek[0]&&lastWeek[6]?shortDate(lastWeek[0])+" – "+shortDate(lastWeek[6]):"";
   const sortedTotals=[...members].sort((a,b)=>getTotal(b.id,lastWeek)-getTotal(a.id,lastWeek));
   const topWalker=sortedTotals[0];
   const prevWeek=getWeekDays(-2);
   const mostImproved=[...members].map(m=>{const c=getTotal(m.id,lastWeek),p=getTotal(m.id,prevWeek);return{m,pct:p>0?((c-p)/p)*100:0};}).filter(x=>x.pct>0).sort((a,b)=>b.pct-a.pct)[0];
   const topStreak=[...members].map(m=>({m,s:calcStreak(m.id)})).sort((a,b)=>b.s-a.s)[0];
   const goalCrusher=[...members].map(m=>({m,d:lastWeek.filter(d=>getSteps(m.id,d)>=m.goal).length})).sort((a,b)=>b.d-a.d)[0];
-
   let awardsHtml="";
-  if(topWalker&&getTotal(topWalker.id,lastWeek)>0)awardsHtml+=`<div class="ro-award"><div class="ro-award-icon">👑</div><div><div style="font-size:12px;font-weight:700;">Top Walker — ${topWalker.name.split(" ")[0]}</div><div style="font-size:10px;opacity:0.6;margin-top:1px;">${getTotal(topWalker.id,lastWeek).toLocaleString()} steps</div></div><div class="num ro-award-val">${(getTotal(topWalker.id,lastWeek)/1000).toFixed(1)}K</div></div>`;
-  if(mostImproved)awardsHtml+=`<div class="ro-award"><div class="ro-award-icon">📈</div><div><div style="font-size:12px;font-weight:700;">Most Improved — ${mostImproved.m.name.split(" ")[0]}</div><div style="font-size:10px;opacity:0.6;margin-top:1px;">Up ${mostImproved.pct.toFixed(0)}% vs last week</div></div><div class="num ro-award-val">+${mostImproved.pct.toFixed(0)}%</div></div>`;
-  if(topStreak&&topStreak.s>=2)awardsHtml+=`<div class="ro-award"><div class="ro-award-icon">🔥</div><div><div style="font-size:12px;font-weight:700;">Streak Leader — ${topStreak.m.name.split(" ")[0]}</div><div style="font-size:10px;opacity:0.6;margin-top:1px;">${topStreak.s} days and counting</div></div><div class="num ro-award-val">${topStreak.s}d</div></div>`;
-  if(goalCrusher&&goalCrusher.d>=3)awardsHtml+=`<div class="ro-award"><div class="ro-award-icon">🎯</div><div><div style="font-size:12px;font-weight:700;">Goal Crusher — ${goalCrusher.m.name.split(" ")[0]}</div><div style="font-size:10px;opacity:0.6;margin-top:1px;">Hit goal ${goalCrusher.d}/7 days</div></div><div class="num ro-award-val">${goalCrusher.d}/7</div></div>`;
-
-  recapBox.innerHTML=`<div class="recap-outer">
-    <div class="ro-week">Week of ${weekLabel}</div>
-    <div class="ro-name">${crewName} 👟</div>
-    <div class="ro-tag">${totalBadges} badge${totalBadges!==1?"s":""} earned this week!</div>
-    <div class="ro-stats">
-      <div class="ro-stat"><div class="num ro-stat-val">${total>=1000?(total/1000).toFixed(0)+"K":total}</div><div class="ro-stat-lbl">Total</div></div>
-      <div class="ro-stat"><div class="num ro-stat-val">${avg.toLocaleString()}</div><div class="ro-stat-lbl">Avg/Day</div></div>
-      <div class="ro-stat"><div class="num ro-stat-val">${miles}mi</div><div class="ro-stat-lbl">Est. Miles</div></div>
+  if(topWalker&&getTotal(topWalker.id,lastWeek)>0)awardsHtml+=`<div style="display:flex;align-items:center;gap:8px;margin-bottom:7px;"><div style="width:30px;height:30px;background:rgba(255,255,255,0.1);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;">👑</div><div><div style="font-size:12px;font-weight:700;">Top Walker — ${topWalker.name.split(" ")[0]}</div><div style="font-size:10px;opacity:0.6;">${getTotal(topWalker.id,lastWeek).toLocaleString()} steps</div></div><div style="font-family:'Fraunces',serif;font-size:13px;font-weight:700;margin-left:auto;opacity:0.9;">${(getTotal(topWalker.id,lastWeek)/1000).toFixed(1)}K</div></div>`;
+  if(mostImproved)awardsHtml+=`<div style="display:flex;align-items:center;gap:8px;margin-bottom:7px;"><div style="width:30px;height:30px;background:rgba(255,255,255,0.1);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;">📈</div><div><div style="font-size:12px;font-weight:700;">Most Improved — ${mostImproved.m.name.split(" ")[0]}</div><div style="font-size:10px;opacity:0.6;">Up ${mostImproved.pct.toFixed(0)}% vs last week</div></div><div style="font-family:'Fraunces',serif;font-size:13px;font-weight:700;margin-left:auto;opacity:0.9;">+${mostImproved.pct.toFixed(0)}%</div></div>`;
+  if(topStreak&&topStreak.s>=2)awardsHtml+=`<div style="display:flex;align-items:center;gap:8px;margin-bottom:7px;"><div style="width:30px;height:30px;background:rgba(255,255,255,0.1);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;">🔥</div><div><div style="font-size:12px;font-weight:700;">Streak Leader — ${topStreak.m.name.split(" ")[0]}</div><div style="font-size:10px;opacity:0.6;">${topStreak.s} days</div></div><div style="font-family:'Fraunces',serif;font-size:13px;font-weight:700;margin-left:auto;opacity:0.9;">${topStreak.s}d</div></div>`;
+  if(goalCrusher&&goalCrusher.d>=3)awardsHtml+=`<div style="display:flex;align-items:center;gap:8px;"><div style="width:30px;height:30px;background:rgba(255,255,255,0.1);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;">🎯</div><div><div style="font-size:12px;font-weight:700;">Goal Crusher — ${goalCrusher.m.name.split(" ")[0]}</div><div style="font-size:10px;opacity:0.6;">${goalCrusher.d}/7 days</div></div><div style="font-family:'Fraunces',serif;font-size:13px;font-weight:700;margin-left:auto;opacity:0.9;">${goalCrusher.d}/7</div></div>`;
+  recapBox.innerHTML=`<div style="background:linear-gradient(150deg,#1a1740,#2d2a8e,#3d3dbf);border-radius:12px;padding:16px;margin-bottom:9px;color:#fff;position:relative;overflow:hidden;">
+    <div style="font-size:9px;opacity:0.5;letter-spacing:2px;text-transform:uppercase;margin-bottom:4px;">Week of ${weekLabel}</div>
+    <div style="font-family:'Syne',sans-serif;font-size:17px;font-weight:800;margin-bottom:2px;">${crewName} 👟</div>
+    <div style="font-size:11px;opacity:0.6;margin-bottom:12px;">${totalBadges} badge${totalBadges!==1?"s":""} earned this week!</div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:12px;">
+      <div style="background:rgba(255,255,255,0.1);border-radius:8px;padding:8px 5px;text-align:center;"><div style="font-family:'Fraunces',serif;font-size:14px;font-weight:700;">${total>=1000?(total/1000).toFixed(0)+"K":total}</div><div style="font-size:8px;opacity:0.5;margin-top:1px;text-transform:uppercase;">Total</div></div>
+      <div style="background:rgba(255,255,255,0.1);border-radius:8px;padding:8px 5px;text-align:center;"><div style="font-family:'Fraunces',serif;font-size:14px;font-weight:700;">${avg.toLocaleString()}</div><div style="font-size:8px;opacity:0.5;margin-top:1px;text-transform:uppercase;">Avg/Day</div></div>
+      <div style="background:rgba(255,255,255,0.1);border-radius:8px;padding:8px 5px;text-align:center;"><div style="font-family:'Fraunces',serif;font-size:14px;font-weight:700;">${miles}mi</div><div style="font-size:8px;opacity:0.5;margin-top:1px;text-transform:uppercase;">Est. Miles</div></div>
     </div>
-    <div class="ro-div"></div>
-    <div class="ro-sec">🏆 Weekly Awards</div>
-    ${awardsHtml||`<div style="opacity:0.5;font-size:12px;">Keep walking — awards appear after a full week!</div>`}
+    <div style="height:1px;background:rgba(255,255,255,0.1);margin-bottom:10px;"></div>
+    <div style="font-size:9px;opacity:0.5;letter-spacing:2px;text-transform:uppercase;margin-bottom:9px;">🏆 Awards</div>
+    ${awardsHtml||"<div style='opacity:0.5;font-size:12px;'>Keep walking — awards appear after a full week!</div>"}
   </div>`;
-
-  // ── Weekly Badges by member ───────────────────────────────────────────────
   if(badgesLbl)badgesLbl.style.display="block";
-  let badgesHtml=`<div style="background:#fff;border-radius:var(--r);overflow:hidden;box-shadow:var(--shadow);margin-bottom:9px;">`;
+  let bh=`<div style="background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 1px 12px rgba(91,95,199,0.07);margin-bottom:9px;">`;
   members.forEach(m=>{
     const mb=weekBadges[m.id]||[];
-    const pillsHtml=mb.length
-      ?mb.map(b=>`<span class="badge-pill-sm ${b.cls}">${b.icon} ${b.label}</span>`).join("")
-      :`<span style="font-size:10px;color:var(--text3);">No badges yet</span>`;
-    badgesHtml+=`<div style="display:flex;align-items:center;gap:8px;padding:9px 13px;border-bottom:1px solid var(--bg);">
-      ${avEl(m,26)}
-      <div style="font-size:11px;font-weight:600;width:58px;flex-shrink:0;">${m.name.split(" ")[0]}</div>
-      <div style="display:flex;gap:4px;flex-wrap:wrap;">${pillsHtml}</div>
-    </div>`;
+    const pills=mb.length?mb.map(b=>`<span style="display:inline-flex;align-items:center;gap:3px;border-radius:20px;padding:2px 7px;font-size:9px;font-weight:700;margin-right:3px;margin-bottom:3px;border:1.5px solid transparent;${b.cls==="bp-gold"?"background:#fef3c7;border-color:#fde68a;color:#92400e;":b.cls==="bp-green"?"background:#f0fdf4;border-color:#86efac;color:#16a34a;":b.cls==="bp-red"?"background:#fef2f2;border-color:#fecaca;color:#e03e3e;":b.cls==="bp-purple"?"background:#faf5ff;border-color:#e9d5ff;color:#7c3aed;":"background:#eeeeff;border-color:#c7caff;color:#5b5fc7;"}">${b.icon} ${b.label}</span>`).join(""):`<span style="font-size:10px;color:#9898b8;">No badges yet</span>`;
+    bh+=`<div style="display:flex;align-items:center;gap:8px;padding:9px 13px;border-bottom:1px solid #f0f0f7;">${avEl(m,26)}<div style="font-size:11px;font-weight:600;width:58px;flex-shrink:0;">${m.name.split(" ")[0]}</div><div style="display:flex;gap:3px;flex-wrap:wrap;">${pills}</div></div>`;
   });
-  badgesHtml+=`</div>`;
-  if(badgesBox)badgesBox.innerHTML=badgesHtml;
-
-  // ── Streak board ─────────────────────────────────────────────────────────
-  renderCrewStreak();
+  bh+=`</div>`;
+  if(badgesBox)badgesBox.innerHTML=bh;
+  if(streakBox)streakBox.innerHTML=renderStreakBoardHtml();
 }
 
-
-async function saveCrew(mid,dk,share){
-  const el=document.getElementById("cinp_"+mid);if(!el)return;
-  S.editingId=null;
-  const ok=await saveStepsForDate(mid,dk,el.value,share);
-  if(ok)toast(share?"Shared! 🚀":"Saved ✓");
-  renderCrewTab();
-}
-
-function renderCrewStreak(){
-  const box=document.getElementById("crew-streak-board");if(!box)return;
+function renderStreakBoardHtml(){
   const showGoal=S.crewStreakTab==="star";
   const data=[...cd().members].map(m=>({m,s:showGoal?calcGoalStreak(m.id):calcStreak(m.id)})).sort((a,b)=>b.s-a.s);
   const maxS=Math.max(...data.map(x=>x.s),1);
   const medals=["🥇","🥈","🥉"];
   const td=todayStr();
-  const fireBtn=`border-bottom:2px solid #e05c20;color:#e05c20;`;
-  const starBtn=`border-bottom:2px solid var(--gold);color:#92400e;`;
-  const inactiveBtn=`border-bottom:2px solid transparent;color:var(--text3);`;
-  box.innerHTML=`<div style="background:#fff;border-radius:var(--r);overflow:hidden;box-shadow:var(--shadow);">
-    <div style="display:flex;border-bottom:1px solid var(--border);">
-      <button onclick="S.crewStreakTab='fire';renderCrewStreak()" style="flex:1;padding:8px;border:none;background:none;font-size:11px;font-weight:700;cursor:pointer;font-family:Outfit,sans-serif;${!showGoal?fireBtn:inactiveBtn}">🔥 Logging</button>
-      <button onclick="S.crewStreakTab='star';renderCrewStreak()" style="flex:1;padding:8px;border:none;background:none;font-size:11px;font-weight:700;cursor:pointer;font-family:Outfit,sans-serif;${showGoal?starBtn:inactiveBtn}">⭐ Goal</button>
+  const fireCol="#e05c20",starCol="#92400e";
+  const barBg=showGoal?"linear-gradient(90deg,#f59e0b,#fbbf24)":"linear-gradient(90deg,#f97316,#ef4444)";
+  return`<div style="background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 1px 12px rgba(91,95,199,0.07);margin-bottom:9px;">
+    <div style="display:flex;border-bottom:1px solid #e2e2ef;">
+      <button onclick="S.crewStreakTab='fire';document.getElementById('crew-streak-board').innerHTML=renderStreakBoardHtml()" style="flex:1;padding:8px;border:none;background:none;font-size:11px;font-weight:700;cursor:pointer;font-family:Outfit,sans-serif;color:${!showGoal?fireCol:"#9898b8"};border-bottom:2px solid ${!showGoal?fireCol:"transparent"};">🔥 Logging</button>
+      <button onclick="S.crewStreakTab='star';document.getElementById('crew-streak-board').innerHTML=renderStreakBoardHtml()" style="flex:1;padding:8px;border:none;background:none;font-size:11px;font-weight:700;cursor:pointer;font-family:Outfit,sans-serif;color:${showGoal?starCol:"#9898b8"};border-bottom:2px solid ${showGoal?"#e8a020":"transparent"};">⭐ Goal</button>
     </div>
     ${data.map((x,i)=>{
       const atRisk=!showGoal&&x.s>0&&!getSteps(x.m.id,td);
-      const c=showGoal?"#92400e":"#e05c20";
-      const bg=showGoal?"linear-gradient(90deg,#f59e0b,#fbbf24)":"linear-gradient(90deg,#f97316,#ef4444)";
-      return`<div style="display:flex;align-items:center;gap:8px;padding:8px 12px;border-bottom:1px solid var(--bg);">
-        <div style="font-size:${i<3?13:11}px;width:18px;text-align:center;${i>=3?"color:var(--text3)":""}">${medals[i]||i+1}</div>
+      return`<div style="display:flex;align-items:center;gap:8px;padding:8px 12px;border-bottom:1px solid #f0f0f7;">
+        <div style="font-size:${i<3?13:11}px;width:18px;text-align:center;${i>=3?"color:#9898b8":""}">${medals[i]||i+1}</div>
         ${avEl(x.m,30)}
-        <div style="flex:1;"><div style="font-weight:700;font-size:12px;">${x.m.name.split(" ")[0]}${atRisk?`<span style="background:#fef2f2;color:var(--red);font-size:8px;font-weight:700;border-radius:3px;padding:1px 3px;margin-left:3px;">Log today!</span>`:""}</div><div style="background:var(--bg);border-radius:2px;height:3px;overflow:hidden;margin-top:3px;"><div style="width:${(x.s/maxS)*100}%;height:100%;border-radius:2px;background:${bg};"></div></div></div>
-        <div style="text-align:right;"><div style="font-family:Syne,sans-serif;font-size:15px;font-weight:800;color:${c};">${x.s}</div><div style="font-size:8px;color:var(--text3);">days</div></div>
+        <div style="flex:1;"><div style="font-weight:700;font-size:12px;">${x.m.name.split(" ")[0]}${atRisk?`<span style="background:#fef2f2;color:#e03e3e;font-size:8px;font-weight:700;border-radius:3px;padding:1px 3px;margin-left:3px;">Log today!</span>`:""}</div><div style="background:#f0f0f7;border-radius:2px;height:3px;overflow:hidden;margin-top:3px;"><div style="width:${(x.s/maxS)*100}%;height:100%;border-radius:2px;background:${barBg};"></div></div></div>
+        <div style="text-align:right;"><div style="font-family:'Fraunces',serif;font-size:15px;font-weight:700;color:${showGoal?starCol:fireCol};">${x.s}</div><div style="font-size:8px;color:#9898b8;">days</div></div>
       </div>`;
     }).join("")}
   </div>`;
 }
 
-
+// ── ME TAB BADGES + CHART ────────────────────────────────────────────────────
 function renderMeBadges(){
   const grid=document.getElementById("me-badge-grid");
   const countEl=document.getElementById("me-badge-count");
   if(!grid)return;
-  const BADGES=[
-    {id:"first",icon:"🏃",name:"First Steps",check:m=>Object.values(cd().steps||{}).some(d=>(d[m.id]||0)>0)},
-    {id:"streak7",icon:"🔥",name:"7-Day Streak",check:m=>calcStreak(m.id)>=7},
-    {id:"top",icon:"👑",name:"Top Walker",check:m=>{const w=getWeekDays(-1);const tots=[...cd().members].map(x=>({id:x.id,t:getTotal(x.id,w)})).sort((a,b)=>b.t-a.t);return tots[0]&&idMatch(tots[0].id,m.id)&&tots[0].t>0;}},
-    {id:"nozero",icon:"🌙",name:"No Zero Week",check:m=>getWeekDays(-1).every(d=>getSteps(m.id,d)>0)},
-    {id:"pb",icon:"💎",name:"Personal Best",check:m=>{const w=getWeekDays(-1),t=getTotal(m.id,w);if(t===0)return false;for(let i=-2;i>=-8;i--){if(getTotal(m.id,getWeekDays(i))>=t)return false;}return true;}},
-    {id:"10k",icon:"⚡",name:"10K Every Day",check:m=>getWeekDays(-1).every(d=>getSteps(m.id,d)>=10000)},
-    {id:"goal",icon:"🎯",name:"Goal Crusher",check:m=>{const w=getWeekDays(-1);const days=w.filter(d=>getSteps(m.id,d)>=m.goal).length;const all=[...cd().members].map(x=>w.filter(d=>getSteps(x.id,d)>=x.goal).length);return days>0&&days===Math.max(...all);}},
-    {id:"1m",icon:"🌍",name:"1M Steps",check:m=>{const allDays=daysAgo(365);return getTotal(m.id,allDays)>=1000000;}},
-  ];
   const me=myMember();if(!me)return;
-  const earned=BADGES.filter(b=>{try{return b.check(me);}catch(e){return false;}});
-  if(countEl)countEl.textContent=`${earned.length} of ${BADGES.length} earned`;
+  const BADGES=[
+    {icon:"🏃",name:"First Steps",check:()=>Object.values(cd().steps).some(d=>(d[me.id]||0)>0)},
+    {icon:"🔥",name:"7-Day Streak",check:()=>calcStreak(me.id)>=7},
+    {icon:"👑",name:"Top Walker",check:()=>{const w=getWeekDays(-1);const t=[...cd().members].sort((a,b)=>getTotal(b.id,w)-getTotal(a.id,w));return t[0]&&idMatch(t[0].id,me.id)&&getTotal(me.id,w)>0;}},
+    {icon:"🌙",name:"No Zero Week",check:()=>getWeekDays(-1).every(d=>getSteps(me.id,d)>0)},
+    {icon:"💎",name:"Personal Best",check:()=>{const w=getWeekDays(-1),t=getTotal(me.id,w);if(!t)return false;for(let i=-2;i>=-8;i--)if(getTotal(me.id,getWeekDays(i))>=t)return false;return true;}},
+    {icon:"⚡",name:"10K Every Day",check:()=>getWeekDays(-1).every(d=>getSteps(me.id,d)>=10000)},
+    {icon:"🎯",name:"Goal Crusher",check:()=>{const w=getWeekDays(-1),d=w.filter(d=>getSteps(me.id,d)>=me.goal).length;return d>0&&d===Math.max(...cd().members.map(m=>w.filter(d=>getSteps(m.id,d)>=m.goal).length));}},
+    {icon:"🌍",name:"1M Steps",check:()=>getTotal(me.id,daysAgo(365))>=1000000},
+  ];
+  const earned=BADGES.filter(b=>{try{return b.check();}catch(e){return false;}});
+  if(countEl)countEl.textContent=earned.length+" of "+BADGES.length+" earned";
   grid.innerHTML=BADGES.map(b=>{
-    const isEarned=earned.some(e=>e.id===b.id);
-    return`<div style="text-align:center;${isEarned?"":"opacity:0.3;filter:grayscale(0.8);}">
+    const e=earned.some(x=>x.icon===b.icon);
+    return`<div style="text-align:center;${e?"":"opacity:0.3;filter:grayscale(0.8);"}">
       <div style="font-size:22px;display:block;margin-bottom:3px;">${b.icon}</div>
-      <div style="font-size:8px;font-weight:700;color:var(--text2);line-height:1.2;">${b.name}</div>
+      <div style="font-size:8px;font-weight:700;color:#5a5a7a;line-height:1.2;">${b.name}</div>
     </div>`;
   }).join("");
 }
@@ -1585,160 +1598,45 @@ function renderMeChart(){
   const xEl=document.getElementById("me-chart-x");
   const yEl=document.getElementById("me-y-axis");
   const totEl=document.getElementById("me-chart-total");
-  if(!svg||!xEl)return;
+  if(!svg)return;
   const me=myMember();if(!me)return;
   const days=daysAgo(7);
   const vals=days.map(d=>getSteps(me.id,d));
   const total=vals.reduce((a,b)=>a+b,0);
-  if(totEl)totEl.textContent=(total>=1000?(total/1000).toFixed(1)+"K":total.toLocaleString())+" this week";
-  const rawMax=Math.max(...vals,1);
-  const maxV=Math.ceil(rawMax/5000)*5000||5000;
+  if(totEl)totEl.textContent=(total>=1000?(total/1000).toFixed(1)+"K":total)+" this week";
+  const maxV=Math.max(Math.ceil(Math.max(...vals)/5000)*5000,5000);
   const W=300,H=80;
   const pts=vals.map((v,i)=>`${(i/6)*W},${H-(v/maxV)*H*0.9}`).join(" L");
   let lines=`<defs><linearGradient id="meg" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="${me.color}" stop-opacity="0.2"/><stop offset="100%" stop-color="${me.color}" stop-opacity="0"/></linearGradient></defs>`;
-  // Grid lines
-  [0,Math.round(maxV/2),maxV].forEach(v=>{
-    const y=H-(v/maxV)*H*0.9;
-    lines+=`<line x1="0" y1="${y}" x2="${W}" y2="${y}" stroke="#e2e2ef" stroke-width="0.5" stroke-dasharray="3,3"/>`;
-  });
+  [0,Math.round(maxV/2),maxV].forEach(v=>{const y=H-(v/maxV)*H*0.9;lines+=`<line x1="0" y1="${y}" x2="${W}" y2="${y}" stroke="#e2e2ef" stroke-width="0.5" stroke-dasharray="3,3"/>`;});
   lines+=`<path d="M${pts} L${W},${H} L0,${H}Z" fill="url(#meg)"/>`;
   lines+=`<path d="M${pts}" fill="none" stroke="${me.color}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>`;
   vals.forEach((v,i)=>{if(v>0){const cx=(i/6)*W,cy=H-(v/maxV)*H*0.9;lines+=`<circle cx="${cx}" cy="${cy}" r="3" fill="${me.color}" stroke="white" stroke-width="2"/>"`;}});
   svg.innerHTML=lines;
-  xEl.innerHTML=days.map(d=>`<span>${shortDay(d)}</span>`).join("");
-  if(yEl)yEl.innerHTML=[maxV,Math.round(maxV/2),0].map(v=>`<span style="font-size:8px;color:var(--text3);font-weight:600;">${v>=1000?(v/1000).toFixed(0)+"k":v}</span>`).join("");
+  if(xEl)xEl.innerHTML=days.map(d=>`<span>${shortDay(d)}</span>`).join("");
+  if(yEl)yEl.innerHTML=[maxV,Math.round(maxV/2),0].map(v=>`<span style="font-size:8px;color:#9898b8;font-weight:600;">${v>=1000?(v/1000).toFixed(0)+"k":v}</span>`).join("");
 }
 
+// ── UPDATE switchView for 4 tabs ─────────────────────────────────────────────
+const _origSwitchView=switchView;
+switchView=function(v,btn){
+  _origSwitchView(v,btn);
+  const crewEl=document.getElementById("view-crew");
+  if(crewEl)crewEl.style.display=v==="crew"?"block":"none";
+  if(v==="crew"){renderCrewTab();}
+};
 
+// ── UPDATE renderProfileView to add badges+chart ─────────────────────────────
+const _origRenderProfileView=renderProfileView;
+renderProfileView=function(){
+  _origRenderProfileView();
+  renderMeBadges();
+  renderMeChart();
+};
 
-function showSignIn(){
-  const splash=document.getElementById("splash");
-  const splashSpin=document.getElementById("splash-spin");
-  const splashGoogle=document.getElementById("splash-google");
-  splash.style.display="flex";splash.style.opacity="1";
-  if(splashSpin)splashSpin.style.display="none";
-  if(splashGoogle)splashGoogle.style.display="block";
-  document.getElementById("app").classList.remove("active");
-  document.getElementById("onboard").classList.remove("active");
-}
+// ── Init crewStreakTab state ──────────────────────────────────────────────────
+S.crewStreakTab="fire";
 
-function showApp(){
-  const splash=document.getElementById("splash");
-  splash.style.opacity="0";
-  setTimeout(()=>splash.style.display="none",300);
-  // Hide onboard completely
-  const ob=document.getElementById("onboard");
-  ob.classList.remove("active");
-  ob.style.display="none";
-  // Show app
-  const app=document.getElementById("app");
-  app.style.display="block";
-  app.classList.add("active");
-  document.getElementById("banner-code").textContent=S.activeCrew||"";
-  if(!S.syncInterval)S.syncInterval=setInterval(()=>pullLatest(true),30000);
-  render();
-}
-
-function showOnboard(){
-  // Hide app completely
-  const app=document.getElementById("app");
-  app.classList.remove("active");
-  app.style.display="none";
-  const splash=document.getElementById("splash");
-  splash.style.opacity="0";
-  setTimeout(()=>splash.style.display="none",300);
-  const nameDisp=document.getElementById("ob-name-display");
-  const googleName=document.getElementById("ob-google-name");
-  if(nameDisp)nameDisp.textContent=G.name||"";
-  if(googleName)googleName.textContent=G.email?"Signed in as "+G.email:"";
-  document.getElementById("onboard").classList.add("active");
-}
-
-async function findCrewByGoogleUid(uid,name){
-  const knownCodes=[];
-  try{
-    for(let i=0;i<localStorage.length;i++){
-      const k=localStorage.key(i);
-      if(k&&k.startsWith("sc_data_"))knownCodes.push(k.replace("sc_data_",""));
-    }
-    const sess=JSON.parse(localStorage.getItem("sc_session_v2")||"{}");
-    if(sess.activeCrew&&!knownCodes.includes(sess.activeCrew))knownCodes.push(sess.activeCrew);
-    if(sess.crews)sess.crews.forEach(c=>{if(!knownCodes.includes(c.code))knownCodes.push(c.code);});
-  }catch(e){}
-  // Always try the known crew code as last resort
-  const hardcodedCode="JL1SE9";
-  if(!knownCodes.includes(hardcodedCode))knownCodes.push(hardcodedCode);
-  for(const code of knownCodes){
-    try{
-      const remote=await fbLoad(code);
-      if(!remote)continue;
-      const firstName=name?name.toLowerCase().split(" ")[0]:"";
-      const match=(remote.members||[]).find(m=>
-        idMatch(m.googleUid,uid)||(firstName&&m.name.toLowerCase()===firstName)
-      );
-      if(match){
-        S.myId=match.id;S.activeCrew=code;S.crews=[{code,joinedAt:Date.now()}];
-        S.crewData[code]={members:remote.members||[],steps:remote.steps||{},pushed:remote.pushed||{},crewGoals:remote.crewGoals||{},updatedAt:remote.updatedAt};
-        lsSet("sc_data_"+code,S.crewData[code]);
-        if(uid&&!match.googleUid){
-          const idx=S.crewData[code].members.findIndex(m=>idMatch(m.id,match.id));
-          if(idx>=0)S.crewData[code].members[idx].googleUid=uid;
-          fbSave(code,S.crewData[code]);
-        }
-        saveSession();
-        return true;
-      }
-    }catch(e){console.error("findCrew error:",e);}
-  }
-  return false;
-}
-
-;
-
-async function fbSave(code,data){try{await db.collection("crews").doc(code).set({...data,updatedAt:Date.now()});return true;}catch(e){console.error("Save:",e);return false;}}
-async function fbLoad(code){try{const s=await db.collection("crews").doc(code).get();return s.exists?s.data():null;}catch(e){console.error("Load:",e);return null;}}
-function lsSet(k,v){try{localStorage.setItem(k,JSON.stringify(v));}catch(e){}}
-function lsGet(k){try{const r=localStorage.getItem(k);return r?JSON.parse(r):null;}catch(e){return null;}}
-const CHALLENGES=[
-  {id:"5k",label:"5K Club",desc:"Everyone hits 5,000 today",t:5000,type:"all"},
-  {id:"10k",label:"10K Club",desc:"Everyone hits 10,000 today",t:10000,type:"all"},
-  {id:"g30k",label:"Group 30K",desc:"Crew total hits 30,000",t:30000,type:"group"},
-  {id:"g50k",label:"Group 50K",desc:"Crew total hits 50,000",t:50000,type:"group"},
-  {id:"nozero",label:"No Zero",desc:"Everyone logs 1,000+ steps",t:1000,type:"all"},
-];
-
-function todayStr(){const d=new Date();return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");}
-function yesterdayStr(){const d=new Date();d.setDate(d.getDate()-1);return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");}
-function daysAgo(n){const d=[];for(let i=n-1;i>=0;i--){const x=new Date();x.setDate(x.getDate()-i);d.push(x.getFullYear()+"-"+String(x.getMonth()+1).padStart(2,"0")+"-"+String(x.getDate()).padStart(2,"0"));}return d;}
-function monthDaysArr(m,y){const d=[];const n=new Date(y,m+1,0).getDate();for(let i=1;i<=n;i++){const x=new Date(y,m,i);d.push(x.getFullYear()+"-"+String(x.getMonth()+1).padStart(2,"0")+"-"+String(x.getDate()).padStart(2,"0"));}return d;}
-function currMonthDays(){return monthDaysArr(new Date().getMonth(),new Date().getFullYear());}
-function fmtDate(s){return new Date(s+"T00:00:00").toLocaleDateString("en-US",{weekday:"short",month:"short",day:"numeric"});}
-function shortDay(s){return new Date(s+"T00:00:00").toLocaleDateString("en-US",{weekday:"short"});}
-function shortDate(s){return new Date(s+"T00:00:00").toLocaleDateString("en-US",{month:"short",day:"numeric"});}
-function monthName(m,y){return new Date(y,m,1).toLocaleDateString("en-US",{month:"long",year:"numeric"});}
-function genCode(){return Math.random().toString(36).slice(2,8).toUpperCase();}
-function timeAgo(ts){if(!ts)return"never";const s=Math.floor((Date.now()-ts)/1000);if(s<60)return"just now";if(s<3600)return Math.floor(s/60)+"m ago";return Math.floor(s/3600)+"h ago";}
-function initials(name){return(name||"?").trim().split(/\s+/).map(w=>w[0]).join("").toUpperCase().slice(0,2);}
-function avEl(m,sz){sz=sz||40;const fs=Math.round(sz*0.38);return`<div style="width:${sz}px;height:${sz}px;border-radius:${Math.round(sz*0.28)}px;background:${m.color};display:flex;align-items:center;justify-content:center;font-size:${fs}px;font-weight:800;color:#fff;flex-shrink:0;">${initials(m.name)}</div>`;}
-function toast(msg){const t=document.getElementById("toast");t.textContent=msg;t.classList.add("show");setTimeout(()=>t.classList.remove("show"),2800);}
-
-
-// Auth handler last — all functions defined above
-auth.onAuthStateChanged(async user=>{
-  if(!user){showSignIn();return;}
-  G.uid=user.uid;
-  G.name=user.displayName||user.email.split("@")[0];
-  G.email=user.email;
-  G.photoURL=user.photoURL;
-  const restored=await restoreSession();
-  if(restored&&S.activeCrew&&cd().members.length>0){
-    showApp();
-  } else {
-    const found=await findCrewByGoogleUid(G.uid,G.name);
-    if(found){showApp();}
-    else{showOnboard();}
-  }
-})
 </script>
 </body>
 </html>
