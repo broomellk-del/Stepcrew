@@ -540,6 +540,9 @@ input:focus,select:focus{outline:none;}
 </div>
 <script>
 // Google Auth state
+const COLORS=["#6366f1","#10b981","#f59e0b","#ef4444","#8b5cf6","#06b6d4","#f97316","#ec4899","#14b8a6","#84cc16"];
+let S={myId:null,crews:[],activeCrew:null,crewData:{},view:"dashboard",editingId:null,editingModal:null,syncMode:"manual",selectedColor:COLORS[0],selectedSync:"manual",chalIdx:0,modUnlocked:false,syncInterval:null,histPeriod:"7d",histMembers:["all"],histStart:null,histEnd:null,calMonth:new Date().getMonth(),calYear:new Date().getFullYear(),profileDate:"",logDate:"",crewPeriod:"today",crewMemberFilter:"all",crewStreakTab:"fire"};
+
 let G = { uid: null, name: null, email: null, photoURL: null };
 
 // Firebase
@@ -1696,8 +1699,6 @@ async function fbSave(code,data){try{await db.collection("crews").doc(code).set(
 async function fbLoad(code){try{const s=await db.collection("crews").doc(code).get();return s.exists?s.data():null;}catch(e){console.error("Load:",e);return null;}}
 function lsSet(k,v){try{localStorage.setItem(k,JSON.stringify(v));}catch(e){}}
 function lsGet(k){try{const r=localStorage.getItem(k);return r?JSON.parse(r):null;}catch(e){return null;}}
-
-const COLORS=["#6366f1","#10b981","#f59e0b","#ef4444","#8b5cf6","#06b6d4","#f97316","#ec4899","#14b8a6","#84cc16"];
 const CHALLENGES=[
   {id:"5k",label:"5K Club",desc:"Everyone hits 5,000 today",t:5000,type:"all"},
   {id:"10k",label:"10K Club",desc:"Everyone hits 10,000 today",t:10000,type:"all"},
@@ -1705,8 +1706,6 @@ const CHALLENGES=[
   {id:"g50k",label:"Group 50K",desc:"Crew total hits 50,000",t:50000,type:"group"},
   {id:"nozero",label:"No Zero",desc:"Everyone logs 1,000+ steps",t:1000,type:"all"},
 ];
-
-let S={myId:null,crews:[],activeCrew:null,crewData:{},view:"dashboard",editingId:null,editingModal:null,syncMode:"manual",selectedColor:COLORS[0],selectedSync:"manual",chalIdx:0,modUnlocked:false,syncInterval:null,histPeriod:"7d",histMembers:["all"],histStart:null,histEnd:null,calMonth:new Date().getMonth(),calYear:new Date().getFullYear(),profileDate:"",logDate:"",crewPeriod:"today",crewMemberFilter:"all",crewStreakTab:"fire"};
 
 function todayStr(){const d=new Date();return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");}
 function yesterdayStr(){const d=new Date();d.setDate(d.getDate()-1);return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");}
@@ -1742,4 +1741,4 @@ auth.onAuthStateChanged(async user=>{
 })
 </script>
 </body>
-                                                                                                                                                                   </html>
+</html>
