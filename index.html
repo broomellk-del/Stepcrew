@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>StepCrew 👟</title>
 <meta name="theme-color" content="#f4f4f8"/>
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700;9..40,800&family=Syne:wght@700;800&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700;9..40,800&family=Syne:wght@700;800&family=Fraunces:opsz,wght@9..144,600;9..144,700&display=swap" rel="stylesheet"/>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
@@ -76,7 +76,7 @@ input:focus,select:focus{outline:none;}
 .my-box{background:#fff;border-radius:var(--r);padding:16px;margin-bottom:12px;box-shadow:var(--shadow);border-top:3px solid var(--accent);}
 .mb-row{display:flex;align-items:center;gap:12px;margin-bottom:12px;}
 .av{border-radius:12px;display:flex;align-items:center;justify-content:center;font-weight:800;color:#fff;flex-shrink:0;}
-.mb-num{font-family:"Syne",sans-serif;font-size:26px;font-weight:800;}
+.mb-num{font-family:"Fraunces",serif;font-size:28px;font-weight:700;letter-spacing:-1px;}
 .act-row{display:flex;gap:7px;}
 .log-btn{flex:1;background:var(--accent-bg);border:1.5px solid #c7caff;color:var(--accent);border-radius:var(--r-sm);padding:10px;font-size:13px;font-weight:600;cursor:pointer;}
 .share-btn{background:linear-gradient(135deg,var(--accent),var(--accent2));border:none;color:#fff;border-radius:var(--r-sm);padding:10px 16px;font-size:13px;font-weight:700;cursor:pointer;}
@@ -99,14 +99,14 @@ input:focus,select:focus{outline:none;}
 .member-card{background:#fff;border-radius:var(--r);padding:14px 16px;margin-bottom:10px;box-shadow:var(--shadow);transition:transform 0.15s;}
 .member-card.leader{border-left:3px solid var(--gold);}
 .mc-row{display:flex;align-items:center;gap:10px;margin-bottom:8px;}
-.mc-num{font-family:"Syne",sans-serif;font-size:19px;font-weight:800;}
+.mc-num{font-family:"Fraunces",serif;font-weight:700;letter-spacing:-0.5px;font-size:19px;font-weight:800;}
 .member-filter{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px;}
 .mf-pill{display:flex;align-items:center;gap:6px;padding:6px 12px;border-radius:20px;border:1.5px solid var(--border);background:#fff;font-size:12px;font-weight:600;color:var(--text2);cursor:pointer;transition:all 0.15s;}
 .mf-pill.active{border-color:var(--mc,var(--accent));background:rgba(99,102,241,0.08);color:var(--mc,var(--accent));}
 .mf-av-sm{width:18px;height:18px;border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:800;color:#fff;flex-shrink:0;}
 .stat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px;}
 .stat-card{background:#fff;border-radius:var(--r);padding:12px;box-shadow:var(--shadow);text-align:center;}
-.stat-val{font-family:"Syne",sans-serif;font-size:19px;font-weight:800;}
+.stat-val{font-family:"Fraunces",serif;font-size:19px;font-weight:700;letter-spacing:-0.5px;}
 .stat-lbl{font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:1px;margin-top:3px;}
 .chart-card{background:#fff;border-radius:var(--r);padding:16px;margin-bottom:12px;box-shadow:var(--shadow);}
 .chart-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;}
@@ -132,7 +132,7 @@ input:focus,select:focus{outline:none;}
 .ph-name{font-family:"Syne",sans-serif;font-size:22px;font-weight:800;margin-bottom:2px;}
 .ph-sub{font-size:12px;opacity:0.8;margin-bottom:14px;}
 .ph-stats{display:flex;gap:20px;}
-.ph-stat-val{font-family:"Syne",sans-serif;font-size:18px;font-weight:800;}
+.ph-stat-val{font-family:"Fraunces",serif;font-size:20px;font-weight:700;letter-spacing:-0.5px;}
 .ph-stat-lbl{font-size:10px;opacity:0.7;margin-top:1px;}
 .settings-section{background:#fff;border-radius:var(--r);overflow:hidden;margin-bottom:12px;box-shadow:var(--shadow);}
 .settings-hdr{padding:11px 16px;border-bottom:1px solid var(--border);font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:1.5px;}
@@ -193,7 +193,7 @@ input:focus,select:focus{outline:none;}
 .ro-tag{font-size:12px;opacity:0.65;margin-bottom:14px;}
 .ro-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px;}
 .ro-stat{background:rgba(255,255,255,0.1);border-radius:10px;padding:10px 6px;text-align:center;}
-.ro-stat-val{font-family:"Syne",sans-serif;font-size:15px;font-weight:800;}
+.ro-stat-val{font-family:"Fraunces",serif;font-size:16px;font-weight:700;letter-spacing:-0.5px;}
 .ro-stat-lbl{font-size:9px;opacity:0.55;margin-top:2px;text-transform:uppercase;letter-spacing:0.5px;}
 .ro-div{height:1px;background:rgba(255,255,255,0.12);margin-bottom:12px;}
 .ro-sec{font-size:9px;opacity:0.55;letter-spacing:2px;text-transform:uppercase;margin-bottom:10px;}
@@ -1288,7 +1288,7 @@ function renderHistory(){
           <div style="font-weight:700;font-size:14px;">${m.name}${isMe?`<span class="tag tag-you">YOU</span>`:""}</div>
           <div style="font-size:10px;color:var(--text3);">${active}/${days.length} active · avg ${avg2.toLocaleString()}/day${streak>0?` · 🔥 ${streak}d`:""}</div>
         </div>
-        <div style="text-align:right;"><div class="mc-num" style="color:${m.color};font-size:17px;">${total.toLocaleString()}</div><div style="font-size:10px;color:var(--text3);">${goalPct.toFixed(0)}% of goal</div></div>
+        <div style="text-align:right;"><div class="mc-num num" style="color:${m.color};font-size:17px;">${total.toLocaleString()}</div><div style="font-size:10px;color:var(--text3);">${goalPct.toFixed(0)}% of goal</div></div>
       </div>
       ${badgePills?`<div style="margin-bottom:6px;">${badgePills}</div>`:""}
       <div class="pbar"><div class="pbar-fill" style="width:${pct}%;background:${m.color};"></div></div>
