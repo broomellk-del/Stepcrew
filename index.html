@@ -580,121 +580,6 @@ function confirmSignOut(){
   if(confirm("Sign out of StepCrew? You'll need to sign in with Google again.")){signOut();}
 }
 
-function showSignIn(){
-  const splash=document.getElementById("splash");
-  const splashSpin=document.getElementById("splash-spin");
-  const splashGoogle=document.getElementById("splash-google");
-  splash.style.display="flex";splash.style.opacity="1";
-  if(splashSpin)splashSpin.style.display="none";
-  if(splashGoogle)splashGoogle.style.display="block";
-  document.getElementById("app").classList.remove("active");
-  document.getElementById("onboard").classList.remove("active");
-}
-
-function showApp(){
-  const splash=document.getElementById("splash");
-  splash.style.opacity="0";
-  setTimeout(()=>splash.style.display="none",300);
-  // Hide onboard completely
-  const ob=document.getElementById("onboard");
-  ob.classList.remove("active");
-  ob.style.display="none";
-  // Show app
-  const app=document.getElementById("app");
-  app.style.display="block";
-  app.classList.add("active");
-  document.getElementById("banner-code").textContent=S.activeCrew||"";
-  if(!S.syncInterval)S.syncInterval=setInterval(()=>pullLatest(true),30000);
-  render();
-}
-
-function showOnboard(){
-  // Hide app completely
-  const app=document.getElementById("app");
-  app.classList.remove("active");
-  app.style.display="none";
-  const splash=document.getElementById("splash");
-  splash.style.opacity="0";
-  setTimeout(()=>splash.style.display="none",300);
-  const nameDisp=document.getElementById("ob-name-display");
-  const googleName=document.getElementById("ob-google-name");
-  if(nameDisp)nameDisp.textContent=G.name||"";
-  if(googleName)googleName.textContent=G.email?"Signed in as "+G.email:"";
-  document.getElementById("onboard").classList.add("active");
-}
-
-async function findCrewByGoogleUid(uid,name){
-  const knownCodes=[];
-  try{
-    for(let i=0;i<localStorage.length;i++){
-      const k=localStorage.key(i);
-      if(k&&k.startsWith("sc_data_"))knownCodes.push(k.replace("sc_data_",""));
-    }
-    const sess=JSON.parse(localStorage.getItem("sc_session_v2")||"{}");
-    if(sess.activeCrew&&!knownCodes.includes(sess.activeCrew))knownCodes.push(sess.activeCrew);
-    if(sess.crews)sess.crews.forEach(c=>{if(!knownCodes.includes(c.code))knownCodes.push(c.code);});
-  }catch(e){}
-  // Always try the known crew code as last resort
-  const hardcodedCode="JL1SE9";
-  if(!knownCodes.includes(hardcodedCode))knownCodes.push(hardcodedCode);
-  for(const code of knownCodes){
-    try{
-      const remote=await fbLoad(code);
-      if(!remote)continue;
-      const firstName=name?name.toLowerCase().split(" ")[0]:"";
-      const match=(remote.members||[]).find(m=>
-        idMatch(m.googleUid,uid)||(firstName&&m.name.toLowerCase()===firstName)
-      );
-      if(match){
-        S.myId=match.id;S.activeCrew=code;S.crews=[{code,joinedAt:Date.now()}];
-        S.crewData[code]={members:remote.members||[],steps:remote.steps||{},pushed:remote.pushed||{},crewGoals:remote.crewGoals||{},updatedAt:remote.updatedAt};
-        lsSet("sc_data_"+code,S.crewData[code]);
-        if(uid&&!match.googleUid){
-          const idx=S.crewData[code].members.findIndex(m=>idMatch(m.id,match.id));
-          if(idx>=0)S.crewData[code].members[idx].googleUid=uid;
-          fbSave(code,S.crewData[code]);
-        }
-        saveSession();
-        return true;
-      }
-    }catch(e){console.error("findCrew error:",e);}
-  }
-  return false;
-}
-
-;
-
-async function fbSave(code,data){try{await db.collection("crews").doc(code).set({...data,updatedAt:Date.now()});return true;}catch(e){console.error("Save:",e);return false;}}
-async function fbLoad(code){try{const s=await db.collection("crews").doc(code).get();return s.exists?s.data():null;}catch(e){console.error("Load:",e);return null;}}
-function lsSet(k,v){try{localStorage.setItem(k,JSON.stringify(v));}catch(e){}}
-function lsGet(k){try{const r=localStorage.getItem(k);return r?JSON.parse(r):null;}catch(e){return null;}}
-
-const COLORS=["#6366f1","#10b981","#f59e0b","#ef4444","#8b5cf6","#06b6d4","#f97316","#ec4899","#14b8a6","#84cc16"];
-const CHALLENGES=[
-  {id:"5k",label:"5K Club",desc:"Everyone hits 5,000 today",t:5000,type:"all"},
-  {id:"10k",label:"10K Club",desc:"Everyone hits 10,000 today",t:10000,type:"all"},
-  {id:"g30k",label:"Group 30K",desc:"Crew total hits 30,000",t:30000,type:"group"},
-  {id:"g50k",label:"Group 50K",desc:"Crew total hits 50,000",t:50000,type:"group"},
-  {id:"nozero",label:"No Zero",desc:"Everyone logs 1,000+ steps",t:1000,type:"all"},
-];
-
-let S={myId:null,crews:[],activeCrew:null,crewData:{},view:"dashboard",editingId:null,editingModal:null,syncMode:"manual",selectedColor:COLORS[0],selectedSync:"manual",chalIdx:0,modUnlocked:false,syncInterval:null,histPeriod:"7d",histMembers:["all"],histStart:null,histEnd:null,calMonth:new Date().getMonth(),calYear:new Date().getFullYear(),profileDate:"",logDate:"",crewPeriod:"today",crewMemberFilter:"all",crewStreakTab:"fire"};
-
-function todayStr(){const d=new Date();return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");}
-function yesterdayStr(){const d=new Date();d.setDate(d.getDate()-1);return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");}
-function daysAgo(n){const d=[];for(let i=n-1;i>=0;i--){const x=new Date();x.setDate(x.getDate()-i);d.push(x.getFullYear()+"-"+String(x.getMonth()+1).padStart(2,"0")+"-"+String(x.getDate()).padStart(2,"0"));}return d;}
-function monthDaysArr(m,y){const d=[];const n=new Date(y,m+1,0).getDate();for(let i=1;i<=n;i++){const x=new Date(y,m,i);d.push(x.getFullYear()+"-"+String(x.getMonth()+1).padStart(2,"0")+"-"+String(x.getDate()).padStart(2,"0"));}return d;}
-function currMonthDays(){return monthDaysArr(new Date().getMonth(),new Date().getFullYear());}
-function fmtDate(s){return new Date(s+"T00:00:00").toLocaleDateString("en-US",{weekday:"short",month:"short",day:"numeric"});}
-function shortDay(s){return new Date(s+"T00:00:00").toLocaleDateString("en-US",{weekday:"short"});}
-function shortDate(s){return new Date(s+"T00:00:00").toLocaleDateString("en-US",{month:"short",day:"numeric"});}
-function monthName(m,y){return new Date(y,m,1).toLocaleDateString("en-US",{month:"long",year:"numeric"});}
-function genCode(){return Math.random().toString(36).slice(2,8).toUpperCase();}
-function timeAgo(ts){if(!ts)return"never";const s=Math.floor((Date.now()-ts)/1000);if(s<60)return"just now";if(s<3600)return Math.floor(s/60)+"m ago";return Math.floor(s/3600)+"h ago";}
-function initials(name){return(name||"?").trim().split(/\s+/).map(w=>w[0]).join("").toUpperCase().slice(0,2);}
-function avEl(m,sz){sz=sz||40;const fs=Math.round(sz*0.38);return`<div style="width:${sz}px;height:${sz}px;border-radius:${Math.round(sz*0.28)}px;background:${m.color};display:flex;align-items:center;justify-content:center;font-size:${fs}px;font-weight:800;color:#fff;flex-shrink:0;">${initials(m.name)}</div>`;}
-function toast(msg){const t=document.getElementById("toast");t.textContent=msg;t.classList.add("show");setTimeout(()=>t.classList.remove("show"),2800);}
-
 function cd(){return S.crewData[S.activeCrew]||{members:[],steps:{},pushed:{},crewGoals:{dailySteps:null,weeklySteps:null,dailyMsg:"",weeklyMsg:"",modId:null,modPin:null,crewName:""}};}
 function getSteps(mid,dk){
   const day=cd().steps[dk]||{};
@@ -1723,6 +1608,122 @@ function renderMeChart(){
 
 
 
+function showSignIn(){
+  const splash=document.getElementById("splash");
+  const splashSpin=document.getElementById("splash-spin");
+  const splashGoogle=document.getElementById("splash-google");
+  splash.style.display="flex";splash.style.opacity="1";
+  if(splashSpin)splashSpin.style.display="none";
+  if(splashGoogle)splashGoogle.style.display="block";
+  document.getElementById("app").classList.remove("active");
+  document.getElementById("onboard").classList.remove("active");
+}
+
+function showApp(){
+  const splash=document.getElementById("splash");
+  splash.style.opacity="0";
+  setTimeout(()=>splash.style.display="none",300);
+  // Hide onboard completely
+  const ob=document.getElementById("onboard");
+  ob.classList.remove("active");
+  ob.style.display="none";
+  // Show app
+  const app=document.getElementById("app");
+  app.style.display="block";
+  app.classList.add("active");
+  document.getElementById("banner-code").textContent=S.activeCrew||"";
+  if(!S.syncInterval)S.syncInterval=setInterval(()=>pullLatest(true),30000);
+  render();
+}
+
+function showOnboard(){
+  // Hide app completely
+  const app=document.getElementById("app");
+  app.classList.remove("active");
+  app.style.display="none";
+  const splash=document.getElementById("splash");
+  splash.style.opacity="0";
+  setTimeout(()=>splash.style.display="none",300);
+  const nameDisp=document.getElementById("ob-name-display");
+  const googleName=document.getElementById("ob-google-name");
+  if(nameDisp)nameDisp.textContent=G.name||"";
+  if(googleName)googleName.textContent=G.email?"Signed in as "+G.email:"";
+  document.getElementById("onboard").classList.add("active");
+}
+
+async function findCrewByGoogleUid(uid,name){
+  const knownCodes=[];
+  try{
+    for(let i=0;i<localStorage.length;i++){
+      const k=localStorage.key(i);
+      if(k&&k.startsWith("sc_data_"))knownCodes.push(k.replace("sc_data_",""));
+    }
+    const sess=JSON.parse(localStorage.getItem("sc_session_v2")||"{}");
+    if(sess.activeCrew&&!knownCodes.includes(sess.activeCrew))knownCodes.push(sess.activeCrew);
+    if(sess.crews)sess.crews.forEach(c=>{if(!knownCodes.includes(c.code))knownCodes.push(c.code);});
+  }catch(e){}
+  // Always try the known crew code as last resort
+  const hardcodedCode="JL1SE9";
+  if(!knownCodes.includes(hardcodedCode))knownCodes.push(hardcodedCode);
+  for(const code of knownCodes){
+    try{
+      const remote=await fbLoad(code);
+      if(!remote)continue;
+      const firstName=name?name.toLowerCase().split(" ")[0]:"";
+      const match=(remote.members||[]).find(m=>
+        idMatch(m.googleUid,uid)||(firstName&&m.name.toLowerCase()===firstName)
+      );
+      if(match){
+        S.myId=match.id;S.activeCrew=code;S.crews=[{code,joinedAt:Date.now()}];
+        S.crewData[code]={members:remote.members||[],steps:remote.steps||{},pushed:remote.pushed||{},crewGoals:remote.crewGoals||{},updatedAt:remote.updatedAt};
+        lsSet("sc_data_"+code,S.crewData[code]);
+        if(uid&&!match.googleUid){
+          const idx=S.crewData[code].members.findIndex(m=>idMatch(m.id,match.id));
+          if(idx>=0)S.crewData[code].members[idx].googleUid=uid;
+          fbSave(code,S.crewData[code]);
+        }
+        saveSession();
+        return true;
+      }
+    }catch(e){console.error("findCrew error:",e);}
+  }
+  return false;
+}
+
+;
+
+async function fbSave(code,data){try{await db.collection("crews").doc(code).set({...data,updatedAt:Date.now()});return true;}catch(e){console.error("Save:",e);return false;}}
+async function fbLoad(code){try{const s=await db.collection("crews").doc(code).get();return s.exists?s.data():null;}catch(e){console.error("Load:",e);return null;}}
+function lsSet(k,v){try{localStorage.setItem(k,JSON.stringify(v));}catch(e){}}
+function lsGet(k){try{const r=localStorage.getItem(k);return r?JSON.parse(r):null;}catch(e){return null;}}
+
+const COLORS=["#6366f1","#10b981","#f59e0b","#ef4444","#8b5cf6","#06b6d4","#f97316","#ec4899","#14b8a6","#84cc16"];
+const CHALLENGES=[
+  {id:"5k",label:"5K Club",desc:"Everyone hits 5,000 today",t:5000,type:"all"},
+  {id:"10k",label:"10K Club",desc:"Everyone hits 10,000 today",t:10000,type:"all"},
+  {id:"g30k",label:"Group 30K",desc:"Crew total hits 30,000",t:30000,type:"group"},
+  {id:"g50k",label:"Group 50K",desc:"Crew total hits 50,000",t:50000,type:"group"},
+  {id:"nozero",label:"No Zero",desc:"Everyone logs 1,000+ steps",t:1000,type:"all"},
+];
+
+let S={myId:null,crews:[],activeCrew:null,crewData:{},view:"dashboard",editingId:null,editingModal:null,syncMode:"manual",selectedColor:COLORS[0],selectedSync:"manual",chalIdx:0,modUnlocked:false,syncInterval:null,histPeriod:"7d",histMembers:["all"],histStart:null,histEnd:null,calMonth:new Date().getMonth(),calYear:new Date().getFullYear(),profileDate:"",logDate:"",crewPeriod:"today",crewMemberFilter:"all",crewStreakTab:"fire"};
+
+function todayStr(){const d=new Date();return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");}
+function yesterdayStr(){const d=new Date();d.setDate(d.getDate()-1);return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");}
+function daysAgo(n){const d=[];for(let i=n-1;i>=0;i--){const x=new Date();x.setDate(x.getDate()-i);d.push(x.getFullYear()+"-"+String(x.getMonth()+1).padStart(2,"0")+"-"+String(x.getDate()).padStart(2,"0"));}return d;}
+function monthDaysArr(m,y){const d=[];const n=new Date(y,m+1,0).getDate();for(let i=1;i<=n;i++){const x=new Date(y,m,i);d.push(x.getFullYear()+"-"+String(x.getMonth()+1).padStart(2,"0")+"-"+String(x.getDate()).padStart(2,"0"));}return d;}
+function currMonthDays(){return monthDaysArr(new Date().getMonth(),new Date().getFullYear());}
+function fmtDate(s){return new Date(s+"T00:00:00").toLocaleDateString("en-US",{weekday:"short",month:"short",day:"numeric"});}
+function shortDay(s){return new Date(s+"T00:00:00").toLocaleDateString("en-US",{weekday:"short"});}
+function shortDate(s){return new Date(s+"T00:00:00").toLocaleDateString("en-US",{month:"short",day:"numeric"});}
+function monthName(m,y){return new Date(y,m,1).toLocaleDateString("en-US",{month:"long",year:"numeric"});}
+function genCode(){return Math.random().toString(36).slice(2,8).toUpperCase();}
+function timeAgo(ts){if(!ts)return"never";const s=Math.floor((Date.now()-ts)/1000);if(s<60)return"just now";if(s<3600)return Math.floor(s/60)+"m ago";return Math.floor(s/3600)+"h ago";}
+function initials(name){return(name||"?").trim().split(/\s+/).map(w=>w[0]).join("").toUpperCase().slice(0,2);}
+function avEl(m,sz){sz=sz||40;const fs=Math.round(sz*0.38);return`<div style="width:${sz}px;height:${sz}px;border-radius:${Math.round(sz*0.28)}px;background:${m.color};display:flex;align-items:center;justify-content:center;font-size:${fs}px;font-weight:800;color:#fff;flex-shrink:0;">${initials(m.name)}</div>`;}
+function toast(msg){const t=document.getElementById("toast");t.textContent=msg;t.classList.add("show");setTimeout(()=>t.classList.remove("show"),2800);}
+
+
 // Auth handler last — all functions defined above
 auth.onAuthStateChanged(async user=>{
   if(!user){showSignIn();return;}
@@ -1741,4 +1742,4 @@ auth.onAuthStateChanged(async user=>{
 })
 </script>
 </body>
-  </html>
+                                                                                                                                                                   </html>
