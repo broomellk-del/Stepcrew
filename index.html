@@ -217,7 +217,7 @@ input:focus,select:focus{outline:none;}
 .sb-risk{background:#fef2f2;color:var(--red);font-size:9px;font-weight:700;border-radius:4px;padding:2px 5px;margin-left:4px;}
 .toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:var(--text);color:#fff;padding:10px 20px;border-radius:20px;z-index:999;font-size:13px;font-weight:600;box-shadow:var(--shadow-lg);white-space:nowrap;opacity:0;transition:opacity 0.3s;pointer-events:none;}
 .toast.show{opacity:1;}
-.num{font-family:"Fraunces",serif;font-weight:600;letter-spacing:-0.5px;}.num-lg{font-family:"Fraunces",serif;font-weight:700;letter-spacing:-1px;}
+.num{font-family:"Fraunces",serif;font-weight:600;letter-spacing:-0.5px;}
 </style>
 </head>
 <body>
@@ -299,14 +299,10 @@ input:focus,select:focus{outline:none;}
     <div class="sec-lbl">Leaderboard</div>
     <div id="today-list"></div>
   </div>
-  <!-- CREW TAB -->
   <div id="view-crew" class="content" style="display:none;">
-    <div style="height:6px;"></div>
     <div id="crew-recap-box"></div>
-    <div class="sec-lbl" id="crew-badges-lbl" style="display:none;">This Week's Badges</div>
     <div id="crew-badges-box"></div>
-    <div class="sec-lbl">🔥 Current Streaks</div>
-    <div id="crew-streak-board"></div>
+    <div id="crew-streak-box"></div>
     <button onclick="openModal('modal-add')" style="width:100%;padding:10px;border-radius:var(--r-sm);border:1.5px dashed var(--border);background:#fff;color:var(--text2);font-size:12px;font-weight:600;cursor:pointer;margin-top:4px;font-family:Outfit,sans-serif;">+ Add Member</button>
   </div>
 
@@ -359,13 +355,13 @@ input:focus,select:focus{outline:none;}
     <div style="height:6px;"></div>
     <div class="profile-hero" id="profile-hero"></div>
     <div class="settings-section">
-      <div class="settings-hdr" style="display:flex;justify-content:space-between;align-items:center;">🎖️ My Badges<span id="me-badge-count" style="font-size:10px;color:var(--accent);font-weight:700;"></span></div>
+      <div class="settings-hdr" style="display:flex;justify-content:space-between;">🎖️ My Badges <span id="me-badge-count" style="font-size:10px;color:var(--accent);font-weight:700;"></span></div>
       <div id="me-badge-grid" style="display:grid;grid-template-columns:repeat(4,1fr);gap:7px;padding:12px 13px;"></div>
     </div>
-    <div class="card" id="me-chart-card">
+    <div class="card">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
         <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;">My Steps · Last 7 Days</div>
-        <div style="font-size:13px;font-weight:700;color:var(--accent);" id="me-chart-total"></div>
+        <div class="num" style="font-size:13px;color:var(--accent);" id="me-chart-total"></div>
       </div>
       <div style="display:flex;">
         <div id="me-y-axis" style="display:flex;flex-direction:column;justify-content:space-between;align-items:flex-end;padding-right:4px;padding-bottom:18px;min-width:28px;"></div>
@@ -556,15 +552,20 @@ function showSignIn(){
   splash.style.display="flex";splash.style.opacity="1";
   if(splashSpin)splashSpin.style.display="none";
   if(splashGoogle)splashGoogle.style.display="block";
-  document.getElementById("app").classList.remove("active");
-  document.getElementById("onboard").classList.remove("active");
+  const _app=document.getElementById("app");_app.style.display="none";_app.classList.remove("active");
+  const _ob=document.getElementById("onboard");_ob.style.display="none";_ob.classList.remove("active");
 }
 
 function showApp(){
   const splash=document.getElementById("splash");
   splash.style.opacity="0";
   setTimeout(()=>splash.style.display="none",300);
-  document.getElementById("app").classList.add("active");
+  const ob=document.getElementById("onboard");
+  ob.style.display="none";
+  ob.classList.remove("active");
+  const app=document.getElementById("app");
+  app.style.display="block";
+  app.classList.add("active");
   document.getElementById("banner-code").textContent=S.activeCrew||"";
   if(!S.syncInterval)S.syncInterval=setInterval(()=>pullLatest(true),30000);
   render();
@@ -578,7 +579,12 @@ function showOnboard(){
   const googleName=document.getElementById("ob-google-name");
   if(nameDisp)nameDisp.textContent=G.name||"";
   if(googleName)googleName.textContent=G.email?"Signed in as "+G.email:"";
-  document.getElementById("onboard").classList.add("active");
+  const app=document.getElementById("app");
+  app.style.display="none";
+  app.classList.remove("active");
+  const ob=document.getElementById("onboard");
+  ob.style.display="block";
+  ob.classList.add("active");
 }
 
 async function findCrewByGoogleUid(uid,name){
@@ -996,10 +1002,13 @@ function switchView(v,btn){
   document.querySelectorAll(".bnav-btn").forEach(b=>b.classList.remove("active"));
   if(btn)btn.classList.add("active");
   document.getElementById("view-dashboard").style.display=v==="dashboard"?"block":"none";
+  var crewEl=document.getElementById("view-crew");
+  if(crewEl)crewEl.style.display=v==="crew"?"block":"none";
   document.getElementById("view-history").style.display=v==="history"?"block":"none";
   document.getElementById("view-profile").style.display=v==="profile"?"block":"none";
+  if(v==="crew"){renderCrewTabNew();}
   if(v==="history"){initHistory();renderHistory();}
-  if(v==="profile")renderProfileView();
+  if(v==="profile"){renderProfileView();renderMeBadgesNew();renderMeChartNew();}
 }
 
 function initHistory(){
@@ -1487,160 +1496,100 @@ S.logDate=maxDate;
 // Add sign out button to header after render
 // Auth flow handled by auth.onAuthStateChanged above
 
-
-// ── CREW TAB ─────────────────────────────────────────────────────────────────
-function renderCrewTab(){
-  const recapBox=document.getElementById("crew-recap-box");
-  const badgesBox=document.getElementById("crew-badges-box");
-  const badgesLbl=document.getElementById("crew-badges-lbl");
-  const streakBox=document.getElementById("crew-streak-board");
+// ── NEW: Crew tab ─────────────────────────────────────────────────────────────
+function renderCrewTabNew(){
+  var recapBox=document.getElementById("crew-recap-box");
+  var badgesBox=document.getElementById("crew-badges-box");
+  var streakBox=document.getElementById("crew-streak-box");
   if(!recapBox)return;
-  const lastWeek=getWeekDays(-1);
-  const members=cd().members;
-  const total=members.reduce((s,m)=>s+getTotal(m.id,lastWeek),0);
-  const avg=Math.round(total/(7*Math.max(members.length,1)));
-  const miles=Math.round(total*0.0004);
-  const cg=cd().crewGoals;
-  const crewName=cg&&cg.crewName?cg.crewName:"The Crew";
-  const weekBadges=calcWeekBadges(members,lastWeek);
-  const totalBadges=Object.values(weekBadges).flat().length;
-  const weekLabel=lastWeek[0]&&lastWeek[6]?shortDate(lastWeek[0])+" – "+shortDate(lastWeek[6]):"";
-  const sortedTotals=[...members].sort((a,b)=>getTotal(b.id,lastWeek)-getTotal(a.id,lastWeek));
-  const topWalker=sortedTotals[0];
-  const prevWeek=getWeekDays(-2);
-  const mostImproved=[...members].map(m=>{const c=getTotal(m.id,lastWeek),p=getTotal(m.id,prevWeek);return{m,pct:p>0?((c-p)/p)*100:0};}).filter(x=>x.pct>0).sort((a,b)=>b.pct-a.pct)[0];
-  const topStreak=[...members].map(m=>({m,s:calcStreak(m.id)})).sort((a,b)=>b.s-a.s)[0];
-  const goalCrusher=[...members].map(m=>({m,d:lastWeek.filter(d=>getSteps(m.id,d)>=m.goal).length})).sort((a,b)=>b.d-a.d)[0];
-  let awardsHtml="";
-  if(topWalker&&getTotal(topWalker.id,lastWeek)>0)awardsHtml+=`<div style="display:flex;align-items:center;gap:8px;margin-bottom:7px;"><div style="width:30px;height:30px;background:rgba(255,255,255,0.1);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;">👑</div><div><div style="font-size:12px;font-weight:700;">Top Walker — ${topWalker.name.split(" ")[0]}</div><div style="font-size:10px;opacity:0.6;">${getTotal(topWalker.id,lastWeek).toLocaleString()} steps</div></div><div style="font-family:'Fraunces',serif;font-size:13px;font-weight:700;margin-left:auto;opacity:0.9;">${(getTotal(topWalker.id,lastWeek)/1000).toFixed(1)}K</div></div>`;
-  if(mostImproved)awardsHtml+=`<div style="display:flex;align-items:center;gap:8px;margin-bottom:7px;"><div style="width:30px;height:30px;background:rgba(255,255,255,0.1);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;">📈</div><div><div style="font-size:12px;font-weight:700;">Most Improved — ${mostImproved.m.name.split(" ")[0]}</div><div style="font-size:10px;opacity:0.6;">Up ${mostImproved.pct.toFixed(0)}% vs last week</div></div><div style="font-family:'Fraunces',serif;font-size:13px;font-weight:700;margin-left:auto;opacity:0.9;">+${mostImproved.pct.toFixed(0)}%</div></div>`;
-  if(topStreak&&topStreak.s>=2)awardsHtml+=`<div style="display:flex;align-items:center;gap:8px;margin-bottom:7px;"><div style="width:30px;height:30px;background:rgba(255,255,255,0.1);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;">🔥</div><div><div style="font-size:12px;font-weight:700;">Streak Leader — ${topStreak.m.name.split(" ")[0]}</div><div style="font-size:10px;opacity:0.6;">${topStreak.s} days</div></div><div style="font-family:'Fraunces',serif;font-size:13px;font-weight:700;margin-left:auto;opacity:0.9;">${topStreak.s}d</div></div>`;
-  if(goalCrusher&&goalCrusher.d>=3)awardsHtml+=`<div style="display:flex;align-items:center;gap:8px;"><div style="width:30px;height:30px;background:rgba(255,255,255,0.1);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;">🎯</div><div><div style="font-size:12px;font-weight:700;">Goal Crusher — ${goalCrusher.m.name.split(" ")[0]}</div><div style="font-size:10px;opacity:0.6;">${goalCrusher.d}/7 days</div></div><div style="font-family:'Fraunces',serif;font-size:13px;font-weight:700;margin-left:auto;opacity:0.9;">${goalCrusher.d}/7</div></div>`;
-  recapBox.innerHTML=`<div style="background:linear-gradient(150deg,#1a1740,#2d2a8e,#3d3dbf);border-radius:12px;padding:16px;margin-bottom:9px;color:#fff;position:relative;overflow:hidden;">
-    <div style="font-size:9px;opacity:0.5;letter-spacing:2px;text-transform:uppercase;margin-bottom:4px;">Week of ${weekLabel}</div>
-    <div style="font-family:'Syne',sans-serif;font-size:17px;font-weight:800;margin-bottom:2px;">${crewName} 👟</div>
-    <div style="font-size:11px;opacity:0.6;margin-bottom:12px;">${totalBadges} badge${totalBadges!==1?"s":""} earned this week!</div>
-    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:12px;">
-      <div style="background:rgba(255,255,255,0.1);border-radius:8px;padding:8px 5px;text-align:center;"><div style="font-family:'Fraunces',serif;font-size:14px;font-weight:700;">${total>=1000?(total/1000).toFixed(0)+"K":total}</div><div style="font-size:8px;opacity:0.5;margin-top:1px;text-transform:uppercase;">Total</div></div>
-      <div style="background:rgba(255,255,255,0.1);border-radius:8px;padding:8px 5px;text-align:center;"><div style="font-family:'Fraunces',serif;font-size:14px;font-weight:700;">${avg.toLocaleString()}</div><div style="font-size:8px;opacity:0.5;margin-top:1px;text-transform:uppercase;">Avg/Day</div></div>
-      <div style="background:rgba(255,255,255,0.1);border-radius:8px;padding:8px 5px;text-align:center;"><div style="font-family:'Fraunces',serif;font-size:14px;font-weight:700;">${miles}mi</div><div style="font-size:8px;opacity:0.5;margin-top:1px;text-transform:uppercase;">Est. Miles</div></div>
-    </div>
-    <div style="height:1px;background:rgba(255,255,255,0.1);margin-bottom:10px;"></div>
-    <div style="font-size:9px;opacity:0.5;letter-spacing:2px;text-transform:uppercase;margin-bottom:9px;">🏆 Awards</div>
-    ${awardsHtml||"<div style='opacity:0.5;font-size:12px;'>Keep walking — awards appear after a full week!</div>"}
-  </div>`;
-  if(badgesLbl)badgesLbl.style.display="block";
-  let bh=`<div style="background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 1px 12px rgba(91,95,199,0.07);margin-bottom:9px;">`;
-  members.forEach(m=>{
-    const mb=weekBadges[m.id]||[];
-    const pills=mb.length?mb.map(function(b){var s=b.cls==="bp-gold"?"background:#fef3c7;border-color:#fde68a;color:#92400e;":b.cls==="bp-green"?"background:#f0fdf4;border-color:#86efac;color:#16a34a;":b.cls==="bp-red"?"background:#fef2f2;border-color:#fecaca;color:#e03e3e;":b.cls==="bp-purple"?"background:#faf5ff;border-color:#e9d5ff;color:#7c3aed;":"background:#eeeeff;border-color:#c7caff;color:#5b5fc7;";return'<span style="display:inline-flex;align-items:center;gap:3px;border-radius:20px;padding:2px 7px;font-size:9px;font-weight:700;margin-right:3px;border:1.5px solid transparent;'+s+'">'+b.icon+' '+b.label+'</span>';}).join(""):'<span style="font-size:10px;color:#9898b8;">No badges yet</span>';
-    bh+=`<div style="display:flex;align-items:center;gap:8px;padding:9px 13px;border-bottom:1px solid #f0f0f7;">${avEl(m,26)}<div style="font-size:11px;font-weight:600;width:58px;flex-shrink:0;">${m.name.split(" ")[0]}</div><div style="display:flex;gap:3px;flex-wrap:wrap;">${pills}</div></div>`;
+  var members=cd().members;
+  // Reuse existing renderWeeklyRecap and renderStreakBoard
+  recapBox.innerHTML=renderWeeklyRecap(members);
+  // Badge shelf
+  var lastWeek=getWeekDays(-1);
+  var weekBadges=calcWeekBadges(members,lastWeek);
+  var bh="<div class='sec-lbl'>This Week's Badges</div><div style='background:#fff;border-radius:12px;overflow:hidden;box-shadow:var(--shadow);margin-bottom:9px;'>";
+  members.forEach(function(m){
+    var mb=weekBadges[m.id]||[];
+    var pills=mb.length?mb.map(function(b){
+      var s=b.cls==="bp-gold"?"background:#fef3c7;border-color:#fde68a;color:#92400e;":
+             b.cls==="bp-green"?"background:#f0fdf4;border-color:#86efac;color:#16a34a;":
+             b.cls==="bp-red"?"background:#fef2f2;border-color:#fecaca;color:#e03e3e;":
+             b.cls==="bp-purple"?"background:#faf5ff;border-color:#e9d5ff;color:#7c3aed;":
+             "background:#eeeeff;border-color:#c7caff;color:#5b5fc7;";
+      return "<span style='display:inline-flex;align-items:center;gap:3px;border-radius:20px;padding:2px 7px;font-size:9px;font-weight:700;margin-right:3px;border:1.5px solid transparent;"+s+"'>"+b.icon+" "+b.label+"</span>";
+    }).join(""):"<span style='font-size:10px;color:var(--text3);'>No badges yet</span>";
+    bh+="<div style='display:flex;align-items:center;gap:8px;padding:9px 13px;border-bottom:1px solid var(--bg);'>"+avEl(m,26)+"<div style='font-size:11px;font-weight:600;width:58px;flex-shrink:0;'>"+m.name.split(" ")[0]+"</div><div style='display:flex;gap:3px;flex-wrap:wrap;'>"+pills+"</div></div>";
   });
-  bh+=`</div>`;
-  if(badgesBox)badgesBox.innerHTML=bh;
-  if(streakBox)streakBox.innerHTML=renderStreakBoardHtml();
+  bh+="</div>";
+  badgesBox.innerHTML=bh;
+  // Streak board — reuse existing function
+  var allMembers=cd().members;
+  streakBox.innerHTML="<div class='sec-lbl'>🔥 Current Streaks</div>"+renderStreakBoard(allMembers);
 }
 
-function renderStreakBoardHtml(){
-  const showGoal=S.crewStreakTab==="star";
-  const data=[...cd().members].map(m=>({m,s:showGoal?calcGoalStreak(m.id):calcStreak(m.id)})).sort((a,b)=>b.s-a.s);
-  const maxS=Math.max(...data.map(x=>x.s),1);
-  const medals=["🥇","🥈","🥉"];
-  const td=todayStr();
-  const fireCol="#e05c20",starCol="#92400e";
-  const barBg=showGoal?"linear-gradient(90deg,#f59e0b,#fbbf24)":"linear-gradient(90deg,#f97316,#ef4444)";
-  const tabStyle="flex:1;padding:8px;border:none;background:none;font-size:11px;font-weight:700;cursor:pointer;font-family:Outfit,sans-serif;";
-  let rows="";
-  data.forEach((x,i)=>{
-    const atRisk=!showGoal&&x.s>0&&!getSteps(x.m.id,td);
-    const riskBadge=atRisk?'<span style="background:#fef2f2;color:#e03e3e;font-size:8px;font-weight:700;border-radius:3px;padding:1px 3px;margin-left:3px;">Log today!</span>':"";
-    rows+='<div style="display:flex;align-items:center;gap:8px;padding:8px 12px;border-bottom:1px solid #f0f0f7;">';
-    rows+='<div style="font-size:'+(i<3?13:11)+'px;width:18px;text-align:center;'+(i>=3?"color:#9898b8":"")+'">'+(medals[i]||i+1)+'</div>';
-    rows+=avEl(x.m,30);
-    rows+='<div style="flex:1;"><div style="font-weight:700;font-size:12px;">'+x.m.name.split(" ")[0]+riskBadge+'</div>';
-    rows+='<div style="background:#f0f0f7;border-radius:2px;height:3px;overflow:hidden;margin-top:3px;"><div style="width:'+((x.s/maxS)*100)+'%;height:100%;border-radius:2px;background:'+barBg+';"></div></div></div>';
-    rows+='<div style="text-align:right;"><div style="font-family:'Fraunces',serif;font-size:15px;font-weight:700;color:'+(showGoal?starCol:fireCol)+';">'+x.s+'</div><div style="font-size:8px;color:#9898b8;">days</div></div>';
-    rows+='</div>';
-  });
-  let html='<div style="background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 1px 12px rgba(91,95,199,0.07);margin-bottom:9px;">';
-  html+='<div style="display:flex;border-bottom:1px solid #e2e2ef;">';
-  html+='<button onclick="S.crewStreakTab='fire';document.getElementById('crew-streak-board').innerHTML=renderStreakBoardHtml()" style="'+tabStyle+'color:'+(showGoal?"#9898b8":fireCol)+';border-bottom:2px solid '+(showGoal?"transparent":fireCol)+';">🔥 Logging</button>';
-  html+='<button onclick="S.crewStreakTab='star';document.getElementById('crew-streak-board').innerHTML=renderStreakBoardHtml()" style="'+tabStyle+'color:'+(showGoal?starCol:"#9898b8")+';border-bottom:2px solid '+(showGoal?"#e8a020":"transparent")+';"> ⭐ Goal</button>';
-  html+='</div>'+rows+'</div>';
-  return html;
-}
-
-// ── ME TAB BADGES + CHART ────────────────────────────────────────────────────
-function renderMeBadges(){
-  const grid=document.getElementById("me-badge-grid");
-  const countEl=document.getElementById("me-badge-count");
+// ── NEW: Me tab badges ────────────────────────────────────────────────────────
+function renderMeBadgesNew(){
+  var grid=document.getElementById("me-badge-grid");
+  var countEl=document.getElementById("me-badge-count");
   if(!grid)return;
-  const me=myMember();if(!me)return;
-  const BADGES=[
-    {icon:"🏃",name:"First Steps",check:()=>Object.values(cd().steps).some(d=>(d[me.id]||0)>0)},
-    {icon:"🔥",name:"7-Day Streak",check:()=>calcStreak(me.id)>=7},
-    {icon:"👑",name:"Top Walker",check:()=>{const w=getWeekDays(-1);const t=[...cd().members].sort((a,b)=>getTotal(b.id,w)-getTotal(a.id,w));return t[0]&&idMatch(t[0].id,me.id)&&getTotal(me.id,w)>0;}},
-    {icon:"🌙",name:"No Zero Week",check:()=>getWeekDays(-1).every(d=>getSteps(me.id,d)>0)},
-    {icon:"💎",name:"Personal Best",check:()=>{const w=getWeekDays(-1),t=getTotal(me.id,w);if(!t)return false;for(let i=-2;i>=-8;i--)if(getTotal(me.id,getWeekDays(i))>=t)return false;return true;}},
-    {icon:"⚡",name:"10K Every Day",check:()=>getWeekDays(-1).every(d=>getSteps(me.id,d)>=10000)},
-    {icon:"🎯",name:"Goal Crusher",check:()=>{const w=getWeekDays(-1),d=w.filter(d=>getSteps(me.id,d)>=me.goal).length;return d>0&&d===Math.max(...cd().members.map(m=>w.filter(d=>getSteps(m.id,d)>=m.goal).length));}},
-    {icon:"🌍",name:"1M Steps",check:()=>getTotal(me.id,daysAgo(365))>=1000000},
+  var me=myMember();
+  if(!me)return;
+  var BADGES=[
+    {icon:"🏃",name:"First Steps",check:function(){return Object.values(cd().steps||{}).some(function(d){return(d[me.id]||0)>0;});}},
+    {icon:"🔥",name:"7-Day Streak",check:function(){return calcStreak(me.id)>=7;}},
+    {icon:"👑",name:"Top Walker",check:function(){var w=getWeekDays(-1);var t=[...cd().members].sort(function(a,b){return getTotal(b.id,w)-getTotal(a.id,w);});return t[0]&&idMatch(t[0].id,me.id)&&getTotal(me.id,w)>0;}},
+    {icon:"🌙",name:"No Zero Week",check:function(){return getWeekDays(-1).every(function(d){return getSteps(me.id,d)>0;});}},
+    {icon:"💎",name:"Personal Best",check:function(){var w=getWeekDays(-1),t=getTotal(me.id,w);if(!t)return false;for(var i=-2;i>=-8;i--)if(getTotal(me.id,getWeekDays(i))>=t)return false;return true;}},
+    {icon:"⚡",name:"10K Every Day",check:function(){return getWeekDays(-1).every(function(d){return getSteps(me.id,d)>=10000;});}},
+    {icon:"🎯",name:"Goal Crusher",check:function(){var w=getWeekDays(-1),d=w.filter(function(d){return getSteps(me.id,d)>=me.goal;}).length;var all=cd().members.map(function(m){return w.filter(function(d){return getSteps(m.id,d)>=m.goal;}).length;});return d>0&&d===Math.max.apply(null,all);}},
+    {icon:"🌍",name:"1M Steps",check:function(){return getTotal(me.id,daysAgo(365))>=1000000;}},
   ];
-  const earned=BADGES.filter(b=>{try{return b.check();}catch(e){return false;}});
+  var earned=BADGES.filter(function(b){try{return b.check();}catch(e){return false;}});
   if(countEl)countEl.textContent=earned.length+" of "+BADGES.length+" earned";
-  grid.innerHTML=BADGES.map(b=>{
-    const e=earned.some(x=>x.icon===b.icon);
-    return`<div style="text-align:center;${e?"":"opacity:0.3;filter:grayscale(0.8);"}">
-      <div style="font-size:22px;display:block;margin-bottom:3px;">${b.icon}</div>
-      <div style="font-size:8px;font-weight:700;color:#5a5a7a;line-height:1.2;">${b.name}</div>
-    </div>`;
+  grid.innerHTML=BADGES.map(function(b){
+    var e=earned.some(function(x){return x.icon===b.icon;});
+    return "<div style='text-align:center;"+(e?"":"opacity:0.3;filter:grayscale(0.8);")+
+      "'><div style='font-size:22px;display:block;margin-bottom:3px;'>"+b.icon+"</div>"+
+      "<div style='font-size:8px;font-weight:700;color:var(--text2);line-height:1.2;'>"+b.name+"</div></div>";
   }).join("");
 }
 
-function renderMeChart(){
-  const svg=document.getElementById("me-svg");
-  const xEl=document.getElementById("me-chart-x");
-  const yEl=document.getElementById("me-y-axis");
-  const totEl=document.getElementById("me-chart-total");
+// ── NEW: Me tab personal chart ────────────────────────────────────────────────
+function renderMeChartNew(){
+  var svg=document.getElementById("me-svg");
+  var xEl=document.getElementById("me-chart-x");
+  var yEl=document.getElementById("me-y-axis");
+  var totEl=document.getElementById("me-chart-total");
   if(!svg)return;
-  const me=myMember();if(!me)return;
-  const days=daysAgo(7);
-  const vals=days.map(d=>getSteps(me.id,d));
-  const total=vals.reduce((a,b)=>a+b,0);
+  var me=myMember();
+  if(!me)return;
+  var days=daysAgo(7);
+  var vals=days.map(function(d){return getSteps(me.id,d);});
+  var total=vals.reduce(function(a,b){return a+b;},0);
   if(totEl)totEl.textContent=(total>=1000?(total/1000).toFixed(1)+"K":total)+" this week";
-  const maxV=Math.max(Math.ceil(Math.max(...vals)/5000)*5000,5000);
-  const W=300,H=80;
-  const pts=vals.map((v,i)=>`${(i/6)*W},${H-(v/maxV)*H*0.9}`).join(" L");
-  let lines=`<defs><linearGradient id="meg" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="${me.color}" stop-opacity="0.2"/><stop offset="100%" stop-color="${me.color}" stop-opacity="0"/></linearGradient></defs>`;
-  [0,Math.round(maxV/2),maxV].forEach(v=>{const y=H-(v/maxV)*H*0.9;lines+=`<line x1="0" y1="${y}" x2="${W}" y2="${y}" stroke="#e2e2ef" stroke-width="0.5" stroke-dasharray="3,3"/>`;});
-  lines+=`<path d="M${pts} L${W},${H} L0,${H}Z" fill="url(#meg)"/>`;
-  lines+=`<path d="M${pts}" fill="none" stroke="${me.color}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>`;
-  vals.forEach((v,i)=>{if(v>0){const cx=(i/6)*W,cy=H-(v/maxV)*H*0.9;lines+=`<circle cx="${cx}" cy="${cy}" r="3" fill="${me.color}" stroke="white" stroke-width="2"/>"`;}});
+  var maxV=Math.max(Math.ceil(Math.max.apply(null,vals)/5000)*5000,5000);
+  var W=300,H=80;
+  var pts=vals.map(function(v,i){return (i/6)*W+","+(H-(v/maxV)*H*0.9);}).join(" L");
+  var lines="<defs><linearGradient id='meg' x1='0' y1='0' x2='0' y2='1'><stop offset='0%' stop-color='"+me.color+"' stop-opacity='0.2'/><stop offset='100%' stop-color='"+me.color+"' stop-opacity='0'/></linearGradient></defs>";
+  [0,Math.round(maxV/2),maxV].forEach(function(v){
+    var y=H-(v/maxV)*H*0.9;
+    lines+="<line x1='0' y1='"+y+"' x2='"+W+"' y2='"+y+"' stroke='#e2e2ef' stroke-width='0.5' stroke-dasharray='3,3'/>";
+  });
+  lines+="<path d='M"+pts+" L"+W+","+H+" L0,"+H+"Z' fill='url(#meg)'/>";
+  lines+="<path d='M"+pts+"' fill='none' stroke='"+me.color+"' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'/>";
+  vals.forEach(function(v,i){
+    if(v>0){
+      var cx=(i/6)*W,cy=H-(v/maxV)*H*0.9;
+      lines+="<circle cx='"+cx+"' cy='"+cy+"' r='3' fill='"+me.color+"' stroke='white' stroke-width='2'/>";
+    }
+  });
   svg.innerHTML=lines;
-  if(xEl)xEl.innerHTML=days.map(d=>`<span>${shortDay(d)}</span>`).join("");
-  if(yEl)yEl.innerHTML=[maxV,Math.round(maxV/2),0].map(v=>`<span style="font-size:8px;color:#9898b8;font-weight:600;">${v>=1000?(v/1000).toFixed(0)+"k":v}</span>`).join("");
+  if(xEl)xEl.innerHTML=days.map(function(d){return "<span>"+shortDay(d)+"</span>";}).join("");
+  if(yEl)yEl.innerHTML=[maxV,Math.round(maxV/2),0].map(function(v){
+    return "<span style='font-size:8px;color:var(--text3);font-weight:600;'>"+(v>=1000?(v/1000).toFixed(0)+"k":v)+"</span>";
+  }).join("");
 }
-
-// ── UPDATE switchView for 4 tabs ─────────────────────────────────────────────
-const _origSwitchView=switchView;
-switchView=function(v,btn){
-  _origSwitchView(v,btn);
-  const crewEl=document.getElementById("view-crew");
-  if(crewEl)crewEl.style.display=v==="crew"?"block":"none";
-  if(v==="crew"){renderCrewTab();}
-};
-
-// ── UPDATE renderProfileView to add badges+chart ─────────────────────────────
-const _origRenderProfileView=renderProfileView;
-renderProfileView=function(){
-  _origRenderProfileView();
-  renderMeBadges();
-  renderMeChart();
-};
-
-// ── Init crewStreakTab state ──────────────────────────────────────────────────
-S.crewStreakTab="fire";
-
 </script>
 </body>
 </html>
