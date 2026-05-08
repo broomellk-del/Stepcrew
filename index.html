@@ -656,7 +656,7 @@ const CHALLENGES=[
   {id:"nozero",label:"No Zero",desc:"Everyone logs 1,000+ steps",t:1000,type:"all"},
 ];
 
-let S={myId:null,crews:[],activeCrew:null,crewData:{},view:"dashboard",editingId:null,editingModal:null,syncMode:"manual",selectedColor:COLORS[0],selectedSync:"manual",chalIdx:0,modUnlocked:false,syncInterval:null,histPeriod:"7d",histMembers:["all"],histStart:null,histEnd:null,calMonth:new Date().getMonth(),calYear:new Date().getFullYear(),profileDate:"",logDate:""};
+let S={myId:null,crews:[],activeCrew:null,crewData:{},view:"dashboard",editingId:null,editingModal:null,syncMode:"manual",selectedColor:COLORS[0],selectedSync:"manual",chalIdx:0,modUnlocked:false,syncInterval:null,histPeriod:"7d",histMembers:["all"],histStart:null,histEnd:null,calMonth:new Date().getMonth(),calYear:new Date().getFullYear(),profileDate:"",logDate:"",crewStreakMode:"log"};
 
 function todayStr(){const d=new Date();return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");}
 function yesterdayStr(){const d=new Date();d.setDate(d.getDate()-1);return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");}
@@ -912,7 +912,7 @@ function renderMyBox(){
   const isToday=S.logDate===todayStr();
   let action="";
   if(isEditing){
-    action=`<div class="edit-row"><input class="steps-inp" id="my-inp" type="number" value="${s||""}" placeholder="Steps…" onfocus="this.setSelectionRange(this.value.length,this.value.length)"/><button class="sv-btn" onclick="doSaveMySteps(true)" style="background:${m.color};">Share 🚀</button><button class="loc-btn" onclick="doSaveMySteps(false)">Save</button><button class="cx-btn" onclick="S.editingId=null;renderMyBox()">&times;</button></div>`;
+    action=`<div class="edit-row"><input class="steps-inp" id="my-inp" type="number" value="${s||""}" placeholder="Steps…" onfocus="var v=this.value;this.type='text';this.setSelectionRange(v.length,v.length);this.type='number';"/><button class="sv-btn" onclick="doSaveMySteps(true)" style="background:${m.color};">Share 🚀</button><button class="loc-btn" onclick="doSaveMySteps(false)">Save</button><button class="cx-btn" onclick="S.editingId=null;renderMyBox()">&times;</button></div>`;
   } else {
     action=`<div class="act-row"><button class="log-btn" onclick="S.editingId=${m.id};renderMyBox()">${s>0?"&#x270f;&#xfe0f; Update my steps":"➕ Log my steps"}</button>${needsPush&&isToday?`<button class="share-btn" onclick="doShare(${m.id})">Share 🚀</button>`:""}</div>${needsPush&&isToday?`<div class="push-hint">Crew can\'t see your latest — tap Share</div>`:""}`;
   }
