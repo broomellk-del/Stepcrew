@@ -1543,8 +1543,8 @@ function renderCrewStreak(){
   out+="<div style='background:#fff;border-radius:12px;overflow:hidden;box-shadow:var(--shadow);margin-bottom:9px;'>";
   out+="<div style='display:flex;border-bottom:1px solid var(--border);'>";
   var tb="flex:1;padding:8px;border:none;background:none;font-size:11px;font-weight:700;cursor:pointer;font-family:Outfit,sans-serif;";
-  out+="<button onclick='S.crewStreakMode=&quot;log&quot;;document.getElementById(&quot;crew-streak-box&quot;).innerHTML=renderCrewStreak()' style='"+tb+"color:"+(!showGoal?fc:"var(--text3)")+";border-bottom:2px solid "+(!showGoal?fc:"transparent")+"'>🔥 Logging</button>";
-  out+="<button onclick='S.crewStreakMode=&quot;goal&quot;;document.getElementById(&quot;crew-streak-box&quot;).innerHTML=renderCrewStreak()' style='"+tb+"color:"+(showGoal?sc:"var(--text3)")+";border-bottom:2px solid "+(showGoal?"var(--gold)":"transparent")+"'>⭐ Goal</button>";
+  out+='<button onclick="S.crewStreakMode=\'log\';document.getElementById(\'crew-streak-box\').innerHTML=renderCrewStreak()" style="'+tb+'color:'+(!showGoal?fc:'var(--text3)')+';border-bottom:2px solid '+(!showGoal?fc:'transparent')+'">🔥 Logging</button>';
+  out+='<button onclick="S.crewStreakMode=\'goal\';document.getElementById(\'crew-streak-box\').innerHTML=renderCrewStreak()" style="'+tb+'color:'+(showGoal?sc:'var(--text3)')+';border-bottom:2px solid '+(showGoal?'var(--gold)':'transparent')+'">⭐ Goal</button>';
   out+="</div>";
   sorted.forEach(function(x,i){
     var atRisk=!showGoal&&x.s>0&&!getSteps(x.m.id,td);
