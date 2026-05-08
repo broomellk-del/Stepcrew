@@ -912,7 +912,7 @@ function renderMyBox(){
   const isToday=S.logDate===todayStr();
   let action="";
   if(isEditing){
-    action=`<div class="edit-row"><input class="steps-inp" id="my-inp" type="number" value="${s||""}" placeholder="Steps…"/><button class="sv-btn" onclick="doSaveMySteps(true)" style="background:${m.color};">Share 🚀</button><button class="loc-btn" onclick="doSaveMySteps(false)">Save</button><button class="cx-btn" onclick="S.editingId=null;renderMyBox()">&times;</button></div>`;
+    action=`<div class="edit-row"><input class="steps-inp" id="my-inp" type="number" value="${s||""}" placeholder="Steps…" onfocus="this.setSelectionRange(this.value.length,this.value.length)"/><button class="sv-btn" onclick="doSaveMySteps(true)" style="background:${m.color};">Share 🚀</button><button class="loc-btn" onclick="doSaveMySteps(false)">Save</button><button class="cx-btn" onclick="S.editingId=null;renderMyBox()">&times;</button></div>`;
   } else {
     action=`<div class="act-row"><button class="log-btn" onclick="S.editingId=${m.id};renderMyBox()">${s>0?"&#x270f;&#xfe0f; Update my steps":"➕ Log my steps"}</button>${needsPush&&isToday?`<button class="share-btn" onclick="doShare(${m.id})">Share 🚀</button>`:""}</div>${needsPush&&isToday?`<div class="push-hint">Crew can\'t see your latest — tap Share</div>`:""}`;
   }
@@ -922,7 +922,7 @@ function renderMyBox(){
     ${action}
     <div style="font-size:10px;color:var(--text3);text-align:center;margin-top:8px;">Tap card to edit profile &amp; log past dates</div>
   </div>`;
-  if(isEditing)setTimeout(()=>{const el=document.getElementById("my-inp");if(el){el.focus();el.setSelectionRange(el.value.length,el.value.length);}},100);
+  if(isEditing)setTimeout(()=>{const el=document.getElementById("my-inp");if(el)el.focus();},100);
 }
 
 async function doSaveMySteps(share){
@@ -982,7 +982,7 @@ function renderTodayList(){
     const avg7=getAvg(m.id,wD);
     const isEditing=S.editingId===m.id+"_t";
     let action=isEditing
-      ?`<div class="edit-row"><input class="steps-inp" id="inp_${m.id}" type="number" value="${s||""}" placeholder="Steps…" onfocus="this.setSelectionRange(this.value.length,this.value.length)"/><button class="sv-btn" onclick="saveOtherSteps(${m.id},'${dk}',true)" style="background:${m.color};">Share</button><button class="loc-btn" onclick="saveOtherSteps(${m.id},'${dk}',false)">Local</button><button class="cx-btn" onclick="S.editingId=null;renderTodayList()">&times;</button></div>`
+      ?`<div class="edit-row"><input class="steps-inp" id="inp_${m.id}" type="number" value="${s||""}" placeholder="Steps…"/><button class="sv-btn" onclick="saveOtherSteps(${m.id},'${dk}',true)" style="background:${m.color};">Share</button><button class="loc-btn" onclick="saveOtherSteps(${m.id},'${dk}',false)">Local</button><button class="cx-btn" onclick="S.editingId=null;renderTodayList()">&times;</button></div>`
       :`<div class="act-row" style="gap:6px;"><button style="flex:1;background:var(--bg);border:1.5px solid var(--border);color:var(--text2);border-radius:var(--r-sm);padding:8px;font-size:12px;font-weight:600;cursor:pointer;" onclick="S.editingId='${m.id}_t';renderTodayList()">${s>0?"&#x270f;&#xfe0f; Update":"➕ Log steps"}</button><button style="background:var(--bg);border:1.5px solid var(--border);color:var(--text3);border-radius:var(--r-sm);padding:8px 10px;font-size:12px;cursor:pointer;" onclick="openEditModal('${m.id}')">⚙️</button></div>`;
     h+=`<div class="member-card${i===0&&s>0?" leader":""}"><div class="mc-row">${avEl(m,38)}<div style="flex:1;"><div style="font-weight:700;font-size:14px;">${m.name}${i===0&&s>0?" 👑":""}${m.isMod?`<span class="tag tag-mod">MOD</span>`:""}${m.isManual?`<span class="tag tag-manual">MANUAL</span>`:""}</div><div style="font-size:10px;color:var(--text3);">Goal ${m.goal.toLocaleString()} &middot; avg ${avg7.toLocaleString()}/day &middot; ${timeAgo(lp)}</div></div><div style="text-align:right;"><div class="mc-num" style="color:${pct>=100?"var(--gold)":m.color};">${s.toLocaleString()}</div><div style="font-size:10px;color:var(--text3);">${pct.toFixed(0)}%</div></div></div><div class="pbar"><div class="pbar-fill" style="width:${pct}%;background:${m.color};"></div></div>${action}</div>`;
   });
@@ -1524,12 +1524,12 @@ function renderCrewTabNew(){
   bh+="</div>";
   badgesBox.innerHTML=bh;
   // Streak board with toggle
-  if(!S.crewStreakMode)S.crewStreakMode='log';
+  if(!S.crewStreakMode)S.crewStreakMode="log";
   streakBox.innerHTML=renderCrewStreak();
 }
 
 function renderCrewStreak(){
-  var showGoal=(S.crewStreakMode||'log')==='goal';
+  var showGoal=(S.crewStreakMode||"log")==="goal";
   var members=cd().members;
   var sorted=[...members].map(function(m){
     return{m:m,s:showGoal?calcGoalStreak(m.id):calcStreak(m.id)};
@@ -1537,30 +1537,27 @@ function renderCrewStreak(){
   var maxS=Math.max.apply(null,sorted.map(function(x){return x.s;}));
   if(maxS<1)maxS=1;
   var td=todayStr();
-  var medals=['🥇','🥈','🥉'];
-  var fc='#e05c20',sc='#92400e';
-  var logBg=showGoal?'transparent':fc;
-  var goalBg=showGoal?'var(--gold)':'transparent';
-  var logCol=showGoal?'var(--text3)':fc;
-  var goalCol=showGoal?sc:'var(--text3)';
-  var tb='flex:1;padding:8px;border:none;background:none;font-size:11px;font-weight:700;cursor:pointer;font-family:Outfit,sans-serif;';
-  var html='<div class="sec-lbl">🔥 Current Streaks</div>';
-  html+='<div style="background:#fff;border-radius:12px;overflow:hidden;box-shadow:var(--shadow);margin-bottom:9px;">';
-  html+='<div style="display:flex;border-bottom:1px solid var(--border);">';
-  html+='<button onclick="S.crewStreakMode=\'log\';document.getElementById(\'crew-streak-box\').innerHTML=renderCrewStreak()" style="'+tb+'color:'+logCol+';border-bottom:2px solid '+logBg+';">🔥 Logging</button>';
-  html+='<button onclick="S.crewStreakMode=\'goal\';document.getElementById(\'crew-streak-box\').innerHTML=renderCrewStreak()" style="'+tb+'color:'+goalCol+';border-bottom:2px solid '+goalBg+';">⭐ Goal</button>';
-  html+='</div>';
+  var medals=["🥇","🥈","🥉"];
+  var fc="#e05c20",sc="#92400e";
+  var out="<div class='sec-lbl'>🔥 Current Streaks</div>";
+  out+="<div style='background:#fff;border-radius:12px;overflow:hidden;box-shadow:var(--shadow);margin-bottom:9px;'>";
+  out+="<div style='display:flex;border-bottom:1px solid var(--border);'>";
+  var tb="flex:1;padding:8px;border:none;background:none;font-size:11px;font-weight:700;cursor:pointer;font-family:Outfit,sans-serif;";
+  out+="<button onclick='S.crewStreakMode=&quot;log&quot;;document.getElementById(&quot;crew-streak-box&quot;).innerHTML=renderCrewStreak()' style='"+tb+"color:"+(!showGoal?fc:"var(--text3)")+";border-bottom:2px solid "+(!showGoal?fc:"transparent")+"'>🔥 Logging</button>";
+  out+="<button onclick='S.crewStreakMode=&quot;goal&quot;;document.getElementById(&quot;crew-streak-box&quot;).innerHTML=renderCrewStreak()' style='"+tb+"color:"+(showGoal?sc:"var(--text3)")+";border-bottom:2px solid "+(showGoal?"var(--gold)":"transparent")+"'>⭐ Goal</button>";
+  out+="</div>";
   sorted.forEach(function(x,i){
     var atRisk=!showGoal&&x.s>0&&!getSteps(x.m.id,td);
-    html+='<div style="display:flex;align-items:center;gap:8px;padding:8px 12px;border-bottom:1px solid var(--bg);">';
-    html+='<div style="font-size:'+(i<3?13:11)+'px;width:18px;text-align:center;">'+(medals[i]||i+1)+'</div>';
-    html+=avEl(x.m,30);
-    html+='<div style="flex:1;"><div style="font-weight:700;font-size:12px;">'+x.m.name.split(' ')[0]+(atRisk?'<span style="background:#fef2f2;color:#e03e3e;font-size:8px;font-weight:700;border-radius:3px;padding:1px 3px;margin-left:3px;">Log today!</span>':'')+'</div>';
-    html+='<div style="background:var(--bg);border-radius:2px;height:3px;overflow:hidden;margin-top:3px;"><div style="width:'+((x.s/maxS)*100)+'%;height:100%;border-radius:2px;background:'+(showGoal?'linear-gradient(90deg,#f59e0b,#fbbf24)':'linear-gradient(90deg,#f97316,#ef4444)')+'"></div></div></div>';
-    html+='<div style="text-align:right;"><div style="font-family:Fraunces,serif;font-size:15px;font-weight:700;color:'+(showGoal?sc:fc)+';">'+x.s+'</div><div style="font-size:8px;color:var(--text3);">days</div></div></div>';
+    var bar=showGoal?"linear-gradient(90deg,#f59e0b,#fbbf24)":"linear-gradient(90deg,#f97316,#ef4444)";
+    out+="<div style='display:flex;align-items:center;gap:8px;padding:8px 12px;border-bottom:1px solid var(--bg);'>";
+    out+="<div style='font-size:"+(i<3?13:11)+"px;width:18px;text-align:center;'>"+(medals[i]||i+1)+"</div>";
+    out+=avEl(x.m,30);
+    out+="<div style='flex:1;'><div style='font-weight:700;font-size:12px;'>"+x.m.name.split(" ")[0]+(atRisk?"<span style='background:#fef2f2;color:#e03e3e;font-size:8px;font-weight:700;border-radius:3px;padding:1px 3px;margin-left:3px;'>Log today!</span>":"")+"</div>";
+    out+="<div style='background:var(--bg);border-radius:2px;height:3px;overflow:hidden;margin-top:3px;'><div style='width:"+((x.s/maxS)*100)+"%;height:100%;border-radius:2px;background:"+bar+"'></div></div></div>";
+    out+="<div style='text-align:right;'><div style='font-family:Fraunces,serif;font-size:15px;font-weight:700;color:"+(showGoal?sc:fc)+";'>"+x.s+"</div><div style='font-size:8px;color:var(--text3);'>days</div></div></div>";
   });
-  html+='</div>';
-  return html;
+  out+="</div>";
+  return out;
 }
 
 // ── NEW: Me tab badges ────────────────────────────────────────────────────────
