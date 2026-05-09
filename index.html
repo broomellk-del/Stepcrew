@@ -912,7 +912,7 @@ function renderMyBox(){
   const isToday=S.logDate===todayStr();
   let action="";
   if(isEditing){
-    action=`<div class="edit-row"><input class="steps-inp" id="my-inp" type="number" value="${s||""}" placeholder="Steps…" onfocus="var v=this.value;this.type='text';this.setSelectionRange(v.length,v.length);this.type='number';"/><button class="sv-btn" onclick="doSaveMySteps(true)" style="background:${m.color};">Share 🚀</button><button class="loc-btn" onclick="doSaveMySteps(false)">Save</button><button class="cx-btn" onclick="S.editingId=null;renderMyBox()">&times;</button></div>`;
+    action=`<div class="edit-row"><input class="steps-inp" id="my-inp" type="number" value="${s||""}" placeholder="Steps…"/><button class="sv-btn" onclick="doSaveMySteps(true)" style="background:${m.color};">Share 🚀</button><button class="loc-btn" onclick="doSaveMySteps(false)">Save</button><button class="cx-btn" onclick="S.editingId=null;renderMyBox()">&times;</button></div>`;
   } else {
     action=`<div class="act-row"><button class="log-btn" onclick="S.editingId=${m.id};renderMyBox()">${s>0?"&#x270f;&#xfe0f; Update my steps":"➕ Log my steps"}</button>${needsPush&&isToday?`<button class="share-btn" onclick="doShare(${m.id})">Share 🚀</button>`:""}</div>${needsPush&&isToday?`<div class="push-hint">Crew can\'t see your latest — tap Share</div>`:""}`;
   }
@@ -1121,7 +1121,6 @@ function calcWeekBadges(members,weekDays){
   // Personal Best — best week ever
   members.forEach(m=>{
     const curTotal=getTotal(m.id,weekDays);
-    // Check last 8 weeks
     let pb=true;
     for(let w=-1;w>=-8;w--){
       if(getTotal(m.id,getWeekDays(w))>=curTotal){pb=false;break;}
@@ -1129,12 +1128,94 @@ function calcWeekBadges(members,weekDays){
     if(pb&&curTotal>0)badges[m.id].push({id:"pb",icon:"💎",label:"Personal Best",cls:"bp-green"});
   });
 
+  // ── NEW EASY BADGES ─────────────────────────────────────────────────────────
+
+  // Showed Up — logged at least once this week
+  members.forEach(m=>{
+    if(weekDays.some(d=>getSteps(m.id,d)>0))
+      badges[m.id].push({id:"showed",icon:"👟",label:"Showed Up",cls:"bp-green"});
+  });
+
+  // 5K Day — hit 5,000 steps any single day
+  members.forEach(m=>{
+    if(weekDays.some(d=>getSteps(m.id,d)>=5000))
+      badges[m.id].push({id:"5k",icon:"🚶",label:"5K Day",cls:"bp-green"});
+  });
+
+  // On a Roll — 3 consecutive logging days
+  members.forEach(m=>{
+    let streak=0;
+    for(let i=0;i<weekDays.length;i++){
+      if(getSteps(m.id,weekDays[i])>0){streak++;if(streak>=3){badges[m.id].push({id:"roll",icon:"🔥",label:"On a Roll",cls:"bp-red"});break;}}
+      else streak=0;
+    }
+  });
+
+  // Goal Getter — hit personal goal at least once
+  members.forEach(m=>{
+    if(weekDays.some(d=>getSteps(m.id,d)>=m.goal))
+      badges[m.id].push({id:"getter",icon:"💪",label:"Goal Getter",cls:"bp-blue"});
+  });
+
+  // Better Than Last Week — more steps than previous week
+  const prevWeekComp=getWeekDays(-1);
+  members.forEach(m=>{
+    const cur=getTotal(m.id,weekDays),prev=getTotal(m.id,prevWeekComp);
+    if(cur>prev&&cur>0)
+      badges[m.id].push({id:"better",icon:"⬆️",label:"Better Than Last Week",cls:"bp-green"});
+  });
+
+  // Consistent — logged 5+ out of 7 days
+  members.forEach(m=>{
+    const loggedDays=weekDays.filter(d=>getSteps(m.id,d)>0).length;
+    if(loggedDays>=5)
+      badges[m.id].push({id:"consistent",icon:"📅",label:"Consistent",cls:"bp-blue"});
+  });
+
+  // Comeback Kid — zero day followed by best day of week
+  members.forEach(m=>{
+    for(let i=1;i<weekDays.length;i++){
+      if(getSteps(m.id,weekDays[i-1])===0&&getSteps(m.id,weekDays[i])>0){
+        const best=Math.max(...weekDays.map(d=>getSteps(m.id,d)));
+        if(getSteps(m.id,weekDays[i])===best&&best>0){
+          badges[m.id].push({id:"comeback",icon:"🎪",label:"Comeback Kid",cls:"bp-gold"});
+          break;
+        }
+      }
+    }
+  });
+
+  // Crew Carry — only member to hit goal on a day when others didn't
+  weekDays.forEach(d=>{
+    const hitters=members.filter(m=>getSteps(m.id,d)>=m.goal);
+    if(hitters.length===1)
+      badges[hitters[0].id].push({id:"carry",icon:"🤝",label:"Crew Carry",cls:"bp-gold"});
+  });
+
+  // Century Club — 100K+ steps in a week
+  members.forEach(m=>{
+    if(getTotal(m.id,weekDays)>=100000)
+      badges[m.id].push({id:"century",icon:"🏆",label:"Century Club",cls:"bp-gold"});
+  });
+
+  // Hot Streak — 7-day logging streak
+  members.forEach(m=>{
+    if(weekDays.every(d=>getSteps(m.id,d)>0))
+      badges[m.id].push({id:"hotstreak",icon:"🌅",label:"Hot Streak",cls:"bp-red"});
+  });
+
+  // Deduplicate badges per member (some overlap e.g. No Zero / Hot Streak)
+  members.forEach(m=>{
+    const seen=new Set();
+    badges[m.id]=badges[m.id].filter(b=>{if(seen.has(b.id))return false;seen.add(b.id);return true;});
+  });
+
   return badges;
 }
 
 function renderWeeklyRecap(members){
-  const lastWeek=getWeekDays(-1);
-  const weekLabel=lastWeek[0]&&lastWeek[6]?`${shortDate(lastWeek[0])} – ${shortDate(lastWeek[6])}`:"";;
+  const lastWeek=getWeekDays(0);
+  const weekLabel=lastWeek[0]&&lastWeek[6]?`${shortDate(lastWeek[0])} – ${shortDate(lastWeek[6])}`:"";
   const total=members.reduce((s,m)=>s+getTotal(m.id,lastWeek),0);
   const activeDays=lastWeek.filter(d=>members.some(m=>getSteps(m.id,d)>0)).length||1;
   const avg=Math.round(total/(activeDays*Math.max(members.length,1)));
@@ -1506,7 +1587,7 @@ function renderCrewTabNew(){
   // Reuse existing renderWeeklyRecap and renderStreakBoard
   recapBox.innerHTML=renderWeeklyRecap(members);
   // Badge shelf
-  var lastWeek=getWeekDays(-1);
+  var lastWeek=getWeekDays(0);
   var weekBadges=calcWeekBadges(members,lastWeek);
   var bh="<div class='sec-lbl'>This Week's Badges</div><div style='background:#fff;border-radius:12px;overflow:hidden;box-shadow:var(--shadow);margin-bottom:9px;'>";
   members.forEach(function(m){
@@ -1524,40 +1605,59 @@ function renderCrewTabNew(){
   bh+="</div>";
   badgesBox.innerHTML=bh;
   // Streak board with toggle
-  if(!S.crewStreakMode)S.crewStreakMode="log";
-  streakBox.innerHTML=renderCrewStreak();
+  streakBox.innerHTML=buildStreakBoard();
 }
 
-function renderCrewStreak(){
-  var showGoal=(S.crewStreakMode||"log")==="goal";
+
+function setCrewStreak(mode){
+  S.crewStreakMode=mode;
+  var box=document.getElementById("crew-streak-box");
+  if(box)box.innerHTML=buildStreakBoard();
+}
+
+function buildStreakBoard(){
+  var showGoal=S.crewStreakMode==="goal";
   var members=cd().members;
-  var sorted=[...members].map(function(m){
-    return{m:m,s:showGoal?calcGoalStreak(m.id):calcStreak(m.id)};
-  }).sort(function(a,b){return b.s-a.s;});
-  var maxS=Math.max.apply(null,sorted.map(function(x){return x.s;}));
-  if(maxS<1)maxS=1;
   var td=todayStr();
   var medals=["🥇","🥈","🥉"];
   var fc="#e05c20",sc="#92400e";
-  var out="<div class='sec-lbl'>🔥 Current Streaks</div>";
-  out+="<div style='background:#fff;border-radius:12px;overflow:hidden;box-shadow:var(--shadow);margin-bottom:9px;'>";
-  out+="<div style='display:flex;border-bottom:1px solid var(--border);'>";
-  var tb="flex:1;padding:8px;border:none;background:none;font-size:11px;font-weight:700;cursor:pointer;font-family:Outfit,sans-serif;";
-  out+='<button onclick="S.crewStreakMode=\'log\';document.getElementById(\'crew-streak-box\').innerHTML=renderCrewStreak()" style="'+tb+'color:'+(!showGoal?fc:'var(--text3)')+';border-bottom:2px solid '+(!showGoal?fc:'transparent')+'">🔥 Logging</button>';
-  out+='<button onclick="S.crewStreakMode=\'goal\';document.getElementById(\'crew-streak-box\').innerHTML=renderCrewStreak()" style="'+tb+'color:'+(showGoal?sc:'var(--text3)')+';border-bottom:2px solid '+(showGoal?'var(--gold)':'transparent')+'">⭐ Goal</button>';
-  out+="</div>";
-  sorted.forEach(function(x,i){
+
+  // Sort by appropriate streak type
+  var sorted=[...members].map(function(m){
+    var s=showGoal?calcGoalStreak(m.id):calcStreak(m.id);
+    return{m:m,s:s};
+  }).sort(function(a,b){return b.s-a.s;});
+  var maxS=sorted[0]?sorted[0].s:1;
+  if(maxS<1)maxS=1;
+
+  var bar=showGoal?"linear-gradient(90deg,#f59e0b,#fbbf24)":"linear-gradient(90deg,#f97316,#ef4444)";
+  var logActive=!showGoal;
+  var goalActive=showGoal;
+
+  var rows="";
+  for(var i=0;i<sorted.length;i++){
+    var x=sorted[i];
     var atRisk=!showGoal&&x.s>0&&!getSteps(x.m.id,td);
-    var bar=showGoal?"linear-gradient(90deg,#f59e0b,#fbbf24)":"linear-gradient(90deg,#f97316,#ef4444)";
-    out+="<div style='display:flex;align-items:center;gap:8px;padding:8px 12px;border-bottom:1px solid var(--bg);'>";
-    out+="<div style='font-size:"+(i<3?13:11)+"px;width:18px;text-align:center;'>"+(medals[i]||i+1)+"</div>";
-    out+=avEl(x.m,30);
-    out+="<div style='flex:1;'><div style='font-weight:700;font-size:12px;'>"+x.m.name.split(" ")[0]+(atRisk?"<span style='background:#fef2f2;color:#e03e3e;font-size:8px;font-weight:700;border-radius:3px;padding:1px 3px;margin-left:3px;'>Log today!</span>":"")+"</div>";
-    out+="<div style='background:var(--bg);border-radius:2px;height:3px;overflow:hidden;margin-top:3px;'><div style='width:"+((x.s/maxS)*100)+"%;height:100%;border-radius:2px;background:"+bar+"'></div></div></div>";
-    out+="<div style='text-align:right;'><div style='font-family:Fraunces,serif;font-size:15px;font-weight:700;color:"+(showGoal?sc:fc)+";'>"+x.s+"</div><div style='font-size:8px;color:var(--text3);'>days</div></div></div>";
-  });
-  out+="</div>";
-  return out;
+    var riskTag=atRisk?"<span style=\"background:#fef2f2;color:#e03e3e;font-size:8px;font-weight:700;border-radius:3px;padding:1px 3px;margin-left:3px;\">Log today!</span>":"";
+    rows+="<div class=\"sb-row\">";
+    rows+="<div style=\"font-size:"+(i<3?16:13)+"px;width:22px;text-align:center;"+(i>=3?"color:var(--text3)":"")+"\">"+(medals[i]||i+1)+"</div>";
+    rows+=avEl(x.m,34);
+    rows+="<div class=\"sb-bar-wrap\">";
+    rows+="<div style=\"font-weight:700;font-size:13px;\">"+x.m.name.split(" ")[0]+riskTag+"</div>";
+    rows+="<div class=\"sb-bar\"><div style=\"width:"+((x.s/maxS)*100)+"%;height:100%;background:"+bar+";border-radius:3px;\"></div></div>";
+    rows+="</div>";
+    rows+="<div style=\"text-align:right;\"><div class=\"sb-val\" style=\"color:"+(showGoal?sc:fc)+";\">"+x.s+"</div><div style=\"font-size:9px;color:var(--text3)\">days</div></div>";
+    rows+="</div>";
+  }
+
+  return "<div class='sec-lbl'>🔥 Current Streaks</div>"
+    +"<div class=\"streak-board\">"
+    +"<div style=\"display:flex;border-bottom:1px solid var(--border);margin-bottom:6px;\">"
+    +"<button onclick=\"setCrewStreak('log')\" style=\"flex:1;padding:8px;border:none;background:none;font-size:11px;font-weight:700;cursor:pointer;font-family:Outfit,sans-serif;color:"+(logActive?fc:"var(--text3)")+";border-bottom:2px solid "+(logActive?fc:"transparent")+";\">🔥 Logging</button>"
+    +"<button onclick=\"setCrewStreak('goal')\" style=\"flex:1;padding:8px;border:none;background:none;font-size:11px;font-weight:700;cursor:pointer;font-family:Outfit,sans-serif;color:"+(goalActive?sc:"var(--text3)")+";border-bottom:2px solid "+(goalActive?"var(--gold)":"transparent")+";\">⭐ Goal</button>"
+    +"</div>"
+    +rows
+    +"</div>";
 }
 
 // ── NEW: Me tab badges ────────────────────────────────────────────────────────
