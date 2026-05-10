@@ -912,7 +912,7 @@ function renderMyBox(){
   const isToday=S.logDate===todayStr();
   let action="";
   if(isEditing){
-    action=`<div class="edit-row"><input class="steps-inp" id="my-inp" type="number" value="${s||""}" placeholder="Steps…"/><button class="sv-btn" onclick="doSaveMySteps(true)" style="background:${m.color};">Share 🚀</button><button class="loc-btn" onclick="doSaveMySteps(false)">Save</button><button class="cx-btn" onclick="S.editingId=null;renderMyBox()">&times;</button></div>`;
+    action=`<div class="edit-row"><input class="steps-inp" id="my-inp" type="number" value="${s||""}" placeholder="Steps…" onfocus="var v=this.value;this.type='text';this.setSelectionRange(v.length,v.length);this.type='number';"/><button class="sv-btn" onclick="doSaveMySteps(true)" style="background:${m.color};">Share 🚀</button><button class="loc-btn" onclick="doSaveMySteps(false)">Save</button><button class="cx-btn" onclick="S.editingId=null;renderMyBox()">&times;</button></div>`;
   } else {
     action=`<div class="act-row"><button class="log-btn" onclick="S.editingId=${m.id};renderMyBox()">${s>0?"&#x270f;&#xfe0f; Update my steps":"➕ Log my steps"}</button>${needsPush&&isToday?`<button class="share-btn" onclick="doShare(${m.id})">Share 🚀</button>`:""}</div>${needsPush&&isToday?`<div class="push-hint">Crew can\'t see your latest — tap Share</div>`:""}`;
   }
@@ -1653,8 +1653,8 @@ function buildStreakBoard(){
   return "<div class='sec-lbl'>🔥 Current Streaks</div>"
     +"<div class=\"streak-board\">"
     +"<div style=\"display:flex;border-bottom:1px solid var(--border);margin-bottom:6px;\">"
-    +"<button onclick=\"setCrewStreak('log')\" style=\"flex:1;padding:8px;border:none;background:none;font-size:11px;font-weight:700;cursor:pointer;font-family:Outfit,sans-serif;color:"+(logActive?fc:"var(--text3)")+";border-bottom:2px solid "+(logActive?fc:"transparent")+";\">🔥 Logging</button>"
-    +"<button onclick=\"setCrewStreak('goal')\" style=\"flex:1;padding:8px;border:none;background:none;font-size:11px;font-weight:700;cursor:pointer;font-family:Outfit,sans-serif;color:"+(goalActive?sc:"var(--text3)")+";border-bottom:2px solid "+(goalActive?"var(--gold)":"transparent")+";\">⭐ Goal</button>"
+    +"<button onclick='setCrewStreak(\"log\")' style='flex:1;padding:8px;border:none;background:none;font-size:11px;font-weight:700;cursor:pointer;font-family:Outfit,sans-serif;color:"+(logActive?fc:"var(--text3)")+";border-bottom:2px solid "+(logActive?fc:"transparent")+";'>🔥 Logging</button>"
+    +"<button onclick='setCrewStreak(\"goal\")' style='flex:1;padding:8px;border:none;background:none;font-size:11px;font-weight:700;cursor:pointer;font-family:Outfit,sans-serif;color:"+(goalActive?sc:"var(--text3)")+";border-bottom:2px solid "+(goalActive?"var(--gold)":"transparent")+";'>⭐ Goal</button>"
     +"</div>"
     +rows
     +"</div>";
