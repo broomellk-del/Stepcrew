@@ -300,20 +300,10 @@ input:focus,select:focus{outline:none;}
     <div id="today-list"></div>
   </div>
   <div id="view-crew" class="content" style="display:none;">
-    <div style="height:8px;"></div>
-    <div style="display:flex;gap:5px;overflow-x:auto;scrollbar-width:none;margin-bottom:10px;" id="crew-time-chips"></div>
-    <div style="font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:7px;">Scoreboard</div>
-    <div style="background:#fff;border-radius:var(--r);overflow:hidden;box-shadow:var(--shadow);margin-bottom:12px;" id="crew-scoreboard"></div>
-    <div style="font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:7px;">Streaks</div>
-    <div style="background:#fff;border-radius:var(--r);overflow:hidden;box-shadow:var(--shadow);margin-bottom:12px;">
-      <div style="display:flex;border-bottom:1px solid var(--border);">
-        <button id="crew-stab-fire" onclick="switchCrewStreak('fire')" style="flex:1;padding:9px;border:none;background:none;font-size:12px;font-weight:700;cursor:pointer;font-family:Outfit,sans-serif;color:#e05c20;border-bottom:2px solid #e05c20;">🔥 Logging</button>
-        <button id="crew-stab-star" onclick="switchCrewStreak('goal')" style="flex:1;padding:9px;border:none;background:none;font-size:12px;font-weight:700;cursor:pointer;font-family:Outfit,sans-serif;color:var(--text3);border-bottom:2px solid transparent;">⭐ Goal</button>
-      </div>
-      <div id="crew-streaks-fire"></div>
-      <div id="crew-streaks-goal" style="display:none;"></div>
-    </div>
-    <button onclick="openModal('modal-add')" style="width:100%;padding:10px;border-radius:var(--r-sm);border:1.5px dashed var(--border);background:#fff;color:var(--text2);font-size:12px;font-weight:600;cursor:pointer;font-family:Outfit,sans-serif;">+ Add Member</button>
+    <div id="crew-recap-box"></div>
+    <div id="crew-badges-box"></div>
+    <div id="crew-streak-box"></div>
+    <button onclick="openModal('modal-add')" style="width:100%;padding:10px;border-radius:var(--r-sm);border:1.5px dashed var(--border);background:#fff;color:var(--text2);font-size:12px;font-weight:600;cursor:pointer;margin-top:4px;font-family:Outfit,sans-serif;">+ Add Member</button>
   </div>
 
   <div id="view-history" class="content" style="display:none;">
@@ -666,7 +656,7 @@ const CHALLENGES=[
   {id:"nozero",label:"No Zero",desc:"Everyone logs 1,000+ steps",t:1000,type:"all"},
 ];
 
-let S={myId:null,crews:[],activeCrew:null,crewData:{},view:"dashboard",editingId:null,editingModal:null,syncMode:"manual",selectedColor:COLORS[0],selectedSync:"manual",chalIdx:0,modUnlocked:false,syncInterval:null,histPeriod:"7d",histMembers:["all"],histStart:null,histEnd:null,calMonth:new Date().getMonth(),calYear:new Date().getFullYear(),profileDate:"",logDate:"",crewPeriod:"today"};
+let S={myId:null,crews:[],activeCrew:null,crewData:{},view:"dashboard",editingId:null,editingModal:null,syncMode:"manual",selectedColor:COLORS[0],selectedSync:"manual",chalIdx:0,modUnlocked:false,syncInterval:null,histPeriod:"7d",histMembers:["all"],histStart:null,histEnd:null,calMonth:new Date().getMonth(),calYear:new Date().getFullYear(),profileDate:"",logDate:""};
 
 function todayStr(){const d=new Date();return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");}
 function yesterdayStr(){const d=new Date();d.setDate(d.getDate()-1);return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");}
@@ -688,22 +678,6 @@ function getSteps(mid,dk){
   const day=cd().steps[dk]||{};
   // Try both string and numeric key
   return day[mid]||day[Number(mid)]||day[String(mid)]||0;
-}
-function calcGoalStreak(mid){
-  var m=cd().members.find(function(x){return idMatch(x.id,mid);});
-  if(!m)return 0;
-  var td=todayStr();
-  var hitToday=getSteps(mid,td)>=m.goal;
-  var st=0;
-  var d=new Date();
-  if(!hitToday)d.setDate(d.getDate()-1);
-  for(var i=0;i<365;i++){
-    var k=d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
-    if(getSteps(mid,k)>=m.goal)st++;
-    else break;
-    d.setDate(d.getDate()-1);
-  }
-  return st;
 }
 function getTotal(mid,days){return days.reduce((s,d)=>s+getSteps(mid,d),0);}
 function getAvg(mid,days){const a=days.filter(d=>getSteps(mid,d)>0);return a.length?Math.round(getTotal(mid,days)/a.length):0;}
@@ -1524,121 +1498,35 @@ S.logDate=maxDate;
 
 // ── NEW: Crew tab ─────────────────────────────────────────────────────────────
 function renderCrewTabNew(){
+  var recapBox=document.getElementById("crew-recap-box");
+  var badgesBox=document.getElementById("crew-badges-box");
+  var streakBox=document.getElementById("crew-streak-box");
+  if(!recapBox)return;
   var members=cd().members;
-  var period=S.crewPeriod||"today";
-
-  // Time chips
-  var chipsEl=document.getElementById("crew-time-chips");
-  if(chipsEl){
-    var periods=[["today","Today"],["yesterday","Yesterday"],["7d","7 Days"],["30d","30 Days"],["month","Month"]];
-    var chips="";
-    periods.forEach(function(p){
-      var active=p[0]===period;
-      var bg=active?"var(--accent)":"#fff";
-      var col=active?"#fff":"var(--text2)";
-      var border=active?"var(--accent)":"var(--border)";
-      chips+="<button onclick="S.crewPeriod='"+p[0]+"';renderCrewTabNew()" style="padding:6px 14px;border-radius:20px;border:1.5px solid "+border+";background:"+bg+";color:"+col+";font-size:11px;font-weight:600;white-space:nowrap;flex-shrink:0;cursor:pointer;font-family:Outfit,sans-serif;">"+p[1]+"</button>";
-    });
-    chipsEl.innerHTML=chips;
-  }
-
-  // Days for period
-  var days;
-  if(period==="today") days=[todayStr()];
-  else if(period==="yesterday") days=[yesterdayStr()];
-  else if(period==="7d") days=daysAgo(7);
-  else if(period==="30d") days=daysAgo(30);
-  else days=currMonthDays();
-
-  // Scoreboard
-  var board=document.getElementById("crew-scoreboard");
-  if(board && members.length){
-    var sorted=[...members].sort(function(a,b){return getTotal(b.id,days)-getTotal(a.id,days);});
-    var topSteps=getTotal(sorted[0].id,days)||1;
-    var medals=["🥇","🥈","🥉"];
-    var rows="";
-    sorted.forEach(function(m,i){
-      var tot=getTotal(m.id,days);
-      var goalDays=days.length||1;
-      var pct=Math.min(Math.round((tot/(m.goal*goalDays))*100),100);
-      var relW=Math.round((tot/topSteps)*100);
-      var isMe=idMatch(m.id,S.myId)||idMatch(m.googleUid,G.uid);
-      var logS=calcStreak(m.id);
-      var goalS=calcGoalStreak(m.id);
-      var notLogged=period==="today"&&tot===0;
-      var youTag=isMe?"<span style='background:var(--accent-bg);color:var(--accent);font-size:8px;font-weight:700;border-radius:3px;padding:1px 5px;margin-left:4px;'>YOU</span>":"";
-      var logTag=notLogged?"<span style='background:#fef2f2;color:#e03e3e;font-size:9px;font-weight:700;border-radius:3px;padding:1px 5px;margin-left:4px;'>Log!</span>":"";
-      var fireTag=logS>0?"<span style='display:inline-flex;align-items:center;gap:2px;background:#fff4ee;color:#e05c20;border:1px solid #fed7aa;border-radius:20px;padding:1px 6px;font-size:9px;font-weight:700;margin-right:3px;'>🔥 "+logS+"d</span>":"";
-      var starTag=goalS>0?"<span style='display:inline-flex;align-items:center;gap:2px;background:#fffbeb;color:#92400e;border:1px solid #fde68a;border-radius:20px;padding:1px 6px;font-size:9px;font-weight:700;'>⭐ "+goalS+"d</span>":"";
-      rows+="<div style='padding:10px 13px;border-bottom:1px solid var(--bg);"+(isMe?"border-left:3px solid var(--accent);":"")+"'>";
-      rows+="<div style='display:flex;align-items:center;gap:10px;'>";
-      rows+="<div style='font-size:"+(i<3?18:13)+"px;width:24px;text-align:center;"+(i>=3?"color:var(--text3);":"")+"'>"+(medals[i]||i+1)+"</div>";
-      rows+=avEl(m,38);
-      rows+="<div style='flex:1;'>";
-      rows+="<div style='font-size:14px;font-weight:700;'>"+m.name.split(" ")[0]+youTag+logTag+"</div>";
-      rows+="<div style='margin-top:3px;'>"+fireTag+starTag+"</div>";
-      rows+="</div>";
-      rows+="<div style='text-align:right;'><div style='font-family:Fraunces,serif;font-size:22px;font-weight:700;color:"+(pct>=100?"var(--gold)":m.color)+";line-height:1;'>"+tot.toLocaleString()+"</div><div style='font-size:10px;color:var(--text3);margin-top:2px;'>"+pct+"%</div></div>";
-      rows+="</div>";
-      rows+="<div style='background:var(--bg);border-radius:3px;height:3px;overflow:hidden;margin-top:6px;'><div style='width:"+relW+"%;height:100%;border-radius:3px;background:"+m.color+";'></div></div>";
-      rows+="</div>";
-    });
-    board.innerHTML=rows;
-  }
-
-  // Streaks - pre-render both, toggle just shows/hides
-  var fireEl=document.getElementById("crew-streaks-fire");
-  var goalEl=document.getElementById("crew-streaks-goal");
-  if(fireEl && goalEl && members.length){
-    var medals2=["🥇","🥈","🥉"];
-
-    // Fire streaks
-    var fireSorted=[...members].map(function(m){return{m:m,s:calcStreak(m.id)};}).sort(function(a,b){return b.s-a.s;});
-    var fireMax=fireSorted[0]?fireSorted[0].s:1;
-    var fireRows="";
-    fireSorted.forEach(function(x,i){
-      var atRisk=x.s>0&&!getSteps(x.m.id,todayStr());
-      var riskTag=atRisk?"<span style='background:#fef2f2;color:#e03e3e;font-size:8px;font-weight:700;border-radius:3px;padding:1px 4px;margin-left:4px;'>Log!</span>":"";
-      fireRows+="<div style='display:flex;align-items:center;gap:10px;padding:10px 13px;border-bottom:1px solid var(--bg);'>";
-      fireRows+="<div style='font-size:"+(i<3?18:13)+"px;width:24px;text-align:center;"+(i>=3?"color:var(--text3);":"")+"'>"+(medals2[i]||i+1)+"</div>";
-      fireRows+=avEl(x.m,34);
-      fireRows+="<div style='flex:1;'><div style='font-size:13px;font-weight:700;'>"+x.m.name.split(" ")[0]+riskTag+"</div>";
-      fireRows+="<div style='background:var(--bg);border-radius:3px;height:4px;overflow:hidden;margin-top:4px;'><div style='width:"+(fireMax>0?Math.round((x.s/fireMax)*100):0)+"%;height:100%;border-radius:3px;background:linear-gradient(90deg,#f97316,#ef4444);'></div></div></div>";
-      fireRows+="<div style='text-align:right;'><div style='font-family:Fraunces,serif;font-size:20px;font-weight:700;color:#e05c20;line-height:1;'>"+x.s+"</div><div style='font-size:9px;color:var(--text3);'>days</div></div>";
-      fireRows+="</div>";
-    });
-    fireEl.innerHTML=fireRows;
-
-    // Goal streaks
-    var goalSorted=[...members].map(function(m){return{m:m,s:calcGoalStreak(m.id)};}).sort(function(a,b){return b.s-a.s;});
-    var goalMax=goalSorted[0]?goalSorted[0].s:1;
-    var goalRows="";
-    goalSorted.forEach(function(x,i){
-      goalRows+="<div style='display:flex;align-items:center;gap:10px;padding:10px 13px;border-bottom:1px solid var(--bg);'>";
-      goalRows+="<div style='font-size:"+(i<3?18:13)+"px;width:24px;text-align:center;"+(i>=3?"color:var(--text3);":"")+"'>"+(medals2[i]||i+1)+"</div>";
-      goalRows+=avEl(x.m,34);
-      goalRows+="<div style='flex:1;'><div style='font-size:13px;font-weight:700;'>"+x.m.name.split(" ")[0]+"</div>";
-      goalRows+="<div style='background:var(--bg);border-radius:3px;height:4px;overflow:hidden;margin-top:4px;'><div style='width:"+(goalMax>0?Math.round((x.s/goalMax)*100):0)+"%;height:100%;border-radius:3px;background:linear-gradient(90deg,#f59e0b,#fbbf24);'></div></div></div>";
-      goalRows+="<div style='text-align:right;'><div style='font-family:Fraunces,serif;font-size:20px;font-weight:700;color:#92400e;line-height:1;'>"+x.s+"</div><div style='font-size:9px;color:var(--text3);'>days</div></div>";
-      goalRows+="</div>";
-    });
-    goalEl.innerHTML=goalRows;
-  }
+  // Reuse existing renderWeeklyRecap and renderStreakBoard
+  recapBox.innerHTML=renderWeeklyRecap(members);
+  // Badge shelf
+  var lastWeek=getWeekDays(-1);
+  var weekBadges=calcWeekBadges(members,lastWeek);
+  var bh="<div class='sec-lbl'>This Week's Badges</div><div style='background:#fff;border-radius:12px;overflow:hidden;box-shadow:var(--shadow);margin-bottom:9px;'>";
+  members.forEach(function(m){
+    var mb=weekBadges[m.id]||[];
+    var pills=mb.length?mb.map(function(b){
+      var s=b.cls==="bp-gold"?"background:#fef3c7;border-color:#fde68a;color:#92400e;":
+             b.cls==="bp-green"?"background:#f0fdf4;border-color:#86efac;color:#16a34a;":
+             b.cls==="bp-red"?"background:#fef2f2;border-color:#fecaca;color:#e03e3e;":
+             b.cls==="bp-purple"?"background:#faf5ff;border-color:#e9d5ff;color:#7c3aed;":
+             "background:#eeeeff;border-color:#c7caff;color:#5b5fc7;";
+      return "<span style='display:inline-flex;align-items:center;gap:3px;border-radius:20px;padding:2px 7px;font-size:9px;font-weight:700;margin-right:3px;border:1.5px solid transparent;"+s+"'>"+b.icon+" "+b.label+"</span>";
+    }).join(""):"<span style='font-size:10px;color:var(--text3);'>No badges yet</span>";
+    bh+="<div style='display:flex;align-items:center;gap:8px;padding:9px 13px;border-bottom:1px solid var(--bg);'>"+avEl(m,26)+"<div style='font-size:11px;font-weight:600;width:58px;flex-shrink:0;'>"+m.name.split(" ")[0]+"</div><div style='display:flex;gap:3px;flex-wrap:wrap;'>"+pills+"</div></div>";
+  });
+  bh+="</div>";
+  badgesBox.innerHTML=bh;
+  // Streak board — reuse existing function
+  var allMembers=cd().members;
+  streakBox.innerHTML="<div class='sec-lbl'>🔥 Current Streaks</div>"+renderStreakBoard(allMembers);
 }
-
-function switchCrewStreak(mode){
-  var fireEl=document.getElementById("crew-streaks-fire");
-  var goalEl=document.getElementById("crew-streaks-goal");
-  var fireTab=document.getElementById("crew-stab-fire");
-  var goalTab=document.getElementById("crew-stab-star");
-  if(!fireEl||!goalEl)return;
-  var isFire=mode==="fire";
-  fireEl.style.display=isFire?"block":"none";
-  goalEl.style.display=isFire?"none":"block";
-  if(fireTab){fireTab.style.color=isFire?"#e05c20":"var(--text3)";fireTab.style.borderBottomColor=isFire?"#e05c20":"transparent";}
-  if(goalTab){goalTab.style.color=isFire?"var(--text3)":"#92400e";goalTab.style.borderBottomColor=isFire?"transparent":"var(--gold)";}
-}
-
 
 // ── NEW: Me tab badges ────────────────────────────────────────────────────────
 function renderMeBadgesNew(){
