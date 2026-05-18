@@ -1639,19 +1639,19 @@ function buildStreakBoard(){
     var x=sorted[i];
     var atRisk=!showGoal&&x.s>0&&!getSteps(x.m.id,td);
     var riskTag=atRisk?"<span style=\"background:#fef2f2;color:#e03e3e;font-size:8px;font-weight:700;border-radius:3px;padding:1px 3px;margin-left:3px;\">Log today!</span>":"";
-    rows+="<div style='display:flex;align-items:center;gap:10px;padding:9px 16px;border-bottom:1px solid #f0f0f7;'>";
-    rows+="<div style='font-size:"+(i<3?16:13)+"px;width:22px;text-align:center;"+(i>=3?"color:#9898b8":"")+"'>"+(medals[i]||i+1)+"</div>";
+    rows+="<div class=\"sb-row\">";
+    rows+="<div style=\"font-size:"+(i<3?16:13)+"px;width:22px;text-align:center;"+(i>=3?"color:var(--text3)":"")+"\">"+(medals[i]||i+1)+"</div>";
     rows+=avEl(x.m,34);
-    rows+="<div style='flex:1;'>";
-    rows+="<div style='font-weight:700;font-size:13px;'>"+x.m.name.split(" ")[0]+riskTag+"</div>";
-    rows+="<div style='background:#f0f0f7;border-radius:3px;height:5px;overflow:hidden;margin-top:4px;'><div style='width:"+((x.s/maxS)*100)+"%;height:100%;background:"+bar+";border-radius:3px;'></div></div>";
+    rows+="<div class=\"sb-bar-wrap\">";
+    rows+="<div style=\"font-weight:700;font-size:13px;\">"+x.m.name.split(" ")[0]+riskTag+"</div>";
+    rows+="<div class=\"sb-bar\"><div style=\"width:"+((x.s/maxS)*100)+"%;height:100%;background:"+bar+";border-radius:3px;\"></div></div>";
     rows+="</div>";
-    rows+="<div style='text-align:right;'><div style='font-family:Fraunces,serif;font-size:18px;font-weight:700;color:"+(showGoal?sc:fc)+";'>"+x.s+"</div><div style='font-size:9px;color:#9898b8;'>days</div></div>";
+    rows+="<div style=\"text-align:right;\"><div class=\"sb-val\" style=\"color:"+(showGoal?sc:fc)+";\">"+x.s+"</div><div style=\"font-size:9px;color:var(--text3)\">days</div></div>";
     rows+="</div>";
   }
 
   return "<div class='sec-lbl'>🔥 Current Streaks</div>"
-    +"<div style='background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 1px 12px rgba(91,95,199,0.07);margin-bottom:12px;'>"
+    +"<div class=\"streak-board\">"
     +"<div style=\"display:flex;border-bottom:1px solid var(--border);margin-bottom:6px;\">"
     +"<button onclick='setCrewStreak(\"log\")' style='flex:1;padding:8px;border:none;background:none;font-size:11px;font-weight:700;cursor:pointer;font-family:Outfit,sans-serif;color:"+(logActive?fc:"var(--text3)")+";border-bottom:2px solid "+(logActive?fc:"transparent")+";'>🔥 Logging</button>"
     +"<button onclick='setCrewStreak(\"goal\")' style='flex:1;padding:8px;border:none;background:none;font-size:11px;font-weight:700;cursor:pointer;font-family:Outfit,sans-serif;color:"+(goalActive?sc:"var(--text3)")+";border-bottom:2px solid "+(goalActive?"var(--gold)":"transparent")+";'>⭐ Goal</button>"
@@ -1661,76 +1661,29 @@ function buildStreakBoard(){
 }
 
 // ── NEW: Me tab badges ────────────────────────────────────────────────────────
-function showBadgeInfo(icon,name,desc,earned){
-  var existing=document.getElementById("badge-info-popup");
-  if(existing)existing.remove();
-  var popup=document.createElement("div");
-  popup.id="badge-info-popup";
-  popup.style.cssText="position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:9999;display:flex;align-items:flex-end;justify-content:center;";
-  popup.innerHTML="<div style='background:#fff;border-radius:16px 16px 0 0;padding:20px;width:100%;max-width:430px;'>"
-    +"<div style='text-align:center;margin-bottom:12px;'>"
-    +"<div style='font-size:44px;margin-bottom:8px;'>"+(earned?""+icon:"<span style='filter:grayscale(1);opacity:0.4;'>"+icon+"</span>")+"</div>"
-    +"<div style='font-size:16px;font-weight:700;margin-bottom:4px;'>"+name+"</div>"
-    +"<div style='font-size:11px;color:var(--text2);line-height:1.5;margin-bottom:12px;'>"+desc+"</div>"
-    +"<div style='display:inline-block;padding:4px 14px;border-radius:20px;font-size:11px;font-weight:700;background:"+(earned?"#f0fdf4;color:#16a34a;":"#f5f5f8;color:var(--text3);")+"'>"+(earned?"✅ Earned this week":"🔒 Not yet earned")+"</div>"
-    +"</div>"
-    +"<button onclick='document.getElementById("badge-info-popup").remove()' style='width:100%;padding:12px;border-radius:var(--r-sm);border:none;background:var(--bg);color:var(--text2);font-size:13px;font-weight:600;font-family:Outfit,sans-serif;cursor:pointer;'>Close</button>"
-    +"</div>";
-  popup.onclick=function(e){if(e.target===popup)popup.remove();};
-  document.body.appendChild(popup);
-}
-
 function renderMeBadgesNew(){
   var grid=document.getElementById("me-badge-grid");
   var countEl=document.getElementById("me-badge-count");
   if(!grid)return;
   var me=myMember();
   if(!me)return;
-  var w=getWeekDays(0);
-  var pw=getWeekDays(-1);
   var BADGES=[
-    {icon:"👟",name:"Showed Up",    desc:"Logged steps at least once this week. Just open the app and log!",
-      check:function(){return w.some(function(d){return getSteps(me.id,d)>0;});}},
-    {icon:"🚶",name:"5K Day",       desc:"Hit 5,000 steps in a single day at least once this week.",
-      check:function(){return w.some(function(d){return getSteps(me.id,d)>=5000;});}},
-    {icon:"🔥",name:"On a Roll",    desc:"Logged steps 3 days in a row at any point this week.",
-      check:function(){var s=0;for(var i=0;i<w.length;i++){if(getSteps(me.id,w[i])>0){s++;if(s>=3)return true;}else s=0;}return false;}},
-    {icon:"💪",name:"Goal Getter",  desc:"Hit your personal step goal at least once this week. Even once counts!",
-      check:function(){return w.some(function(d){return getSteps(me.id,d)>=me.goal;});}},
-    {icon:"⬆️",name:"Better Than Last Week",desc:"More total steps this week than last week. Even by just one step.",
-      check:function(){return getTotal(me.id,w)>getTotal(me.id,pw)&&getTotal(me.id,w)>0;}},
-    {icon:"📅",name:"Consistent",   desc:"Logged steps 5 or more days this week.",
-      check:function(){return w.filter(function(d){return getSteps(me.id,d)>0;}).length>=5;}},
-    {icon:"🌙",name:"No Zero Week", desc:"Logged steps every single day Mon–Sun. No days skipped.",
-      check:function(){return w.every(function(d){return getSteps(me.id,d)>0;});}},
-    {icon:"🎯",name:"Goal Crusher", desc:"Most days hitting your personal goal in the crew this week.",
-      check:function(){var d=w.filter(function(d){return getSteps(me.id,d)>=me.goal;}).length;var all=cd().members.map(function(m){return w.filter(function(d){return getSteps(m.id,d)>=m.goal;}).length;});return d>0&&d===Math.max.apply(null,all);}},
-    {icon:"🎪",name:"Comeback Kid", desc:"Had a zero day then bounced back with your best day of the week the next day.",
-      check:function(){for(var i=1;i<w.length;i++){if(getSteps(me.id,w[i-1])===0&&getSteps(me.id,w[i])>0){var best=Math.max.apply(null,w.map(function(d){return getSteps(me.id,d);}));if(getSteps(me.id,w[i])===best&&best>0)return true;}}return false;}},
-    {icon:"🤝",name:"Crew Carry",   desc:"The only member to hit their goal on a day when everyone else missed.",
-      check:function(){return w.some(function(d){var h=cd().members.filter(function(m){return getSteps(m.id,d)>=m.goal;});return h.length===1&&idMatch(h[0].id,me.id);});}},
-    {icon:"📈",name:"Most Improved",desc:"Biggest percentage step increase vs last week across the whole crew.",
-      check:function(){var cur=getTotal(me.id,w),prv=getTotal(me.id,pw);if(!prv||!cur)return false;var pct=(cur-prv)/prv;var all=cd().members.map(function(m){var c=getTotal(m.id,w),p=getTotal(m.id,pw);return p>0?(c-p)/p:0;});return pct>0&&pct===Math.max.apply(null,all);}},
-    {icon:"👑",name:"Top Walker",   desc:"Most total steps in the crew this week. The weekly champion.",
-      check:function(){var t=[...cd().members].sort(function(a,b){return getTotal(b.id,w)-getTotal(a.id,w);});return t[0]&&idMatch(t[0].id,me.id)&&getTotal(me.id,w)>0;}},
-    {icon:"🌅",name:"Hot Streak",   desc:"Logged every day this week AND have a 7+ day logging streak.",
-      check:function(){return w.every(function(d){return getSteps(me.id,d)>0;})&&calcStreak(me.id)>=7;}},
-    {icon:"💎",name:"Personal Best",desc:"Your best total step week ever — beats all previous weeks.",
-      check:function(){var t=getTotal(me.id,w);if(!t)return false;for(var i=-1;i>=-8;i--)if(getTotal(me.id,getWeekDays(i))>=t)return false;return true;}},
-    {icon:"⚡",name:"10K Every Day",desc:"Hit 10,000 steps every single day this week. Elite level.",
-      check:function(){return w.every(function(d){return getSteps(me.id,d)>=10000;});}},
-    {icon:"🏆",name:"Century Club", desc:"100,000 or more steps in a single week. Hall of fame.",
-      check:function(){return getTotal(me.id,w)>=100000;}},
+    {icon:"🏃",name:"First Steps",check:function(){return Object.values(cd().steps||{}).some(function(d){return(d[me.id]||0)>0;});}},
+    {icon:"🔥",name:"7-Day Streak",check:function(){return calcStreak(me.id)>=7;}},
+    {icon:"👑",name:"Top Walker",check:function(){var w=getWeekDays(-1);var t=[...cd().members].sort(function(a,b){return getTotal(b.id,w)-getTotal(a.id,w);});return t[0]&&idMatch(t[0].id,me.id)&&getTotal(me.id,w)>0;}},
+    {icon:"🌙",name:"No Zero Week",check:function(){return getWeekDays(-1).every(function(d){return getSteps(me.id,d)>0;});}},
+    {icon:"💎",name:"Personal Best",check:function(){var w=getWeekDays(-1),t=getTotal(me.id,w);if(!t)return false;for(var i=-2;i>=-8;i--)if(getTotal(me.id,getWeekDays(i))>=t)return false;return true;}},
+    {icon:"⚡",name:"10K Every Day",check:function(){return getWeekDays(-1).every(function(d){return getSteps(me.id,d)>=10000;});}},
+    {icon:"🎯",name:"Goal Crusher",check:function(){var w=getWeekDays(-1),d=w.filter(function(d){return getSteps(me.id,d)>=me.goal;}).length;var all=cd().members.map(function(m){return w.filter(function(d){return getSteps(m.id,d)>=m.goal;}).length;});return d>0&&d===Math.max.apply(null,all);}},
+    {icon:"🌍",name:"1M Steps",check:function(){return getTotal(me.id,daysAgo(365))>=1000000;}},
   ];
   var earned=BADGES.filter(function(b){try{return b.check();}catch(e){return false;}});
   if(countEl)countEl.textContent=earned.length+" of "+BADGES.length+" earned";
   grid.innerHTML=BADGES.map(function(b){
     var e=earned.some(function(x){return x.icon===b.icon;});
-    var descEsc=b.desc.replace(/'/g,"&#39;");
-    var nameEsc=b.name.replace(/'/g,"&#39;");
-    return "<div onclick='showBadgeInfo(""+b.icon+"",""+nameEsc+"",""+descEsc+"","+e+")' style='text-align:center;cursor:pointer;"+(e?"":"opacity:0.3;filter:grayscale(0.8);")+
-      "'><div style='font-size:24px;display:block;margin-bottom:3px;'>"+b.icon+"</div>"+
-      "<div style='font-size:8px;font-weight:700;color:"+(e?"var(--text)":"var(--text3)");line-height:1.2;'>"+b.name+"</div></div>";
+    return "<div style='text-align:center;"+(e?"":"opacity:0.3;filter:grayscale(0.8);")+
+      "'><div style='font-size:22px;display:block;margin-bottom:3px;'>"+b.icon+"</div>"+
+      "<div style='font-size:8px;font-weight:700;color:var(--text2);line-height:1.2;'>"+b.name+"</div></div>";
   }).join("");
 }
 
